@@ -1,0 +1,34 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+    // Controls the rendering size of tabs in characters. Accepted values: "auto", 2, 4, 6, etc. If set to "auto", the value will be guessed when a file is opened.
+    "editor.tabSize": 4,
+    // Controls if the editor will insert spaces for tabs. Accepted values:  "auto", true, false. If set to "auto", the value will be guessed when a file is opened.
+    "editor.insertSpaces": true,
+    // Controls the font size.
+    "editor.fontSize": 14,
+    // Controls after how many characters the editor will wrap to the next line. Setting this to 0 turns on viewport width wrapping
+    "editor.wrappingColumn": 120,
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/.idea": true,
+        "**/.tmp": false,
+        "**/.test": true,
+        "**/.dist": true,
+        "**/node_modules": true,
+        "**/bower_components": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/.tmp": true,
+        "**/.test": true,
+        "**/.dist": true,
+        "**/typings": true,
+        "**/angular-material-dist": true,
+        "**/IconFont": true
+    },
+    // Format a file on save. A formatter must be available, the file must not be auto-saved, and editor must not be shutting down.
+    "editor.formatOnSave": false,
+    "typescript.check.workspaceVersion": false
+}

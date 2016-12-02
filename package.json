@@ -1,0 +1,33 @@
+{
+    "name": "editor",
+    "version": "0.1.0",
+    "description": "",
+    "main": "src/test.html",
+    "author": "Gomt",
+    "license": "MIT",
+    "dependencies": {
+        "systemjs": "~0.19.35",
+        "jquery": "~2.2.0"
+    },
+    "devDependencies": {
+        "typescript": "^2.0.3",
+        "browser-sync": "~2.11.1",
+        "browser-sync-spa": "~1.0.3",
+        "del": "~2.1.0",
+        "gulp": "^3.9.1",
+        "gulp-util": "~3.0.7",
+        "require-dir": "~0.3.0",
+        "through2": "^2.0.1",
+        "gulp-concat": "~2.6.0",
+        "gulp-rename": "~1.2.2",
+        "gulp-filter": "~3.0.1",
+        "gulp-inject": "~3.0.0",
+        "gulp-less": "~3.0.5",
+        "gulp-load-plugins": "~1.0.0",
+        "gulp-sourcemaps": "^1.6.0",
+        "gulp-typescript": "^3.0.1",
+        "gulp-replace": "0.5.4",
+        "run-sequence": "~1.1.5",
+        "clone": "~1.0.2"
+    }
+}
