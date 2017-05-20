@@ -1,11 +1,24 @@
 {
     "compilerOptions": {
-        "module": "system",
-        "target": "es5",
-        "noImplicitAny": false,
-        "sourceMap": false,
-        "out": "editor.js",
-        "outDir": ".tmp"
+        "outDir": "./.temp",
+        "sourceMap": true,
+        "declaration": false,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "baseUrl": ".",
+        "paths": {
+            "*": [
+                "*",
+                "src/*"
+            ]
+        },
+        "typeRoots": [
+            "node_modules/@types"
+        ],
+        "lib": [
+            "es2016",
+            "dom"
+        ]
     },
     "exclude": [
         "node_modules"
