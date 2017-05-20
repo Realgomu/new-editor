@@ -1,8 +1,22 @@
 @import './_variable.less';
 body {
-    font-size: @font-size;
-    flex: 1;
-    div {
-        flex: 1
+    font-size: @base-font-size;
+}
+
+* {
+    outline: none;
+}
+
+#Editor {
+    width: 600px;
+    height: 600px;
+    margin: 50px auto 0;
+    border: 1px dashed #dadada;
+    padding: 8px;
+}
+
+.editor {
+    p {
+        margin: 0;
     }
 }

@@ -5,6 +5,7 @@
         "declaration": false,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
+        "importHelpers": true,
         "baseUrl": ".",
         "paths": {
             "*": [
