@@ -1,58 +1,54 @@
 import * as Selection from './selection';
 
-export interface IAction extends Selection.ISelectionPosition {
-    name: string;
-    useCommand?: boolean;
-}
+export class Actions implements EE.IActions {
+    private _queue: EE.IActionStep[] = [];
+    private _point: number = -1;
+    private _max = 20;
+    constructor(private editor: EE.IEditor) {
 
-const queue: IAction[] = [];
-let point: number = -1;
-const max = 20;
-
-export function AddAction(action: IAction) {
-    queue.push(action);
-}
-
-export function DoCommandAction(name: string, pos?: Selection.ISelectionPosition) {
-    if (!pos) pos = Selection.Current()
-    let action: IAction = {
-        name: name,
-        useCommand: true,
-        rowid: pos.rowid,
-        start: pos.start,
-        end: pos.end
-    };
-    document.execCommand(name);
-    queue.push(action);
-    point++;
-}
-
-function push(action: IAction) {
-    if (queue.length >= max) {
-        queue.shift();
-        point--;
     }
-    
-}
 
-export function redo() {
-    if (queue.length <= point + 1) {
-        return;
+    doCommandAction(name: string, pos?: EE.ISelectionPosition) {
+        if (!pos) pos = this.editor.selection.lastPos;
+        let action: EE.IActionStep = {
+            name: name,
+            useCommand: true,
+            rowid: pos.rowid,
+            start: pos.start,
+            end: pos.end
+        };
+        this.editor.ownerDoc.execCommand(name);
+        this._push(action);
     }
-    point++;
-    let next = queue[point];
-    if (next && next.useCommand) {
-        document.execCommand('redo');
-    }
-}
 
-export function undo() {
-    if (point < 0) {
-        return;
+    private _push(action: EE.IActionStep) {
+        if (this._queue.length >= this._max) {
+            this._queue.shift();
+            this._point--;
+        }
+        this._queue.push(action);
+        this._point++;
     }
-    let last = queue[point];
-    point--;
-    if (last && last.useCommand) {
-        document.execCommand('undo');
+
+    redo() {
+        if (this._queue.length <= this._point + 1) {
+            return;
+        }
+        this._point++;
+        let next = this._queue[this._point];
+        if (next && next.useCommand) {
+            this.editor.ownerDoc.execCommand('redo');
+        }
+    }
+
+    undo() {
+        if (this._point < 0) {
+            return;
+        }
+        let last = this._queue[this._point];
+        this._point--;
+        if (last && last.useCommand) {
+            this.editor.ownerDoc.execCommand('undo');
+        }
     }
 }

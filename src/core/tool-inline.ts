@@ -1,11 +1,9 @@
-import { IEditorTool, IActionTool } from './tool';
-
-export abstract class InlineTool implements IEditorTool {
+export abstract class InlineTool implements EE.IInlineTool {
     readonly type: EE.ToolType;
+    readonly token: string;
     abstract tagNames: string[];
 
-    constructor(type: EE.ToolType) {
-        this.type = type;
+    constructor(protected editor: EE.IEditor) {
     }
 
     getData(el: Element, start: number): EE.IInline {

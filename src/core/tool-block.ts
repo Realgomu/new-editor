@@ -1,14 +1,13 @@
-import { IEditorTool, IActionTool } from './tool';
 import * as Tool from './tool';
 import * as Util from './util';
 import * as Selection from './selection';
 
-export abstract class BlockTool implements IEditorTool {
+export abstract class BlockTool implements EE.IBlockTool {
     readonly type: EE.ToolType;
+    readonly token: string;
     abstract tagNames: string[];
 
-    constructor(type: EE.ToolType) {
-        this.type = type;
+    constructor(protected editor: EE.IEditor) {
     }
 
     getInlines(el: Element): EE.InlineMap {
@@ -16,7 +15,7 @@ export abstract class BlockTool implements IEditorTool {
         Util.NodeTreeWalker(
             el,
             (pos, child: Element) => {
-                let tool = Tool.MatchInlineTool(child);
+                let tool = this.editor.tools.matchInlineTool(child);
                 if (tool) {
                     let list = map[tool.type];
                     if (!list) list = map[tool.type] = [];
@@ -30,7 +29,7 @@ export abstract class BlockTool implements IEditorTool {
     getData(el: Element): EE.IBlock {
         let id = el.getAttribute('data-row-id');
         let block: EE.IBlock = {
-            rowid: id || Util.randomID(),
+            rowid: id || Util.RandomID(),
             type: this.type,
             text: el.textContent,
             inlines: this.getInlines(el)
@@ -39,16 +38,16 @@ export abstract class BlockTool implements IEditorTool {
     }
 
     protected $ChangeBlock() {
-        let pos = Selection.Current();
+        let pos = this.editor.selection.lastPos;
         if (pos.focusParent) {
-            let current = Util.findBlockParent(pos.focusParent);
-            if (!Tool.Match(this, current)) {
+            let current = Util.FindBlockParent(pos.focusParent);
+            if (!Tool.ElementTagCheck(this, current)) {
                 let rowid = current.getAttribute('data-row-id');
-                let newNode = document.createElement(this.tagNames[0]);
+                let newNode = this.editor.ownerDoc.createElement(this.tagNames[0]);
                 newNode.setAttribute('data-row-id', rowid);
                 newNode.innerHTML = current.innerHTML;
                 current.parentElement.replaceChild(newNode, current);
-                Selection.RestoreCursor(newNode);
+                this.editor.selection.restoreCursor(newNode);
             }
         }
     }

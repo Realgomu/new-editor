@@ -1,19 +1,22 @@
-import * as Tool from '../core/tool';
+import * as Tool from 'core/tool';
 import * as Action from 'core/action';
 
-@Tool.EditorTool('bold')
-export default class Bold extends Tool.InlineTool implements Tool.IActionTool {
+@Tool.EditorTool({
+    token: 'bold',
+    type: EE.ToolType.Bold
+})
+export default class Bold extends Tool.InlineTool implements EE.IActionTool {
     tagNames = ['b', 'strong'];
     action = 'bold';
     useCommand = true;
 
-    constructor() {
-        super(EE.ToolType.Bold);
+    constructor(editor: EE.IEditor) {
+        super(editor);
     }
 
     redo() {
         if (this.useCommand && this.action) {
-            Action.DoCommandAction(this.action)
+            this.editor.actions.doCommandAction(this.action);
         }
     }
 

@@ -1,7 +1,7 @@
 
 
 /** 获取指定长度的随机ID */
-export function randomID(lenght: number = 6) {
+export function RandomID(lenght: number = 6) {
     let key = 'abcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
     for (let i = 0; i < lenght; i++) {
@@ -33,7 +33,7 @@ export function NodeTreeWalker(root: Element, func: (start: number, current: Ele
     }
 }
 
-export function findParend(current: Node, match: (node: Element) => boolean) {
+export function FindParend(current: Node, match: (node: Element) => boolean) {
     if (!match) {
         match = (node: Element) => {
             return node.hasAttribute('contenteditable');
@@ -55,14 +55,53 @@ export function findParend(current: Node, match: (node: Element) => boolean) {
     return target;
 }
 
-export function findElementParent(current: Node) {
-    return findParend(current, (node) => {
+export function FindElementParent(current: Node) {
+    return FindParend(current, (node) => {
         return node.nodeType === 1;
     }) as Element;
 }
 
-export function findBlockParent(current: Node) {
-    return findParend(current, (node) => {
+export function FindBlockParent(current: Node) {
+    return FindParend(current, (node) => {
         return node.nodeType === 1 && (<Element>node).hasAttribute('data-row-id');
     }) as Element;
+}
+
+// http://stackoverflow.com/a/11752084/569101
+const isMac = (window.navigator.platform.toUpperCase().indexOf('MAC') >= 0);
+
+export function IsKey(event: KeyboardEvent, code: number | number[], metaCtrl: boolean = false) {
+    let key = GetKeyCode(event);
+    let same = false;
+    if (code instanceof Array) {
+        same = code.indexOf(key) >= 0;
+    }
+    else {
+        same = code === key;
+    }
+    if (metaCtrl) {
+        return IsMetaCtrlKey(event) && same;
+    }
+    else {
+        return same;
+    }
+}
+
+export function IsMetaCtrlKey(event: KeyboardEvent) {
+    if ((isMac && event.metaKey) || (!isMac && event.ctrlKey)) {
+        return true;
+    }
+
+    return false;
+}
+
+export function GetKeyCode(event: KeyboardEvent) {
+    var keyCode = event.which;
+
+    // getting the key code from event
+    if (null === keyCode) {
+        keyCode = event.charCode !== null ? event.charCode : event.keyCode;
+    }
+
+    return keyCode;
 }

@@ -1,19 +1,19 @@
 /// <reference path="index.d.ts" />
 
-import * as Editor from './editor/index';
+import { Editor } from 'core/editor';
 
 import './styles/index.less';
 
 $(() => {
     let el = document.querySelector('#Editor');
 
-    Editor.init(el);
+    let editor = new Editor(el);
     $('#GET').click(() => {
-        console.log(Editor.getData());
+        console.log(editor.getData());
     })
-    $('.action').click(function() {
+    $('.action').click(function () {
         let $btn = $(this);
         let action = $btn.attr('role');
-        Editor.excuCommand(action);
+        editor.excuCommand(action);
     })
 })

@@ -1,94 +1,89 @@
-import { InlineTool } from './tool-inline';
-import { BlockTool } from './tool-block';
+import { Editor } from './editor';
 
 export { InlineTool } from './tool-inline';
 export { BlockTool } from './tool-block';
 
-const toolCache: {
-    [token: string]: IEditorTool;
+const _toolFactory: {
+    [token: string]: EE.IToolConstructor;
 } = {};
 
-/** 注册tool */
-export function register(funcList: any[]) {
-    funcList.forEach((ctrl: IToolFunction) => {
-        try {
-            let token = ctrl.prototype.__token__;
-            let tool = new ctrl();
-            if (!toolCache[token]) {
-                toolCache[token] = tool;
+export function EditorTool(options: {
+    token: string;
+    type: EE.ToolType;
+}) {
+    return function (ctrl: EE.IToolConstructor) {
+        ctrl.prototype.token = options.token;
+        ctrl.prototype.type = options.type;
+        if (_toolFactory[options.token]) {
+            throw new Error(`repeated editor tool [${options.token}]!`);
+        }
+        else {
+            _toolFactory[options.token] = ctrl;
+        }
+    }
+}
+
+export class Tools implements EE.ITools {
+    private _toolCache: EE.EditorToolMap = {};
+
+    constructor(private editor: EE.IEditor) {
+        this._initOptions(editor.options.tools);
+    }
+
+    private _initOptions(token: 'all' | string[]) {
+        if (typeof token === 'string' && token === 'all') {
+            for (let key in _toolFactory) {
+                this._toolCache[key] = new _toolFactory[key](this.editor);
             }
         }
-        catch (ex) {
-            throw new Error(`register ${ctrl} error!`);
-        }
-    });
-}
-
-/** 根据element的tag匹配相对应的inline tool */
-export function MatchInlineTool(el: Element) {
-    let tagName = el.tagName.toLowerCase();
-    for (let key in toolCache) {
-        let tool = toolCache[key];
-        if (tool.type > 0 && tool.type < 100 && Match(tool, el)) {
-            return tool as InlineTool;
-        }
-    }
-    return undefined;
-}
-
-/** 根据element的tag匹配相对应的block tool */
-export function MatchBlockTool(el: Element) {
-    let tagName = el.tagName.toLowerCase();
-    for (let key in toolCache) {
-        let tool = toolCache[key];
-        if (tool.type >= 100 && tool.type < 1000 && Match(tool, el)) {
-            return tool as BlockTool;
+        else {
+            token.forEach(key => {
+                let ctrl = _toolFactory[key];
+                if (ctrl) {
+                    try {
+                        if (!this._toolCache[key]) {
+                            this._toolCache[key] = new ctrl(this.editor);
+                        }
+                    }
+                    catch (ex) {
+                        console.warn(`init editor tool [${ctrl.prototype.token}] error !`);
+                    }
+                }
+            });
         }
     }
-    return undefined;
+
+    private _match(func: (tool: EE.IEditorTool) => boolean) {
+        for (let key in this._toolCache) {
+            let tool = this._toolCache[key];
+            if (func && func(tool)) {
+                return tool;
+            }
+        }
+    }
+
+    /** 根据element的tag匹配相对应的inline tool */
+    matchInlineTool(el: Element) {
+        return this._match((tool) => {
+            return tool.type >= 10 && tool.type < 100 && ElementTagCheck(tool, el);
+        }) as EE.IInlineTool;
+    }
+
+    /** 根据element的tag匹配相对应的block tool */
+    matchBlockTool(el: Element) {
+        return this._match((tool) => {
+            return tool.type >= 100 && tool.type < 1000 && ElementTagCheck(tool, el);
+        }) as EE.IBlockTool;
+    }
+
+    /** 根据token匹配对应的command tool */
+    matchActionTool(name: string) {
+        return this._match((tool: EE.IActionTool) => {
+            return tool.action && tool.action === name;
+        }) as EE.IActionTool;
+    }
 }
 
-/** 根据element匹配对应的tool */
-export function Match(tool: IEditorTool, el: Element) {
+export function ElementTagCheck(tool: EE.IEditorTool, el: Element) {
     return tool.tagNames.indexOf(el.tagName.toLowerCase()) >= 0;
-}
-
-/** 根据token匹配对应的command tool */
-export function matchActionTool(name: string) {
-    for (let key in toolCache) {
-        let tool = toolCache[key] as IActionTool;
-        if (tool.action && tool.action === name) {
-            return tool;
-        }
-    }
-}
-
-interface IToolFunction extends Function {
-    new (...args: any[]): IEditorTool;
-    prototype: {
-        [key: string]: any;
-        '__token__'?: string;
-    }
-}
-
-export function EditorTool(token: string) {
-    return function (ctrl: IToolFunction) {
-        ctrl.prototype['__token__'] = token;
-    }
-}
-
-type EditorToolConstructor = {
-    new (...args: any[]): IEditorTool;
-}
-
-export interface IEditorTool {
-    readonly type: EE.ToolType;
-    tagNames: string[];
-}
-
-export interface IActionTool extends IEditorTool {
-    action: string;
-    useCommand?: boolean;
-    redo: Function;
-    undo: Function;
 }

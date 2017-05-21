@@ -1,12 +1,15 @@
 import * as Tool from 'core/tool';
 import * as Util from 'core/util';
 
-@Tool.EditorTool('paragraph')
-export default class Paragraph extends Tool.BlockTool implements Tool.IActionTool {
+@Tool.EditorTool({
+    token: 'paragraph',
+    type: EE.ToolType.Paragraph
+})
+export default class Paragraph extends Tool.BlockTool implements EE.IActionTool {
     tagNames = ['p'];
     action = 'paragraph';
-    constructor() {
-        super(EE.ToolType.Paragraph);
+    constructor(editor: EE.IEditor) {
+        super(editor);
     }
 
     redo() {

@@ -1,12 +1,15 @@
 import * as Tool from 'core/tool';
 import * as Util from 'core/util';
 
-@Tool.EditorTool('pre')
-export default class Pre extends Tool.BlockTool implements Tool.IActionTool {
+@Tool.EditorTool({
+    token: 'pre',
+    type: EE.ToolType.Pre
+})
+export default class Pre extends Tool.BlockTool implements EE.IActionTool {
     tagNames = ['pre'];
     action = 'pre';
-    constructor() {
-        super(EE.ToolType.Pre);
+    constructor(editor: EE.IEditor) {
+        super(editor);
     }
 
     redo() {
