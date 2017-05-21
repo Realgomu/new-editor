@@ -5,7 +5,7 @@ import * as Tool from '../core/tool';
     type: EE.ToolType.Underline
 })
 export default class Underline extends Tool.InlineTool {
-    tagNames = ['u'];
+    selectors = ['u'];
     action = 'underline';
     useDocCommand = true;
     

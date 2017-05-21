@@ -1,12 +1,12 @@
 import * as Tool from 'core/tool';
 
 @Tool.EditorTool({
-    token: 'br',
-    type: EE.ToolType.Br
+    token: 'link',
+    type: EE.ToolType.Link
 })
-export default class Break extends Tool.InlineTool implements EE.IActionTool {
-    selectors = ['br'];
-    action = 'br';
+export default class Link extends Tool.InlineTool implements EE.IActionTool {
+    selectors = ['a'];
+    action = 'link';
 
     constructor(editor: EE.IEditor) {
         super(editor);

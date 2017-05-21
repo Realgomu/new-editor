@@ -8,6 +8,7 @@ import './polyfill';
 
 //tools
 import 'tools/break';
+import 'tools/link';
 import 'tools/blod';
 import 'tools/italic';
 import 'tools/underline';
@@ -85,12 +86,10 @@ export class Editor implements EE.IEditor {
             if (Util.IsKey(ev, EE.KeyCode.Z, true)) {
                 this.actions.undo();
                 ev.preventDefault();
-                ev.stopPropagation();
             }
             else if (Util.IsKey(ev, EE.KeyCode.Y, true)) {
                 this.actions.redo();
                 ev.preventDefault();
-                ev.stopPropagation();
             }
         });
         this.rootEl.addEventListener('input', (ev) => {
@@ -134,6 +133,14 @@ export class Editor implements EE.IEditor {
             }
         }
         return data;
+    }
+
+    loadData(data: EE.IBlock[]) {
+        this.rootEl.innerHTML = '';
+        let list = data.forEach(block => {
+            let tool = this.tools.matchToken(block.token) as EE.IBlockTool;
+            this.rootEl.appendChild(Util.createElementByRenderTree(this.ownerDoc, tool.render(block), block.text));
+        });
     }
 
     excuCommand(token: string, ...args: any[]) {

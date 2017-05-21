@@ -5,14 +5,14 @@ import * as Tool from 'core/tool';
     type: EE.ToolType.Paragraph
 })
 export default class Paragraph extends Tool.BlockTool implements EE.IActionTool {
-    tagNames = ['p'];
+    selectors = ['p'];
     action = 'paragraph';
     constructor(editor: EE.IEditor) {
         super(editor);
     }
 
     redo() {
-        this.$ChangeBlock();
+        this.$changeBlock();
     }
 
     undo() {

@@ -30,7 +30,7 @@ interface Array<T> {
 
 //extend Array findIndex func
 if (!Array.prototype.findIndex) {
-    Array.prototype.findIndex = function(predicate) {
+    Array.prototype.findIndex = function (predicate) {
         if (this === null) {
             throw new TypeError('Array.prototype.findIndex called on null or undefined');
         }
@@ -54,7 +54,7 @@ if (!Array.prototype.findIndex) {
 
 //extend Array find func
 if (!Array.prototype.find) {
-    Array.prototype.find = function(predicate) {
+    Array.prototype.find = function (predicate) {
         if (this === null) {
             throw new TypeError('Array.prototype.find called on null or undefined');
         }

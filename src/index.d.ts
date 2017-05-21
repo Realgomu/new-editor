@@ -32,14 +32,14 @@ declare module EnrichEditor {
         None = 0,
         Br = 1,
         //inline
-        Bold = 10,
-        Italic,
-        Underline,
-        StrikeThrough,
-        Super,
-        Sub,
+        Super = 20,
+        Sub = 21,
+        StrikeThrough = 30,
+        Underline = 31,
+        Italic = 40,
+        Bold = 50,
         //inline block
-        Link = 99,
+        Link = 90,
         //block
         Paragraph = 100,
         Header,
@@ -76,6 +76,20 @@ declare module EnrichEditor {
         data?: any;
     }
 
+    //element render
+    interface IRenderNode {
+        start: number;
+        end: number;
+        tag: string;
+        attr?: IAttributeMap;
+        children: IRenderNode[];
+    }
+
+    interface IAttributeMap {
+        [name: string]: string
+    }
+
+    //key code
     const enum KeyCode {
         BACKSPACE = 8,
         TAB = 9,
@@ -100,6 +114,8 @@ declare module EnrichEditor {
         matchBlockTool(el: Element): IBlockTool;
         matchActionTool(name: string): IActionTool;
         matchToken(token: string): IEditorTool;
+        getInlineTools(): IInlineTool[];
+        getBlockTools(): IBlockTool[];
     }
 
     interface IToolConstructor extends Function {
@@ -113,7 +129,7 @@ declare module EnrichEditor {
     interface IEditorTool {
         readonly type: EE.ToolType;
         readonly token: string;
-        tagNames: string[];
+        selectors: string[];
     }
 
     type EditorToolMap = {
@@ -128,13 +144,15 @@ declare module EnrichEditor {
     }
 
     interface IInlineTool extends IEditorTool {
-        tagNames: string[];
+        selectors: string[];
         getData(el: Element, start: number): EE.IInline;
+        render(data: EE.IInline): IRenderNode;
     }
 
     interface IBlockTool extends IEditorTool {
-        tagNames: string[];
+        selectors: string[];
         getData(el: Element): EE.IBlock;
+        render(data: EE.IBlock): IRenderNode;
     }
 
     //selection 

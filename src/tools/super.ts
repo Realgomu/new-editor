@@ -5,7 +5,7 @@ import * as Tool from 'core/tool';
     type: EE.ToolType.Super
 })
 export default class Sup extends Tool.InlineTool implements EE.IActionTool {
-    tagNames = ['sup'];
+    selectors = ['sup'];
     action = 'superscript';
     useCommand = true;
 

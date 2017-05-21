@@ -6,7 +6,7 @@ import * as Util from 'core/util';
     type: EE.ToolType.Header
 })
 export default class Paragraph extends Tool.BlockTool implements EE.IActionTool {
-    tagNames = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+    selectors = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
     action = 'header';
     constructor(editor: EE.IEditor) {
         super(editor);
@@ -21,7 +21,7 @@ export default class Paragraph extends Tool.BlockTool implements EE.IActionTool 
 
     redo(level: number) {
         let tag = 'h' + level;
-        this.$ChangeBlock(tag);
+        this.$changeBlock(tag);
     }
 
     undo() {

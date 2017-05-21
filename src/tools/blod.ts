@@ -5,7 +5,7 @@ import * as Tool from 'core/tool';
     type: EE.ToolType.Bold
 })
 export default class Bold extends Tool.InlineTool implements EE.IActionTool {
-    tagNames = ['b', 'strong'];
+    selectors = ['b', 'strong'];
     action = 'bold';
     useCommand = true;
 

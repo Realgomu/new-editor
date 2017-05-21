@@ -5,7 +5,7 @@ import * as Tool from 'core/tool';
     type: EE.ToolType.Italic
 })
 export default class Italic extends Tool.InlineTool implements EE.IActionTool {
-    tagNames = ['i', 'em'];
+    selectors = ['i', 'em'];
     action = 'italic';
     useCommand = true;
 

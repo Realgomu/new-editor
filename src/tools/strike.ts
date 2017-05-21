@@ -5,7 +5,7 @@ import * as Tool from 'core/tool';
     type: EE.ToolType.StrikeThrough
 })
 export default class Strike extends Tool.InlineTool implements EE.IActionTool {
-    tagNames = ['s'];
+    selectors = ['s'];
     action = 'strikethrough';
     useCommand = true;
 

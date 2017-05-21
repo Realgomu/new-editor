@@ -24,7 +24,7 @@ export function EditorTool(options: {
 }
 
 export class Tools implements EE.ITools {
-    private _toolCache: EE.EditorToolMap = {};
+    private _toolCache: EE.IEditorTool[] = [];
 
     constructor(private editor: EE.IEditor) {
         this._initOptions(editor.options.tools);
@@ -33,7 +33,7 @@ export class Tools implements EE.ITools {
     private _initOptions(token: 'all' | string[]) {
         if (typeof token === 'string' && token === 'all') {
             for (let key in _toolFactory) {
-                this._toolCache[key] = new _toolFactory[key](this.editor);
+                this._toolCache.push(new _toolFactory[key](this.editor));
             }
         }
         else {
@@ -42,7 +42,7 @@ export class Tools implements EE.ITools {
                 if (ctrl) {
                     try {
                         if (!this._toolCache[key]) {
-                            this._toolCache[key] = new ctrl(this.editor);
+                            this._toolCache.push(new ctrl(this.editor));
                         }
                     }
                     catch (ex) {
@@ -51,13 +51,13 @@ export class Tools implements EE.ITools {
                 }
             });
         }
+        this._toolCache.sort((a, b) => b.type - a.type);
     }
 
     private _match(func: (tool: EE.IEditorTool) => boolean) {
-        for (let key in this._toolCache) {
-            let tool = this._toolCache[key];
-            if (func && func(tool)) {
-                return tool;
+        for (let item of this._toolCache) {
+            if (func && func(item)) {
+                return item;
             }
         }
     }
@@ -84,10 +84,20 @@ export class Tools implements EE.ITools {
     }
 
     matchToken(token: string) {
-        return this._toolCache[token];
+        return this._match((tool) => {
+            return tool.token === token;
+        });
+    }
+
+    getInlineTools() {
+        return this._toolCache.filter(t => t.type < 100) as EE.IInlineTool[];
+    }
+
+    getBlockTools() {
+        return this._toolCache.filter(t => t.type >= 100) as EE.IBlockTool[];
     }
 }
 
 export function ElementTagCheck(tool: EE.IEditorTool, el: Element) {
-    return tool.tagNames.indexOf(el.tagName.toLowerCase()) >= 0;
+    return tool.selectors.indexOf(el.tagName.toLowerCase()) >= 0;
 }

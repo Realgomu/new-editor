@@ -5,7 +5,7 @@ import * as Selection from './selection';
 export abstract class BlockTool implements EE.IBlockTool {
     readonly type: EE.ToolType;
     readonly token: string;
-    abstract tagNames: string[];
+    abstract selectors: string[];
 
     constructor(protected editor: EE.IEditor) {
     }
@@ -17,9 +17,8 @@ export abstract class BlockTool implements EE.IBlockTool {
             (pos, child: Element) => {
                 let tool = this.editor.tools.matchInlineTool(child);
                 if (tool) {
-                    let list = map[tool.token];
-                    if (!list) list = map[tool.token] = [];
-                    list.push(tool.getData(child, pos));
+                    if (!map[tool.token]) map[tool.token] = [];
+                    map[tool.token] = MergeInlines(map[tool.token], tool.getData(child, pos));
                 }
             });
         return map;
@@ -41,7 +40,7 @@ export abstract class BlockTool implements EE.IBlockTool {
         return block;
     }
 
-    protected $ChangeBlock(tag: string = this.tagNames[0]) {
+    protected $changeBlock(tag: string = this.selectors[0]) {
         let pos = this.editor.selection.lastPos;
         if (pos.rowid) {
             let old = this.editor.ownerDoc.querySelector(`[data-row-id="${pos.rowid}"]`);
@@ -55,4 +54,52 @@ export abstract class BlockTool implements EE.IBlockTool {
             }
         }
     }
+
+    protected $renderBlock(root: EE.IRenderNode, data: EE.IBlock) {
+        //inline 数据按照优先级从高到底进行插入
+        this.editor.tools.getInlineTools().forEach(tool => {
+            let map = data.inlines[tool.token];
+            if (map) {
+                map.forEach(item => {
+                    Util.InsertRenderTree(root, tool.render(item));
+                })
+            }
+        });
+        return root;
+    }
+
+    render(data: EE.IBlock) {
+        let end = data.text.length - 1;
+        let root: EE.IRenderNode = {
+            tag: this.selectors[0],
+            start: 0,
+            end: end,
+            children: [{ tag: '', start: 0, end: end, children: [] }],
+            attr: {
+                'data-row-id': data.rowid
+            }
+        }
+        return this.$renderBlock(root, data);
+    }
+}
+
+//合并inline对象
+function MergeInlines(list: EE.IInline[], add: EE.IInline) {
+    let newList: EE.IInline[] = [];
+    newList.push(add);
+    list.forEach(item => {
+        let merge = newList.find(p => (p.start === item.end - 1) || (p.end === item.start + 1));
+        if (merge) {
+            if (merge.start === item.end - 1) {
+                merge.start = item.start;
+            }
+            else if (merge.end === item.start + 1) {
+                merge.end = item.end;
+            }
+        }
+        else {
+            newList.push(item);
+        }
+    });
+    return newList;
 }

@@ -5,7 +5,7 @@ import * as Tool from 'core/tool';
     type: EE.ToolType.Sub
 })
 export default class Sub extends Tool.InlineTool implements EE.IActionTool {
-    tagNames = ['sub'];
+    selectors = ['sub'];
     action = 'subscript';
     useCommand = true;
 

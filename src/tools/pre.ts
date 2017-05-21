@@ -5,14 +5,14 @@ import * as Tool from 'core/tool';
     type: EE.ToolType.Pre
 })
 export default class Pre extends Tool.BlockTool implements EE.IActionTool {
-    tagNames = ['pre'];
+    selectors = ['pre'];
     action = 'pre';
     constructor(editor: EE.IEditor) {
         super(editor);
     }
 
     redo() {
-        this.$ChangeBlock();
+        this.$changeBlock();
     }
 
     undo() {
