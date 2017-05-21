@@ -51,25 +51,37 @@ export class Selection implements EE.ISelection {
     }
 
     restoreCursor(block?: Element) {
-        if (this.lastPos) {
-            if (!block) block = this.editor.ownerDoc.querySelector(`[data-row-id="${this.lastPos.rowid}"]`);
-            let selection = this.editor.ownerDoc.getSelection();
-            if (block && selection) {
-                selection.removeAllRanges();
-                let range = this.editor.ownerDoc.createRange();
-                Util.NodeTreeWalker(
-                    block,
-                    (start, current, end) => {
-                        if (start <= this.lastPos.start && this.lastPos.start < end) {
-                            range.setStart(current, this.lastPos.start - start);
-                        }
-                        if (start <= this.lastPos.end && this.lastPos.end < end) {
-                            range.setEnd(current, this.lastPos.end - start);
-                        }
-                    },
-                    true
-                )
-                selection.addRange(range);
+        let selection = this.editor.ownerDoc.getSelection();
+        if (selection) {
+            selection.removeAllRanges();
+            let range = this.editor.ownerDoc.createRange();
+            if (this.lastPos) {
+                if (!block) block = this.editor.ownerDoc.querySelector(`[data-row-id="${this.lastPos.rowid}"]`);
+                if (block) {
+                    Util.NodeTreeWalker(
+                        block,
+                        (start, current, end) => {
+                            if (start <= this.lastPos.start && this.lastPos.start < end) {
+                                range.setStart(current, this.lastPos.start - start);
+                            }
+                            if (start <= this.lastPos.end && this.lastPos.end < end) {
+                                range.setEnd(current, this.lastPos.end - start);
+                            }
+                        },
+                        true
+                    );
+                    selection.addRange(range);
+                }
+            }
+            else {
+                //如果上个光标记录点不存在，则将光标定位到文章末尾
+                let lastEl = this.editor.rootEl.lastElementChild;
+                let lastNode = lastEl.lastChild;
+                if (lastNode) {
+                    range.setStart(lastNode, lastNode.textContent.length);
+                    range.setEnd(lastNode, lastNode.textContent.length);
+                    selection.addRange(range);
+                }
             }
         }
     }

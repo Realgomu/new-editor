@@ -16,8 +16,8 @@ export class Editor implements EE.IEditor {
     actions: Actions;
 
     ownerDoc: Document = document;
-    rootEl: Element;
-    constructor(el: Element, options?: EE.IEditorOptions) {
+    rootEl: HTMLElement;
+    constructor(el: HTMLElement, options?: EE.IEditorOptions) {
         let defaultOptions: EE.IEditorOptions = {
             tools: 'all'
         };
@@ -32,6 +32,11 @@ export class Editor implements EE.IEditor {
 
         //init events
         this._initEvents();
+
+        setTimeout(() => {
+            this.rootEl.click();
+            this.selection.restoreCursor();
+        }, 300)
     }
 
     private _initEvents() {
@@ -44,6 +49,11 @@ export class Editor implements EE.IEditor {
             }
         });
         this.rootEl.addEventListener('mouseup', (ev) => {
+            setTimeout(() => {
+                this._cursorMoved();
+            });
+        });
+        this.rootEl.addEventListener('touchend', (ev) => {
             this._cursorMoved();
         });
         this.rootEl.addEventListener('keydown', (ev: KeyboardEvent) => {
@@ -71,14 +81,16 @@ export class Editor implements EE.IEditor {
             isComposition = false;
             console.log('input ev');
         });
+        this.rootEl.addEventListener('focus', (ev) => {
+            console.log('focus');
+        })
         this._checkEmpty();
     }
 
     private _checkEmpty() {
-        if (this.rootEl.innerHTML == '') {
-            this.rootEl.innerHTML = '<p><br></p>';
+        if (this.rootEl.outerText == '' || this.rootEl.childNodes.length === 0) {
+            this.rootEl.innerHTML = `<p data-row-id="${Util.RandomID()}"><br></p>`;
         }
-
     }
 
     private _cursorMoved() {

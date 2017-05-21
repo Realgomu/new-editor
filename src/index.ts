@@ -7,7 +7,7 @@ import './styles/index.less';
 $(() => {
     let el = document.querySelector('#Editor');
 
-    let editor = new Editor(el);
+    let editor = new Editor(el as HTMLElement);
     $('#GET').click(() => {
         console.log(editor.getData());
     })

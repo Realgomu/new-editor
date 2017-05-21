@@ -17,11 +17,10 @@ export abstract class BlockTool implements EE.IBlockTool {
             (pos, child: Element) => {
                 let tool = this.editor.tools.matchInlineTool(child);
                 if (tool) {
-                    let list = map[tool.type];
-                    if (!list) list = map[tool.type] = [];
+                    let list = map[tool.token];
+                    if (!list) list = map[tool.token] = [];
                     list.push(tool.getData(child, pos));
                 }
-                console.log(pos, child);
             });
         return map;
     }
@@ -30,6 +29,7 @@ export abstract class BlockTool implements EE.IBlockTool {
         let id = el.getAttribute('data-row-id');
         let block: EE.IBlock = {
             rowid: id || Util.RandomID(),
+            token: this.token,  
             type: this.type,
             text: el.textContent,
             inlines: this.getInlines(el)

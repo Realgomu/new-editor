@@ -57,6 +57,7 @@ declare module EnrichEditor {
 
     interface IBlock {
         rowid: string;
+        token: string;
         type: ToolType;
         text: string;
         inlines: InlineMap;
@@ -65,7 +66,7 @@ declare module EnrichEditor {
     }
 
     type InlineMap = {
-        [type: number]: IInline[]
+        [token: string]: IInline[]
     };
 
     interface IInline {
