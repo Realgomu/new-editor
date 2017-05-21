@@ -1,12 +1,12 @@
 import * as Tool from 'core/tool';
 
 @Tool.EditorTool({
-    token: 'bold',
-    type: EE.ToolType.Bold
+    token: 'sub',
+    type: EE.ToolType.Sub
 })
-export default class Bold extends Tool.InlineTool implements EE.IActionTool {
-    tagNames = ['b', 'strong'];
-    action = 'bold';
+export default class Sub extends Tool.InlineTool implements EE.IActionTool {
+    tagNames = ['sub'];
+    action = 'subscript';
     useCommand = true;
 
     constructor(editor: EE.IEditor) {

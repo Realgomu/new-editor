@@ -12,7 +12,8 @@
     },
     "dependencies": {
         "jquery": "~2.2.0",
-        "@types/jquery": "^2.0.45"
+        "@types/jquery": "^2.0.45",
+        "font-awesome": "^4.7.0"
     },
     "devDependencies": {
         "typescript": "^2.3.0",

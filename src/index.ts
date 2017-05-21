@@ -14,6 +14,7 @@ $(() => {
     $('.action').click(function () {
         let $btn = $(this);
         let action = $btn.attr('role');
-        editor.excuCommand(action);
-    })
+        let option = $btn.attr('role-option');
+        editor.excuCommand(action, option);
+    });
 })

@@ -1,0 +1,35 @@
+@toolbar-height: 40px;
+@button-size: 36px;
+.ee-toolbar {
+    height: @toolbar-height;
+    .flex-container(row, center, center);
+    background-color: @color-background;
+    box-shadow: @normal-shadow;
+
+    .divider {
+        width: 1px;
+        background-color: @color-hover;
+        height: 36px;
+        margin: 0 1px;
+    }
+}
+
+.ee-button {
+    min-width: @button-size;
+    height: @button-size;
+    line-height: 40px;
+    cursor: pointer;
+    text-align: center;
+    margin: 2px;
+    .fa {
+        font-size: 16px;
+    }
+    &:hover {
+        background-color: @color-hover;
+    }
+    &.active {
+        .fa {
+            color: @color-active;
+        }
+    }
+}

@@ -14,4 +14,8 @@ export abstract class InlineTool implements EE.IInlineTool {
         }
         return inline;
     }
+
+    redo() {
+        
+    }
 }

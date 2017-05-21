@@ -1,5 +1,4 @@
 import * as Tool from 'core/tool';
-import * as Util from 'core/util';
 
 @Tool.EditorTool({
     token: 'pre',

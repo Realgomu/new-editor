@@ -65,7 +65,7 @@ export class Tools implements EE.ITools {
     /** 根据element的tag匹配相对应的inline tool */
     matchInlineTool(el: Element) {
         return this._match((tool) => {
-            return tool.type >= 10 && tool.type < 100 && ElementTagCheck(tool, el);
+            return tool.type < 100 && ElementTagCheck(tool, el);
         }) as EE.IInlineTool;
     }
 
@@ -76,11 +76,15 @@ export class Tools implements EE.ITools {
         }) as EE.IBlockTool;
     }
 
-    /** 根据token匹配对应的command tool */
+    /** 根据action name 匹配对应的 tool */
     matchActionTool(name: string) {
         return this._match((tool: EE.IActionTool) => {
             return tool.action && tool.action === name;
         }) as EE.IActionTool;
+    }
+
+    matchToken(token: string) {
+        return this._toolCache[token];
     }
 }
 

@@ -61,26 +61,33 @@ export class Selection implements EE.ISelection {
                     Util.NodeTreeWalker(
                         block,
                         (start, current, end) => {
-                            if (start <= this.lastPos.start && this.lastPos.start < end) {
+                            if (start <= this.lastPos.start && this.lastPos.start <= end) {
                                 range.setStart(current, this.lastPos.start - start);
                             }
-                            if (start <= this.lastPos.end && this.lastPos.end < end) {
+                            if (start <= this.lastPos.end && this.lastPos.end <= end) {
                                 range.setEnd(current, this.lastPos.end - start);
                             }
                         },
                         true
                     );
                     selection.addRange(range);
+                    this.lastPos.focusParent = block;
                 }
             }
             else {
                 //如果上个光标记录点不存在，则将光标定位到文章末尾
                 let lastEl = this.editor.rootEl.lastElementChild;
-                let lastNode = lastEl.lastChild;
+                let lastNode = Util.FindLastNode(lastEl);
                 if (lastNode) {
                     range.setStart(lastNode, lastNode.textContent.length);
                     range.setEnd(lastNode, lastNode.textContent.length);
                     selection.addRange(range);
+                    this.lastPos = {
+                        rowid: lastEl.getAttribute('data-row-id'),
+                        start: lastEl.textContent.length,
+                        end: lastEl.textContent.length,
+                        focusParent: lastNode.parentElement
+                    }
                 }
             }
         }

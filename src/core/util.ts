@@ -67,6 +67,13 @@ export function FindBlockParent(current: Node) {
     }) as Element;
 }
 
+export function FindLastNode(current: Node) {
+    while (current.lastChild) {
+        current = current.lastChild;
+    }
+    return current;
+}
+
 // http://stackoverflow.com/a/11752084/569101
 const isMac = (window.navigator.platform.toUpperCase().indexOf('MAC') >= 0);
 

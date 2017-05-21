@@ -26,10 +26,14 @@ export abstract class BlockTool implements EE.IBlockTool {
     }
 
     getData(el: Element): EE.IBlock {
+        return this.$getDate(el);
+    }
+
+    protected $getDate(el: Element): EE.IBlock {
         let id = el.getAttribute('data-row-id');
         let block: EE.IBlock = {
             rowid: id || Util.RandomID(),
-            token: this.token,  
+            token: this.token,
             type: this.type,
             text: el.textContent,
             inlines: this.getInlines(el)
@@ -37,16 +41,16 @@ export abstract class BlockTool implements EE.IBlockTool {
         return block;
     }
 
-    protected $ChangeBlock() {
+    protected $ChangeBlock(tag: string = this.tagNames[0]) {
         let pos = this.editor.selection.lastPos;
-        if (pos.focusParent) {
-            let current = Util.FindBlockParent(pos.focusParent);
-            if (!Tool.ElementTagCheck(this, current)) {
-                let rowid = current.getAttribute('data-row-id');
-                let newNode = this.editor.ownerDoc.createElement(this.tagNames[0]);
+        if (pos.rowid) {
+            let old = this.editor.ownerDoc.querySelector(`[data-row-id="${pos.rowid}"]`);
+            if (old.tagName.toLowerCase() !== tag) {
+                let rowid = old.getAttribute('data-row-id');
+                let newNode = this.editor.ownerDoc.createElement(tag);
                 newNode.setAttribute('data-row-id', rowid);
-                newNode.innerHTML = current.innerHTML;
-                current.parentElement.replaceChild(newNode, current);
+                newNode.innerHTML = old.innerHTML;
+                old.parentElement.replaceChild(newNode, old);
                 this.editor.selection.restoreCursor(newNode);
             }
         }

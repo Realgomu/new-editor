@@ -10,6 +10,9 @@ declare module EnrichEditor {
     interface IEditorOptions {
         /** 编辑器的tool配置,默认是'all'*/
         tools?: 'all' | string[];
+        defaultUI?: boolean;
+        inline?: boolean;
+        toolbars?: string[];
     }
 
     interface IEditor {
@@ -20,6 +23,8 @@ declare module EnrichEditor {
 
         ownerDoc: Document;
         rootEl: Element;
+
+        initContentEditable(el: HTMLElement): void;
     }
 
     /** edtitor tool type enum */
@@ -37,12 +42,7 @@ declare module EnrichEditor {
         Link = 99,
         //block
         Paragraph = 100,
-        H1,
-        H2,
-        H3,
-        H4,
-        H5,
-        H6,
+        Header,
         Pre = 110,
         //extend
         Quote = 200,
@@ -62,7 +62,7 @@ declare module EnrichEditor {
         text: string;
         inlines: InlineMap;
         styles?: any;
-        options?: any;
+        data?: any;
     }
 
     type InlineMap = {
@@ -98,7 +98,8 @@ declare module EnrichEditor {
     interface ITools {
         matchInlineTool(el: Element): IInlineTool;
         matchBlockTool(el: Element): IBlockTool;
-        matchActionTool(name: string): IActionTool
+        matchActionTool(name: string): IActionTool;
+        matchToken(token: string): IEditorTool;
     }
 
     interface IToolConstructor extends Function {
@@ -161,5 +162,28 @@ declare module EnrichEditor {
     interface IActionStep extends ISelectionPosition {
         name: string;
         useCommand?: boolean;
+    }
+
+    //ui
+    interface IDefaultUI {
+        container: HTMLElement;
+        toolbar: IToolbar;
+    }
+
+    interface IToolbar {
+
+    }
+
+    interface IPopover {
+
+    }
+
+    interface IButtonOption {
+        name: string;
+        action: string;
+        iconFA?: string;
+        isDropdown?: boolean;
+        text?: string;
+        click?: Function;
     }
 }

@@ -1,12 +1,12 @@
 import * as Tool from 'core/tool';
 
 @Tool.EditorTool({
-    token: 'bold',
-    type: EE.ToolType.Bold
+    token: 'strike',
+    type: EE.ToolType.StrikeThrough
 })
-export default class Bold extends Tool.InlineTool implements EE.IActionTool {
-    tagNames = ['b', 'strong'];
-    action = 'bold';
+export default class Strike extends Tool.InlineTool implements EE.IActionTool {
+    tagNames = ['s'];
+    action = 'strikethrough';
     useCommand = true;
 
     constructor(editor: EE.IEditor) {

@@ -2,27 +2,40 @@ import * as Util from './util';
 import { Tools } from './tool';
 import { Selection } from './selection';
 import { Actions } from './action';
+import * as UI from 'default/index';
+
+import './polyfill';
 
 //tools
+import 'tools/break';
 import 'tools/blod';
-import 'tools/paragraph';
+import 'tools/italic';
 import 'tools/underline';
+import 'tools/strike';
+import 'tools/super';
+import 'tools/sub';
+import 'tools/paragraph';
 import 'tools/pre';
+import 'tools/header';
 
 export class Editor implements EE.IEditor {
     options: EE.IEditorOptions;
     tools: Tools;
     selection: Selection;
     actions: Actions;
+    defaultUI: UI.DefaultUI;
 
     ownerDoc: Document = document;
     rootEl: HTMLElement;
     constructor(el: HTMLElement, options?: EE.IEditorOptions) {
         let defaultOptions: EE.IEditorOptions = {
-            tools: 'all'
+            tools: 'all',
+            defaultUI: true,
+            inline: false,
+            toolbars: ['pre', 'h1', 'h2', '|', 'bold', 'italic', 'underline', 'strike', '|']
         };
 
-        this.options = defaultOptions;
+        this.options = Object.assign(defaultOptions, options || {});
         this.rootEl = el;
 
         //init functions
@@ -31,17 +44,29 @@ export class Editor implements EE.IEditor {
         this.actions = new Actions(this);
 
         //init events
-        this._initEvents();
+        if (this.options.defaultUI) {
+            this.defaultUI = new UI.DefaultUI(this);
+            this.defaultUI.init(el);
+        }
+        else {
+            this.initContentEditable(el);
+        }
 
         setTimeout(() => {
             this.rootEl.click();
             this.selection.restoreCursor();
-        }, 300)
+        }, 300);
+    }
+
+    initContentEditable(el: HTMLElement) {
+        this.rootEl = el;
+        this.rootEl.setAttribute('contenteditable', '');
+        this.rootEl.classList.add('ee-view');
+
+        this._initEvents();
     }
 
     private _initEvents() {
-        this.rootEl.setAttribute('contenteditable', '');
-
         this.rootEl.addEventListener('keyup', (ev: KeyboardEvent) => {
             this._checkEmpty();
             if (Util.IsKey(ev, [EE.KeyCode.Left, EE.KeyCode.Up, EE.KeyCode.Right, EE.KeyCode.Down])) {
@@ -111,10 +136,10 @@ export class Editor implements EE.IEditor {
         return data;
     }
 
-    excuCommand(token: string) {
+    excuCommand(token: string, ...args: any[]) {
         let tool = this.tools.matchActionTool(token);
         if (tool) {
-            tool.redo();
+            tool.redo(args);
         }
     }
 }
