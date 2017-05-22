@@ -1,5 +1,6 @@
 import * as Util from './util';
 import { Tools } from './tools';
+import { Events } from './events';
 import { Selection } from './selection';
 import { Actions } from './action';
 import * as UI from 'default/index';
@@ -22,6 +23,7 @@ import 'tools/header';
 export class Editor implements EE.IEditor {
     options: EE.IEditorOptions;
     tools: Tools;
+    events: Events;
     selection: Selection;
     actions: Actions;
     defaultUI: UI.DefaultUI;
@@ -41,10 +43,11 @@ export class Editor implements EE.IEditor {
 
         //init functions
         this.tools = new Tools(this);
+        this.events = new Events(this);
         this.selection = new Selection(this);
         this.actions = new Actions(this);
 
-        //init events
+        //init ui
         if (this.options.defaultUI) {
             this.defaultUI = new UI.DefaultUI(this);
             this.defaultUI.init(el);
@@ -53,12 +56,16 @@ export class Editor implements EE.IEditor {
             this.initContentEditable(el);
         }
 
+        //init events
+        this.events.init();
+
         setTimeout(() => {
             let data = this.getData();
             this.loadData(data);
 
             this.rootEl.click();
             this.selection.restoreCursor();
+            this._cursorMoved();
         }, 300);
     }
 
@@ -66,8 +73,6 @@ export class Editor implements EE.IEditor {
         this.rootEl = el;
         this.rootEl.setAttribute('contenteditable', '');
         this.rootEl.classList.add('ee-view');
-
-        this._initEvents();
     }
 
     private _initEvents() {
@@ -87,17 +92,21 @@ export class Editor implements EE.IEditor {
         });
         this.rootEl.addEventListener('keydown', (ev: KeyboardEvent) => {
             if (Util.IsKey(ev, EE.KeyCode.Z, true)) {
-                this.actions.undo();
+                // this.actions.undo();
                 ev.preventDefault();
             }
             else if (Util.IsKey(ev, EE.KeyCode.Y, true)) {
-                this.actions.redo();
+                // this.actions.redo();
                 ev.preventDefault();
             }
         });
+        let _timer: number;
         this.rootEl.addEventListener('input', (ev) => {
             if (!isComposition) {
-                console.log('input ev');
+                if (_timer) clearTimeout(_timer);
+                _timer = setTimeout(() => {
+                    this._cursorMoved();
+                }, 500);
             }
         });
         let isComposition = false;
@@ -106,7 +115,7 @@ export class Editor implements EE.IEditor {
         });
         this.rootEl.addEventListener('compositionend', (ev) => {
             isComposition = false;
-            console.log('input ev');
+            this._cursorMoved();
         });
         this.rootEl.addEventListener('focus', (ev) => {
             console.log('focus');

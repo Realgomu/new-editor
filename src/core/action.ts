@@ -31,24 +31,26 @@ export class Actions implements EE.IActions {
     }
 
     redo() {
-        if (this._queue.length <= this._point + 1) {
-            return;
-        }
-        this._point++;
-        let next = this._queue[this._point];
-        if (next && next.useCommand) {
-            this.editor.ownerDoc.execCommand('redo');
-        }
+        // if (this._queue.length <= this._point + 1) {
+        //     return;
+        // }
+        // this._point++;
+        // let next = this._queue[this._point];
+        // if (next && next.useCommand) {
+        //     this.editor.ownerDoc.execCommand('redo');
+        // }
+        this.editor.ownerDoc.execCommand('redo');
     }
 
     undo() {
-        if (this._point < 0) {
-            return;
-        }
-        let last = this._queue[this._point];
-        this._point--;
-        if (last && last.useCommand) {
-            this.editor.ownerDoc.execCommand('undo');
-        }
+        // if (this._point < 0) {
+        //     return;
+        // }
+        // let last = this._queue[this._point];
+        // this._point--;
+        // if (last && last.useCommand) {
+        //     this.editor.ownerDoc.execCommand('undo');
+        // }
+        this.editor.ownerDoc.execCommand('undo');
     }
 }

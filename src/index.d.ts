@@ -56,6 +56,7 @@ declare module EnrichEditor {
         data?: any;
     }
 
+
     /** dom render node */
     interface IRenderNode {
         start: number;
@@ -70,6 +71,7 @@ declare module EnrichEditor {
     interface IAttributeMap {
         [name: string]: string
     }
+
 
     /**
      * key code enum
@@ -91,6 +93,7 @@ declare module EnrichEditor {
         Y = 89,
         Z = 90
     }
+
 
     /** global editor obj on window for editor init*/
     interface IEditorStatic {
@@ -121,6 +124,7 @@ declare module EnrichEditor {
 
         initContentEditable(el: HTMLElement): void;
     }
+
 
     /** global tools container from editor */
     interface ITools {
@@ -171,6 +175,24 @@ declare module EnrichEditor {
         render(block: EE.IBlock): HTMLElement;
     }
 
+
+    /** global event interface for editor */
+    interface IEvents {
+
+    }
+
+    interface ICustomEventMap {
+        [name: string]: IHandlerObj[];
+    }
+
+    interface IHandlerObj {
+        name: string;
+        listener: CommonListener;
+        selector?: string;
+    }
+
+    type CommonListener = (editor: IEditor, ev: Event, ...args: any[]) => any;
+
     /** selection position, cursor position in block */
     interface ISelectionPosition {
         rowid: string;
@@ -187,6 +209,7 @@ declare module EnrichEditor {
         restoreCursor(block?: Element): void;
     }
 
+
     /** global action func for editor */
     interface IActions {
         doCommandAction(name: string, pos?: EE.ISelectionPosition): void;
@@ -199,6 +222,7 @@ declare module EnrichEditor {
         name: string;
         useCommand?: boolean;
     }
+
 
     /** default ui for editor */
     interface IDefaultUI {

@@ -43,7 +43,10 @@ export function FindParend(current: Node, match: (node: Element) => boolean) {
     else {
         return undefined;
     }
-    while (!match(target) && target.nodeType !== Node.DOCUMENT_NODE) {
+    while (!match(target)) {
+        if (target.hasAttribute('contenteditable') || target.nodeType === Node.DOCUMENT_NODE) {
+            return undefined;
+        }
         target = target.parentElement;
     }
     return target;
