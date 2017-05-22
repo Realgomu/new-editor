@@ -255,7 +255,7 @@ export function InsertRenderTree(root: EE.IRenderNode, insert: EE.IRenderNode) {
                 };
                 if (child.tag) {
                     InsertRenderTree(child, center);
-                    insert.start = child.end + 1;
+                    insert.start = child.end;
                     newChildren.push(child);
                     continue;
                 }
@@ -271,14 +271,14 @@ export function InsertRenderTree(root: EE.IRenderNode, insert: EE.IRenderNode) {
                 left = {
                     tag: '',
                     start: child.start,
-                    end: center.start - 1,
+                    end: center.start,
                     children: []
                 };
             }
             if (center.end < child.end) {
                 right = {
                     tag: '',
-                    start: collapsed ? center.end : center.end + 1,
+                    start: center.end,
                     end: child.end,
                     children: []
                 };
@@ -303,7 +303,7 @@ export function InsertRenderTree(root: EE.IRenderNode, insert: EE.IRenderNode) {
 export function createElementByRenderTree(doc: Document, root: EE.IRenderNode, content: string) {
     let render = (node: EE.IRenderNode) => {
         if (!node.tag) {
-            let str = content.substr(node.start, node.end - node.start + 1);
+            let str = content.substring(node.start, node.end);
             return doc.createTextNode(str);
         }
         else {
@@ -311,6 +311,9 @@ export function createElementByRenderTree(doc: Document, root: EE.IRenderNode, c
             node.children.forEach(child => {
                 el.appendChild(render(child));
             });
+            for (let name in node.attr) {
+                el.setAttribute(name, node.attr[name]);
+            }
             return el;
         }
     }

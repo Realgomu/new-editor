@@ -18,9 +18,13 @@ export abstract class BlockTool implements EE.IBlockTool {
                 let tool = this.editor.tools.matchInlineTool(child);
                 if (tool) {
                     if (!map[tool.token]) map[tool.token] = [];
-                    map[tool.token] = MergeInlines(map[tool.token], tool.getData(child, pos));
+                    map[tool.token].push(tool.getData(child, pos));
                 }
             });
+        //检查inline数据，进行合并计算
+        for (let token in map) {
+            map[token] = MergeInlines(map[token]);
+        }
         return map;
     }
 
@@ -62,14 +66,14 @@ export abstract class BlockTool implements EE.IBlockTool {
             if (map) {
                 map.forEach(item => {
                     Util.InsertRenderTree(root, tool.render(item));
-                })
+                });
             }
         });
         return root;
     }
 
     render(data: EE.IBlock) {
-        let end = data.text.length - 1;
+        let end = data.text.length;
         let root: EE.IRenderNode = {
             tag: this.selectors[0],
             start: 0,
@@ -84,11 +88,11 @@ export abstract class BlockTool implements EE.IBlockTool {
 }
 
 //合并inline对象
-function MergeInlines(list: EE.IInline[], add: EE.IInline) {
+function MergeInlines(list: EE.IInline[], add?: EE.IInline) {
     let newList: EE.IInline[] = [];
-    newList.push(add);
+    add && newList.push(add);
     list.forEach(item => {
-        let merge = newList.find(p => (p.start === item.end - 1) || (p.end === item.start + 1));
+        let merge = newList.find(m => (m.start === item.end) || (m.end === item.start));
         if (merge) {
             if (merge.start === item.end - 1) {
                 merge.start = item.start;

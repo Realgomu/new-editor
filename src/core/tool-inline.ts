@@ -6,21 +6,24 @@ export abstract class InlineTool implements EE.IInlineTool {
     constructor(protected editor: EE.IEditor) {
     }
 
-    getData(el: Element, start: number): EE.IInline {
-        length = el.textContent.length > 0 ? el.textContent.length - 1 : 0;
+    protected $getData(el: Element, start: number): EE.IInline {
         let inline: EE.IInline = {
             type: this.type,
             start: start,
-            end: start + length
+            end: start + el.textContent.length
         }
         return inline;
+    }
+
+    getData(el: Element, start: number): EE.IInline {
+        return this.$getData(el, start);
     }
 
     redo() {
 
     }
 
-    render(data: EE.IInline) {
+    protected $render(data: EE.IInline) {
         let node: EE.IRenderNode = {
             tag: this.selectors[0],
             start: data.start,
@@ -28,5 +31,9 @@ export abstract class InlineTool implements EE.IInlineTool {
             children: []
         };
         return node;
+    }
+
+    render(data: EE.IInline) {
+        return this.$render(data);
     }
 }
