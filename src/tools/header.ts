@@ -1,4 +1,4 @@
-import * as Tool from 'core/tool';
+import * as Tool from 'core/tools';
 import * as Util from 'core/util';
 
 @Tool.EditorTool({
@@ -19,18 +19,18 @@ export default class Paragraph extends Tool.BlockTool implements EE.IActionTool 
         return block;
     }
 
-    render(data: EE.IBlock) {
-        let end = data.text.length;
-        let root: EE.IRenderNode = {
-            tag: 'h' + data.data,
+    render(block: EE.IBlock) {
+        let root = Util.CreateRenderElement(this.editor.ownerDoc, {
+            tag: 'h' + block.data,
             start: 0,
-            end: end,
-            children: [{ tag: '', start: 0, end: end, children: [] }],
+            end: block.text.length,
+            content: block.text,
             attr: {
-                'data-row-id': data.rowid
+                'data-row-id': block.rowid
             }
-        }
-        return this.$render(root, data);
+        }) as HTMLElement;
+        this.$renderInlines(root, block.inlines);
+        return root;
     }
 
     redo(level: number) {

@@ -45,9 +45,11 @@ export class Selection implements EE.ISelection {
             blockPos.start = t;
         }
         blockPos.rowid = block.getAttribute('data-row-id');
-        blockPos.focusEl = anchorParent === focusParent ? focusParent : undefined;
+        let active = anchorParent === focusParent ? focusParent : undefined;
+        blockPos.activeTokens = this.editor.tools.getActiveTokens(active);
         this.lastPos = blockPos;
-        return blockPos;
+        console.log(selection);
+        console.log(this.lastPos);
     }
 
     restoreCursor(block?: Element) {
@@ -71,7 +73,6 @@ export class Selection implements EE.ISelection {
                         true
                     );
                     selection.addRange(range);
-                    this.lastPos.focusEl = block;
                 }
             }
             else {
@@ -85,8 +86,7 @@ export class Selection implements EE.ISelection {
                     this.lastPos = {
                         rowid: lastEl.getAttribute('data-row-id'),
                         start: lastEl.textContent.length,
-                        end: lastEl.textContent.length,
-                        focusEl: lastNode.parentElement
+                        end: lastEl.textContent.length
                     }
                 }
             }

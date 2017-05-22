@@ -27,8 +27,7 @@ export abstract class InlineTool implements EE.IInlineTool {
         let node: EE.IRenderNode = {
             tag: this.selectors[0],
             start: inline.start,
-            end: inline.end,
-            children: []
+            end: inline.end
         };
         return node;
     }

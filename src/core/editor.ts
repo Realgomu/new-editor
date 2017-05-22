@@ -1,5 +1,5 @@
 import * as Util from './util';
-import { Tools } from './tool';
+import { Tools } from './tools';
 import { Selection } from './selection';
 import { Actions } from './action';
 import * as UI from 'default/index';
@@ -54,6 +54,9 @@ export class Editor implements EE.IEditor {
         }
 
         setTimeout(() => {
+            let data = this.getData();
+            this.loadData(data);
+
             this.rootEl.click();
             this.selection.restoreCursor();
         }, 300);
@@ -107,7 +110,7 @@ export class Editor implements EE.IEditor {
         });
         this.rootEl.addEventListener('focus', (ev) => {
             console.log('focus');
-        })
+        });
         this._checkEmpty();
     }
 
@@ -119,7 +122,6 @@ export class Editor implements EE.IEditor {
 
     private _cursorMoved() {
         this.selection.updateCurrent();
-        console.log(this.selection.lastPos);
     }
 
     getData() {
@@ -139,8 +141,9 @@ export class Editor implements EE.IEditor {
         this.rootEl.innerHTML = '';
         let list = data.forEach(block => {
             let tool = this.tools.matchToken(block.token) as EE.IBlockTool;
-            this.rootEl.appendChild(Util.CreateElementByRenderTree(this.ownerDoc, tool.render(block), block.text));
+            this.rootEl.appendChild(tool.render(block));
         });
+        console.log('load data success');
     }
 
     excuCommand(token: string, ...args: any[]) {

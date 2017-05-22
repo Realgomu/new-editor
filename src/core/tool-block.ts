@@ -1,4 +1,4 @@
-import * as Tool from './tool';
+import * as Tool from './tools';
 import * as Util from './util';
 import * as Selection from './selection';
 
@@ -59,31 +59,31 @@ export abstract class BlockTool implements EE.IBlockTool {
         }
     }
 
-    protected $render(root: EE.IRenderNode, block: EE.IBlock) {
+    protected $renderInlines(el: HTMLElement, map: EE.InlineMap) {
         //inline 数据按照优先级从高到底进行插入
         this.editor.tools.getInlineTools().forEach(tool => {
-            let map = block.inlines[tool.token];
-            if (map) {
-                map.forEach(item => {
-                    Util.InsertRenderTree(root, tool.render(item));
-                });
+            let list = map[tool.token];
+            if (list) {
+                list.forEach(item => {
+                    Util.InsertRenderTree(this.editor.ownerDoc, el, tool.render(item));
+                })
             }
         });
-        return root;
     }
 
     render(block: EE.IBlock) {
         let end = block.text.length;
-        let root: EE.IRenderNode = {
+        let root = Util.CreateRenderElement(this.editor.ownerDoc, {
             tag: this.selectors[0],
             start: 0,
-            end: end,
-            children: [{ tag: '', start: 0, end: end, children: [] }],
+            end: block.text.length,
+            content: block.text,
             attr: {
                 'data-row-id': block.rowid
             }
-        }
-        return this.$render(root, block);
+        }) as HTMLElement;
+        this.$renderInlines(root, block.inlines);
+        return root;
     }
 }
 

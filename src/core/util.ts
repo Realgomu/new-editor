@@ -11,23 +11,17 @@ export function RandomID(lenght: number = 6) {
     return result;
 }
 
-export function NodeTreeWalker(root: Element, func: (start: number, current: Element | Text, end?: number) => void, cbtext = false) {
-    let filter = NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
+export function NodeTreeWalker(root: Element, func: (start: number, current: Element | Text, end?: number) => void, onlyText = false) {
+    let filter = onlyText ? NodeFilter.SHOW_TEXT : NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
     let walker = document.createTreeWalker(root, filter);
     let pos = 0;
     while (walker.nextNode()) {
-        let current = walker.currentNode;
+        let current = walker.currentNode as Element | Text;
         let lenght = current.textContent.length;
-        if (current.nodeType === 1) {
-            //element node
-            if (!cbtext) {
-                func && func(pos, <Element>current, pos + lenght);
-            }
+        if (onlyText || current.nodeType === 1) {
+            func && func(pos, current, pos + lenght);
         }
-        else if (current.nodeType === 3) {
-            if (cbtext) {
-                func && func(pos, <Element>current, pos + lenght);
-            }
+        if (current.nodeType === 3) {
             pos += lenght;
         }
     }
@@ -227,100 +221,8 @@ export function DeepCompare(x, y) {
     return true;
 }
 
-export function InsertRenderTree(root: EE.IRenderNode, insert: EE.IRenderNode) {
-    if (root.tag && root.children.length > 0) {
-        let newChildren: EE.IRenderNode[] = [];
-        for (let i = 0, l = root.children.length; i < l; i++) {
-            let child = root.children[i];
-            let left: EE.IRenderNode;
-            let center: EE.IRenderNode;
-            let right: EE.IRenderNode;
-            if (insert && insert.end <= child.end) {
-                center = insert;
-                if (child.tag) {
-                    InsertRenderTree(child, center);
-                    newChildren.push(child);
-                    insert = undefined;
-                    continue;
-                }
-                else {
-                }
-            }
-            else if (insert && insert.start <= child.end && insert.end > child.end) {
-                center = {
-                    tag: insert.tag,
-                    start: insert.start,
-                    end: child.end,
-                    children: []
-                };
-                if (child.tag) {
-                    InsertRenderTree(child, center);
-                    insert.start = child.end;
-                    newChildren.push(child);
-                    continue;
-                }
-                else {
-                }
-            }
-            else {
-                newChildren.push(child);
-                continue;
-            }
-            let collapsed = center.start === center.end;
-            if (center.start > child.start) {
-                left = {
-                    tag: '',
-                    start: child.start,
-                    end: center.start,
-                    children: []
-                };
-            }
-            if (center.end < child.end) {
-                right = {
-                    tag: '',
-                    start: center.end,
-                    end: child.end,
-                    children: []
-                };
-            }
-            if (!collapsed) {
-                center.children = [{
-                    tag: '',
-                    start: center.start,
-                    end: center.end,
-                    children: []
-                }];
-            }
-            if (left && left.start !== left.end) newChildren.push(left);
-            newChildren.push(center);
-            if (right && right.start !== right.end) newChildren.push(right);
-        }
-        root.children = newChildren;
-    }
-    return root;
-}
-
-export function CreateElementByRenderTree(doc: Document, root: EE.IRenderNode, content: string) {
-    let render = (node: EE.IRenderNode) => {
-        if (!node.tag) {
-            let str = content.substring(node.start, node.end);
-            return doc.createTextNode(str);
-        }
-        else {
-            let el = doc.createElement(node.tag);
-            node.children.forEach(child => {
-                el.appendChild(render(child));
-            });
-            for (let name in node.attr) {
-                el.setAttribute(name, node.attr[name]);
-            }
-            return el;
-        }
-    }
-    return render(root);
-}
-
-export function InsertRenderElement(doc: Document, root: HTMLElement, insert: EE.IRenderNode) {
+/** 向dom中插入需要渲染的子节点 */
+export function InsertRenderTree(doc: Document, root: HTMLElement, insert: EE.IRenderNode) {
     if (root && insert) {
         let walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT);
         while (walker.nextNode() && insert) {
@@ -380,45 +282,56 @@ export function InsertRenderElement(doc: Document, root: HTMLElement, insert: EE
                         start: center.end,
                         end: current.end,
                     };
-                    if (!collapsed) {
-                        let rightText = centerText.splitText(center.end - center.start);
-                        rightText.$renderNode = right;
-                    }
+                    let rightText = centerText.splitText(center.end - center.start);
+                    rightText.$renderNode = right;
                 }
                 centerText.$renderNode = center;
-                let el = CreateRenderElement(doc, center, centerText);
-                leftText.parentNode.replaceChild(centerText, el);
+                let el = CreateRenderElement(doc, center);
+                leftText.parentNode.replaceChild(el, centerText);
+                el.appendChild(centerText);
             }
         }
     }
 }
 
-export function CreateRenderElement(doc: Document, node: EE.IRenderNode, textNode?: Text) {
+/** 根据render node创建dom元素 */
+export function CreateRenderElement(doc: Document, node: EE.IRenderNode) {
     if (!node.tag) {
         //创建text节点
-        let text = doc.createTextNode(node.text);
+        let text = doc.createTextNode(node.content);
+        //删除缓存的content信息
+        delete node.content;
+        //在dom上记录位置信息
         text.$renderNode = node;
         return text;
     }
     else {
         let el = doc.createElement(node.tag);
-        if (textNode) {
-            el.appendChild(textNode);
-        }
-        else if (node.text && node.start !== node.end) {
-            let text = doc.createTextNode(node.text);
+        //如果有text则添加一个text元素
+        if (node.content && node.start !== node.end) {
+            let text = doc.createTextNode(node.content);
             text.$renderNode = {
                 tag: '',
                 start: node.start,
                 end: node.end,
-                text: node.text
+                text: node.content
             };
             el.appendChild(text);
         }
+        //设置attr
         for (let name in node.attr) {
             el.setAttribute(name, node.attr[name]);
         }
+        //删除缓存的content信息
+        delete node.content;
+        //在dom上记录位置信息
         el.$renderNode = node;
         return el;
     }
+}
+
+export function CreateEmptyNode(doc: Document) {
+    let el = doc.createElement('div');
+    el.innerHTML = '&#8203;';
+    return el.lastChild;
 }

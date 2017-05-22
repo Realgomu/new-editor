@@ -61,9 +61,9 @@ declare module EnrichEditor {
         start: number;
         end: number;
         tag: string;
-        text?: string;
+        content?: string;
         attr?: IAttributeMap;
-        children?: IRenderNode[];
+        // children?: IRenderNode[];
     }
 
     /** dom render node attribute map */
@@ -130,6 +130,7 @@ declare module EnrichEditor {
         matchToken(token: string): IEditorTool;
         getInlineTools(): IInlineTool[];
         getBlockTools(): IBlockTool[];
+        getActiveTokens(el: Element): string[];
     }
 
     /** constructor function interface for editor tool class */
@@ -167,7 +168,7 @@ declare module EnrichEditor {
     interface IBlockTool extends IEditorTool {
         selectors: string[];
         getData(el: Element): EE.IBlock;
-        render(block: EE.IBlock): IRenderNode;
+        render(block: EE.IBlock): HTMLElement;
     }
 
     /** selection position, cursor position in block */
@@ -175,14 +176,14 @@ declare module EnrichEditor {
         rowid: string;
         start: number;
         end: number;
-        focusEl?: Element;
+        activeTokens?: string[];
     }
 
     /** global selection func for editor */
     interface ISelection {
         lastPos: EE.ISelectionPosition;
         isCollapsed(): boolean;
-        updateCurrent(block?: Element): ISelectionPosition;
+        updateCurrent(block?: Element): void;
         restoreCursor(block?: Element): void;
     }
 

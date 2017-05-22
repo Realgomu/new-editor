@@ -1,4 +1,5 @@
 import { Editor } from './editor';
+import * as Util from './util';
 
 export { InlineTool } from './tool-inline';
 export { BlockTool } from './tool-block';
@@ -95,6 +96,18 @@ export class Tools implements EE.ITools {
 
     getBlockTools() {
         return this._toolCache.filter(t => t.type >= 100) as EE.IBlockTool[];
+    }
+
+    getActiveTokens(el: Element) {
+        let list = [];
+        Util.FindParend(el, (parent => {
+            let tool = this._match(tool => {
+                return ElementTagCheck(tool, parent);
+            });
+            list.push(tool.token);
+            return parent.hasAttribute('data-row-id');
+        }));
+        return list;
     }
 }
 

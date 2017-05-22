@@ -1,4 +1,4 @@
-import * as Tool from 'core/tool';
+import * as Tool from 'core/tools';
 
 @Tool.EditorTool({
     token: 'br',

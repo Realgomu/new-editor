@@ -69,10 +69,6 @@ export class Toolbar implements EE.IToolbar {
                 if (tool) {
                     tool.redo();
                 }
-                ev.stopPropagation();
-                ev.stopImmediatePropagation();
-                ev.preventDefault();
-                return false;
             }
         }
         button.addEventListener('mousedown', (ev)=>{
