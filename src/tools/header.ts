@@ -19,6 +19,20 @@ export default class Paragraph extends Tool.BlockTool implements EE.IActionTool 
         return block;
     }
 
+    render(data: EE.IBlock) {
+        let end = data.text.length;
+        let root: EE.IRenderNode = {
+            tag: 'h' + data.data,
+            start: 0,
+            end: end,
+            children: [{ tag: '', start: 0, end: end, children: [] }],
+            attr: {
+                'data-row-id': data.rowid
+            }
+        }
+        return this.$render(root, data);
+    }
+
     redo(level: number) {
         let tag = 'h' + level;
         this.$changeBlock(tag);

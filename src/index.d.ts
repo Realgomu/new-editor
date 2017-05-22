@@ -3,31 +3,7 @@ import EE = EnrichEditor;
 declare var EREditor: EnrichEditor.IEditorStatic;
 
 declare module EnrichEditor {
-    interface IEditorStatic {
-        new (el: Element, options: IEditorOptions): IEditor;
-    }
-    //options
-    interface IEditorOptions {
-        /** 编辑器的tool配置,默认是'all'*/
-        tools?: 'all' | string[];
-        defaultUI?: boolean;
-        inline?: boolean;
-        toolbars?: string[];
-    }
-
-    interface IEditor {
-        options: EE.IEditorOptions;
-        tools: ITools;
-        selection: ISelection;
-        actions: IActions;
-
-        ownerDoc: Document;
-        rootEl: Element;
-
-        initContentEditable(el: HTMLElement): void;
-    }
-
-    /** edtitor tool type enum */
+    /** edtitor tool type enum [priority for render dom from page data] */
     const enum ToolType {
         None = 0,
         Br = 1,
@@ -50,11 +26,13 @@ declare module EnrichEditor {
         UL,
     }
 
+    /** page dada */
     interface IPage {
         rows: IBlock[];
         extends?: any
     }
 
+    /** block data */
     interface IBlock {
         rowid: string;
         token: string;
@@ -65,10 +43,12 @@ declare module EnrichEditor {
         data?: any;
     }
 
+    /** inlines map in block */
     type InlineMap = {
         [token: string]: IInline[]
     };
 
+    /** inline data */
     interface IInline {
         type: ToolType;
         start: number;
@@ -76,20 +56,24 @@ declare module EnrichEditor {
         data?: any;
     }
 
-    //element render
+    /** dom render node */
     interface IRenderNode {
         start: number;
         end: number;
         tag: string;
+        text?: string;
         attr?: IAttributeMap;
-        children: IRenderNode[];
+        children?: IRenderNode[];
     }
 
+    /** dom render node attribute map */
     interface IAttributeMap {
         [name: string]: string
     }
 
-    //key code
+    /**
+     * key code enum
+     */
     const enum KeyCode {
         BACKSPACE = 8,
         TAB = 9,
@@ -108,7 +92,37 @@ declare module EnrichEditor {
         Z = 90
     }
 
-    //tool
+    /** global editor obj on window for editor init*/
+    interface IEditorStatic {
+        new (el: Element, options: IEditorOptions): IEditor;
+    }
+
+    /** editor init options */
+    interface IEditorOptions {
+        /** 编辑器的tool配置,默认是'all'*/
+        tools?: 'all' | string[];
+        defaultUI?: boolean;
+        inline?: boolean;
+        toolbars?: string[];
+    }
+
+    /** 
+     * editor instance 
+     * @constructor
+     */
+    interface IEditor {
+        options: EE.IEditorOptions;
+        tools: ITools;
+        selection: ISelection;
+        actions: IActions;
+
+        ownerDoc: Document;
+        rootEl: Element;
+
+        initContentEditable(el: HTMLElement): void;
+    }
+
+    /** global tools container from editor */
     interface ITools {
         matchInlineTool(el: Element): IInlineTool;
         matchBlockTool(el: Element): IBlockTool;
@@ -118,6 +132,7 @@ declare module EnrichEditor {
         getBlockTools(): IBlockTool[];
     }
 
+    /** constructor function interface for editor tool class */
     interface IToolConstructor extends Function {
         new (...args: any[]): IEditorTool;
         prototype: {
@@ -126,16 +141,14 @@ declare module EnrichEditor {
         }
     }
 
+    /** editor tool base interface */
     interface IEditorTool {
         readonly type: EE.ToolType;
         readonly token: string;
         selectors: string[];
     }
 
-    type EditorToolMap = {
-        [token: string]: IEditorTool;
-    }
-
+    /** action tool interface */
     interface IActionTool extends IEditorTool {
         action: string;
         useCommand?: boolean;
@@ -143,26 +156,29 @@ declare module EnrichEditor {
         undo: Function;
     }
 
+    /** inline tool interface */
     interface IInlineTool extends IEditorTool {
         selectors: string[];
         getData(el: Element, start: number): EE.IInline;
-        render(data: EE.IInline): IRenderNode;
+        render(inline: EE.IInline): IRenderNode;
     }
 
+    /** block tool interface */
     interface IBlockTool extends IEditorTool {
         selectors: string[];
         getData(el: Element): EE.IBlock;
-        render(data: EE.IBlock): IRenderNode;
+        render(block: EE.IBlock): IRenderNode;
     }
 
-    //selection 
+    /** selection position, cursor position in block */
     interface ISelectionPosition {
         rowid: string;
         start: number;
         end: number;
-        focusParent?: Element;
+        focusEl?: Element;
     }
 
+    /** global selection func for editor */
     interface ISelection {
         lastPos: EE.ISelectionPosition;
         isCollapsed(): boolean;
@@ -170,28 +186,31 @@ declare module EnrichEditor {
         restoreCursor(block?: Element): void;
     }
 
-    //action
+    /** global action func for editor */
     interface IActions {
         doCommandAction(name: string, pos?: EE.ISelectionPosition): void;
         redo(): void;
         undo(): void;
     }
 
+    /** action and command step from redo/undo */
     interface IActionStep extends ISelectionPosition {
         name: string;
         useCommand?: boolean;
     }
 
-    //ui
+    /** default ui for editor */
     interface IDefaultUI {
         container: HTMLElement;
         toolbar: IToolbar;
     }
 
+    /** toolbar ui for editor */
     interface IToolbar {
 
     }
 
+    /** pop contianer ui for editor */
     interface IPopover {
 
     }
@@ -204,4 +223,8 @@ declare module EnrichEditor {
         text?: string;
         click?: Function;
     }
+}
+
+interface Node {
+    $renderNode: any;
 }

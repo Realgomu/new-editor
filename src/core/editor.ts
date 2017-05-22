@@ -139,7 +139,7 @@ export class Editor implements EE.IEditor {
         this.rootEl.innerHTML = '';
         let list = data.forEach(block => {
             let tool = this.tools.matchToken(block.token) as EE.IBlockTool;
-            this.rootEl.appendChild(Util.createElementByRenderTree(this.ownerDoc, tool.render(block), block.text));
+            this.rootEl.appendChild(Util.CreateElementByRenderTree(this.ownerDoc, tool.render(block), block.text));
         });
     }
 

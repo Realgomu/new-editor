@@ -23,17 +23,17 @@ export abstract class InlineTool implements EE.IInlineTool {
 
     }
 
-    protected $render(data: EE.IInline) {
+    protected $render(inline: EE.IInline) {
         let node: EE.IRenderNode = {
             tag: this.selectors[0],
-            start: data.start,
-            end: data.end,
+            start: inline.start,
+            end: inline.end,
             children: []
         };
         return node;
     }
 
-    render(data: EE.IInline) {
-        return this.$render(data);
+    render(inline: EE.IInline) {
+        return this.$render(inline);
     }
 }

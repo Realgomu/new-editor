@@ -300,7 +300,7 @@ export function InsertRenderTree(root: EE.IRenderNode, insert: EE.IRenderNode) {
     return root;
 }
 
-export function createElementByRenderTree(doc: Document, root: EE.IRenderNode, content: string) {
+export function CreateElementByRenderTree(doc: Document, root: EE.IRenderNode, content: string) {
     let render = (node: EE.IRenderNode) => {
         if (!node.tag) {
             let str = content.substring(node.start, node.end);
@@ -318,4 +318,107 @@ export function createElementByRenderTree(doc: Document, root: EE.IRenderNode, c
         }
     }
     return render(root);
+}
+
+export function InsertRenderElement(doc: Document, root: HTMLElement, insert: EE.IRenderNode) {
+    if (root && insert) {
+        let walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        while (walker.nextNode() && insert) {
+            let leftText = walker.currentNode as Text;
+            let current = leftText.$renderNode;
+            let left: EE.IRenderNode;
+            let center: EE.IRenderNode;
+            let right: EE.IRenderNode;
+            if (insert.end <= current.end) {
+                center = insert;
+                insert = undefined;
+            }
+            else if (insert.start <= current.end && insert.end > current.end) {
+                center = {
+                    tag: insert.tag,
+                    start: insert.start,
+                    end: current.end
+                };
+                insert.start = current.end;
+            }
+            else {
+                continue;
+            }
+            let collapsed = center.start === center.end;
+            if (collapsed) {
+                //如果该节点是闭合节点
+                let el = CreateRenderElement(doc, center);
+                if (center.start === current.start) {
+                    leftText.parentNode.insertBefore(el, leftText);
+                }
+                else if (center.start === current.end) {
+                    leftText.parentNode.appendChild(el);
+                }
+                else {
+                    //切分当前text节点
+                    let split = leftText.splitText(center.start - current.start);
+                    leftText.parentNode.insertBefore(el, split);
+                }
+            }
+            else {
+                //如果不是闭合节点
+                let centerText = leftText;
+                if (center.start > current.start) {
+                    //切分左边
+                    left = {
+                        tag: '',
+                        start: current.start,
+                        end: center.start,
+                    };
+                    centerText = leftText.splitText(center.start - current.start);
+                    leftText.$renderNode = left;
+                }
+                if (center.end < current.end) {
+                    //切分右边
+                    right = {
+                        tag: '',
+                        start: center.end,
+                        end: current.end,
+                    };
+                    if (!collapsed) {
+                        let rightText = centerText.splitText(center.end - center.start);
+                        rightText.$renderNode = right;
+                    }
+                }
+                centerText.$renderNode = center;
+                let el = CreateRenderElement(doc, center, centerText);
+                leftText.parentNode.replaceChild(centerText, el);
+            }
+        }
+    }
+}
+
+export function CreateRenderElement(doc: Document, node: EE.IRenderNode, textNode?: Text) {
+    if (!node.tag) {
+        //创建text节点
+        let text = doc.createTextNode(node.text);
+        text.$renderNode = node;
+        return text;
+    }
+    else {
+        let el = doc.createElement(node.tag);
+        if (textNode) {
+            el.appendChild(textNode);
+        }
+        else if (node.text && node.start !== node.end) {
+            let text = doc.createTextNode(node.text);
+            text.$renderNode = {
+                tag: '',
+                start: node.start,
+                end: node.end,
+                text: node.text
+            };
+            el.appendChild(text);
+        }
+        for (let name in node.attr) {
+            el.setAttribute(name, node.attr[name]);
+        }
+        el.$renderNode = node;
+        return el;
+    }
 }

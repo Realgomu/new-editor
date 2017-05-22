@@ -59,10 +59,10 @@ export abstract class BlockTool implements EE.IBlockTool {
         }
     }
 
-    protected $renderBlock(root: EE.IRenderNode, data: EE.IBlock) {
+    protected $render(root: EE.IRenderNode, block: EE.IBlock) {
         //inline 数据按照优先级从高到底进行插入
         this.editor.tools.getInlineTools().forEach(tool => {
-            let map = data.inlines[tool.token];
+            let map = block.inlines[tool.token];
             if (map) {
                 map.forEach(item => {
                     Util.InsertRenderTree(root, tool.render(item));
@@ -72,18 +72,18 @@ export abstract class BlockTool implements EE.IBlockTool {
         return root;
     }
 
-    render(data: EE.IBlock) {
-        let end = data.text.length;
+    render(block: EE.IBlock) {
+        let end = block.text.length;
         let root: EE.IRenderNode = {
             tag: this.selectors[0],
             start: 0,
             end: end,
             children: [{ tag: '', start: 0, end: end, children: [] }],
             attr: {
-                'data-row-id': data.rowid
+                'data-row-id': block.rowid
             }
         }
-        return this.$renderBlock(root, data);
+        return this.$render(root, block);
     }
 }
 

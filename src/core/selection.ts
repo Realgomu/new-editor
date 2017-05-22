@@ -45,7 +45,7 @@ export class Selection implements EE.ISelection {
             blockPos.start = t;
         }
         blockPos.rowid = block.getAttribute('data-row-id');
-        blockPos.focusParent = anchorParent === focusParent ? focusParent : undefined;
+        blockPos.focusEl = anchorParent === focusParent ? focusParent : undefined;
         this.lastPos = blockPos;
         return blockPos;
     }
@@ -71,7 +71,7 @@ export class Selection implements EE.ISelection {
                         true
                     );
                     selection.addRange(range);
-                    this.lastPos.focusParent = block;
+                    this.lastPos.focusEl = block;
                 }
             }
             else {
@@ -86,7 +86,7 @@ export class Selection implements EE.ISelection {
                         rowid: lastEl.getAttribute('data-row-id'),
                         start: lastEl.textContent.length,
                         end: lastEl.textContent.length,
-                        focusParent: lastNode.parentElement
+                        focusEl: lastNode.parentElement
                     }
                 }
             }
