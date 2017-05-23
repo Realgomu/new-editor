@@ -45,7 +45,7 @@ export abstract class BlockTool implements EE.IBlockTool {
     }
 
     protected $changeBlock(tag: string = this.selectors[0]) {
-        let pos = this.editor.selection.lastPos;
+        let pos = this.editor.selection.current();
         if (pos.rowid) {
             let old = this.editor.ownerDoc.querySelector(`[data-row-id="${pos.rowid}"]`);
             if (old.tagName.toLowerCase() !== tag) {
@@ -54,7 +54,7 @@ export abstract class BlockTool implements EE.IBlockTool {
                 newNode.setAttribute('data-row-id', rowid);
                 newNode.innerHTML = old.innerHTML;
                 old.parentElement.replaceChild(newNode, old);
-                this.editor.selection.restoreCursor(newNode);
+                this.editor.selection.restore(newNode);
             }
         }
     }

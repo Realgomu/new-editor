@@ -26,9 +26,10 @@ export function EditorTool(options: {
 
 export class Tools implements EE.ITools {
     private _toolCache: EE.IEditorTool[] = [];
-
+    enterTool: EE.IBlockTool;
     constructor(private editor: EE.IEditor) {
         this._initOptions(editor.options.tools);
+        this.enterTool = this.matchToken('paragraph') as EE.IBlockTool;
     }
 
     private _initOptions(token: 'all' | string[]) {

@@ -74,21 +74,22 @@ export function FindLastNode(current: Node) {
 // http://stackoverflow.com/a/11752084/569101
 const isMac = (window.navigator.platform.toUpperCase().indexOf('MAC') >= 0);
 
-export function IsKey(event: KeyboardEvent, code: number | number[], metaCtrl: boolean = false) {
+export function IsKey(event: KeyboardEvent, code: number | number[]) {
     let key = GetKeyCode(event);
-    let same = false;
     if (code instanceof Array) {
-        same = code.indexOf(key) >= 0;
+        return code.indexOf(key) >= 0;
     }
     else {
-        same = code === key;
+        return code === key;
     }
-    if (metaCtrl) {
-        return IsMetaCtrlKey(event) && same;
-    }
-    else {
-        return same;
-    }
+}
+
+export function IsShiftKey(event: KeyboardEvent) {
+    return event.shiftKey;
+}
+
+export function IsAltKey(event: KeyboardEvent) {
+    return event.altKey;
 }
 
 export function IsMetaCtrlKey(event: KeyboardEvent) {

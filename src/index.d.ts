@@ -123,11 +123,16 @@ declare module EnrichEditor {
         rootEl: Element;
 
         initContentEditable(el: HTMLElement): void;
+        getData(): IPage;
+        getRowData(rowid: string): EE.IBlock;
+        getRowElementRoot(rowid: string): Element;
+        interNewRow(rowid: string, focus?: boolean);
     }
 
 
     /** global tools container from editor */
     interface ITools {
+        readonly enterTool: EE.IBlockTool;
         matchInlineTool(el: Element): IInlineTool;
         matchBlockTool(el: Element): IBlockTool;
         matchActionTool(name: string): IActionTool;
@@ -198,15 +203,16 @@ declare module EnrichEditor {
         rowid: string;
         start: number;
         end: number;
+        isCollapsed?: boolean;
         activeTokens?: string[];
     }
 
     /** global selection func for editor */
     interface ISelection {
-        lastPos: EE.ISelectionPosition;
-        isCollapsed(): boolean;
-        updateCurrent(block?: Element): void;
-        restoreCursor(block?: Element): void;
+        current(): ISelectionPosition;
+        update(block?: Element): void;
+        restore(block?: Element): void;
+        moveTo(pos: EE.ISelectionPosition): void;
     }
 
 
@@ -215,6 +221,8 @@ declare module EnrichEditor {
         doCommandAction(name: string, pos?: EE.ISelectionPosition): void;
         redo(): void;
         undo(): void;
+        doEnter(ev: Event): void;
+        doBackspace(): void;
     }
 
     /** action and command step from redo/undo */

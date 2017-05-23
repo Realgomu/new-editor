@@ -1,17 +1,16 @@
 import * as Util from 'core/util';
 
 export class Selection implements EE.ISelection {
-    lastPos: EE.ISelectionPosition = undefined;
+    private _lastPos: EE.ISelectionPosition = undefined;
     constructor(private editor: EE.IEditor) {
 
     }
 
-    isCollapsed(): boolean {
-        let selection = this.editor.ownerDoc.getSelection();
-        return selection.isCollapsed;
+    current() {
+        return Object.assign({}, this._lastPos) as EE.ISelectionPosition;
     }
 
-    updateCurrent(block?: Element) {
+    update(block?: Element) {
         let selection = this.editor.ownerDoc.getSelection();
         let anchorParent = Util.FindElementParent(selection.anchorNode);
         let focusParent = Util.FindElementParent(selection.focusNode);
@@ -37,6 +36,7 @@ export class Selection implements EE.ISelection {
         );
         if (selection.isCollapsed) {
             blockPos.end = blockPos.start;
+            blockPos.isCollapsed = true;
         }
         else if (blockPos.start > blockPos.end) {
             //交换start和end
@@ -47,27 +47,27 @@ export class Selection implements EE.ISelection {
         blockPos.rowid = block.getAttribute('data-row-id');
         let active = anchorParent === focusParent ? focusParent : undefined;
         blockPos.activeTokens = this.editor.tools.getActiveTokens(active);
-        this.lastPos = blockPos;
+        this._lastPos = blockPos;
         console.log(selection);
-        console.log(this.lastPos);
+        console.log(this._lastPos);
     }
 
-    restoreCursor(block?: Element) {
+    restore(block?: Element) {
         let selection = this.editor.ownerDoc.getSelection();
         if (selection) {
             selection.removeAllRanges();
             let range = this.editor.ownerDoc.createRange();
-            if (this.lastPos) {
-                if (!block) block = this.editor.ownerDoc.querySelector(`[data-row-id="${this.lastPos.rowid}"]`);
+            if (this._lastPos) {
+                if (!block) block = this.editor.ownerDoc.querySelector(`[data-row-id="${this._lastPos.rowid}"]`);
                 if (block) {
                     Util.NodeTreeWalker(
                         block,
                         (start, current, end) => {
-                            if (start <= this.lastPos.start && this.lastPos.start <= end) {
-                                range.setStart(current, this.lastPos.start - start);
+                            if (start <= this._lastPos.start && this._lastPos.start <= end) {
+                                range.setStart(current, this._lastPos.start - start);
                             }
-                            if (start <= this.lastPos.end && this.lastPos.end <= end) {
-                                range.setEnd(current, this.lastPos.end - start);
+                            if (start <= this._lastPos.end && this._lastPos.end <= end) {
+                                range.setEnd(current, this._lastPos.end - start);
                             }
                         },
                         true
@@ -83,12 +83,43 @@ export class Selection implements EE.ISelection {
                     range.setStart(lastNode, lastNode.textContent.length);
                     range.setEnd(lastNode, lastNode.textContent.length);
                     selection.addRange(range);
-                    this.lastPos = {
+                    this._lastPos = {
                         rowid: lastEl.getAttribute('data-row-id'),
                         start: lastEl.textContent.length,
                         end: lastEl.textContent.length
                     }
                 }
+            }
+        }
+    }
+
+    moveTo(pos: EE.ISelectionPosition) {
+        let selection = this.editor.ownerDoc.getSelection();
+        if (selection) {
+            selection.removeAllRanges();
+            let range = this.editor.ownerDoc.createRange();
+            let block = this.editor.getRowElementRoot(pos.rowid);
+            if (block) {
+                let isEmpty = true;
+                Util.NodeTreeWalker(
+                    block,
+                    (start, current, end) => {
+                        if (start <= pos.start && pos.start <= end) {
+                            range.setStart(current, pos.start - start);
+                            isEmpty = false;
+                        }
+                        if (start <= pos.end && pos.end <= end) {
+                            range.setEnd(current, pos.end - start);
+                            isEmpty = false;
+                        }
+                    },
+                    true
+                );
+                if (isEmpty) {
+                    range.setStart(block, pos.start);
+                    range.setEnd(block, pos.end);
+                }
+                selection.addRange(range);
             }
         }
     }

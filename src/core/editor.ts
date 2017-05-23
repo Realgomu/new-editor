@@ -30,6 +30,8 @@ export class Editor implements EE.IEditor {
 
     ownerDoc: Document = document;
     rootEl: HTMLElement;
+
+    private _page: EE.IPage;
     constructor(el: HTMLElement, options?: EE.IEditorOptions) {
         let defaultOptions: EE.IEditorOptions = {
             tools: 'all',
@@ -60,12 +62,11 @@ export class Editor implements EE.IEditor {
         this.events.init();
 
         setTimeout(() => {
-            let data = this.getData();
-            this.loadData(data);
+            this.getData();
 
             this.rootEl.click();
-            this.selection.restoreCursor();
-            this._cursorMoved();
+            this.selection.restore();
+            this.rootEl.focus();
         }, 300);
     }
 
@@ -73,64 +74,6 @@ export class Editor implements EE.IEditor {
         this.rootEl = el;
         this.rootEl.setAttribute('contenteditable', '');
         this.rootEl.classList.add('ee-view');
-    }
-
-    private _initEvents() {
-        this.rootEl.addEventListener('keyup', (ev: KeyboardEvent) => {
-            this._checkEmpty();
-            if (Util.IsKey(ev, [EE.KeyCode.Left, EE.KeyCode.Up, EE.KeyCode.Right, EE.KeyCode.Down])) {
-                this._cursorMoved();
-            }
-        });
-        this.rootEl.addEventListener('mouseup', (ev) => {
-            setTimeout(() => {
-                this._cursorMoved();
-            });
-        });
-        this.rootEl.addEventListener('touchend', (ev) => {
-            this._cursorMoved();
-        });
-        this.rootEl.addEventListener('keydown', (ev: KeyboardEvent) => {
-            if (Util.IsKey(ev, EE.KeyCode.Z, true)) {
-                // this.actions.undo();
-                ev.preventDefault();
-            }
-            else if (Util.IsKey(ev, EE.KeyCode.Y, true)) {
-                // this.actions.redo();
-                ev.preventDefault();
-            }
-        });
-        let _timer: number;
-        this.rootEl.addEventListener('input', (ev) => {
-            if (!isComposition) {
-                if (_timer) clearTimeout(_timer);
-                _timer = setTimeout(() => {
-                    this._cursorMoved();
-                }, 500);
-            }
-        });
-        let isComposition = false;
-        this.rootEl.addEventListener('compositionstart', (ev) => {
-            isComposition = true;
-        });
-        this.rootEl.addEventListener('compositionend', (ev) => {
-            isComposition = false;
-            this._cursorMoved();
-        });
-        this.rootEl.addEventListener('focus', (ev) => {
-            console.log('focus');
-        });
-        this._checkEmpty();
-    }
-
-    private _checkEmpty() {
-        if (this.rootEl.outerText == '' || this.rootEl.childNodes.length === 0) {
-            this.rootEl.innerHTML = `<p data-row-id="${Util.RandomID()}"><br></p>`;
-        }
-    }
-
-    private _cursorMoved() {
-        this.selection.updateCurrent();
     }
 
     getData() {
@@ -143,7 +86,10 @@ export class Editor implements EE.IEditor {
                 data.push(result);
             }
         }
-        return data;
+        this._page = {
+            rows: data
+        };
+        return this._page;
     }
 
     loadData(data: EE.IBlock[]) {
@@ -160,5 +106,57 @@ export class Editor implements EE.IEditor {
         if (tool) {
             tool.redo(args);
         }
+    }
+
+    getRowData(rowid: string) {
+        return this._page.rows.find(r => r.rowid === rowid);
+    }
+
+    getRowIndex(rowid: string) {
+        return this._page.rows.findIndex(r => r.rowid === rowid);
+    }
+
+    getRowElementRoot(rowid: string) {
+        let index = this._page.rows.findIndex(r => r.rowid === rowid);
+        if (index >= 0) {
+            let el = this.rootEl.querySelector(`[data-row-id="${rowid}"]`);
+            return el;
+        }
+    }
+
+    interNewRow(rowid: string, after?: boolean) {
+        let newRow = this.ownerDoc.createElement(this.tools.enterTool.selectors[0]);
+        let newId = Util.RandomID();
+        let block: EE.IBlock = {
+            rowid: newId,
+            text: '',
+            type: this.tools.enterTool.type,
+            token: this.tools.enterTool.token,
+            inlines: {}
+        };
+        newRow.setAttribute('data-row-id', newId);
+        newRow.innerHTML = '<br>';
+        let index = rowid ? this._page.rows.findIndex(r => r.rowid === rowid) : this._page.rows.length;
+        let el = this.rootEl.querySelector(`[data-row-id="${rowid}"]`);
+        if (after) {
+            if (el.nextSibling) {
+                this.rootEl.insertBefore(newRow, el.nextSibling);
+                this._page.rows.splice(index + 1, 0, block);
+            }
+            else {
+                this.rootEl.appendChild(newRow);
+                this._page.rows.push(block);
+            }
+            this.selection.moveTo({
+                rowid: newId,
+                start: 0,
+                end: 0
+            });
+        }
+        else {
+            this.rootEl.insertBefore(newRow, el);
+            this._page.rows.splice(index, 0, block);
+        }
+        return newId;
     }
 }

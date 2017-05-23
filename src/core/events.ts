@@ -13,7 +13,9 @@ export class Events {
 
         //custom
         this.on('$input', (editor, ev) => {
-            editor.selection.updateCurrent();
+            editor.selection.update();
+            console.log('input');
+            editor.getData();
         });
         this.on('$click', (EREditor, ev) => {
             console.log('click link');
@@ -61,11 +63,8 @@ export class Events {
             if (ev.target === node) {
                 return true;
             }
-            else {
-                let parent = Util.FindParend(ev.target as Element, (parent) => {
-                    return parent === node;
-                });
-                return !!parent;
+            else if (node.contains(ev.target as Node)) {
+                return true;
             }
         }
         return false;
@@ -80,6 +79,10 @@ export class Events {
         this._attach('compositionstart', root, this._compositionstart.bind(this));
         this._attach('compositionend', root, this._compositionend.bind(this));
         this._attach('click', root, this._click.bind(this));
+        this._attach('keydown', root, this._keydown.bind(this));
+        this._attach('keyup', root, this._keyup.bind(this));
+        this._attach('touchend', root, this._touchend.bind(this));
+        this._attach('mouseup', root, this._mouseup.bind(this));
     }
 
     private _attach(name: string, el: Element, listener: any) {
@@ -94,6 +97,7 @@ export class Events {
         }
     }
 
+    //input event
     private _timer: number;
     private _input(ev: Event) {
         if (!this._isComposition) {
@@ -104,6 +108,7 @@ export class Events {
         }
     }
 
+    //composition
     private _isComposition = false;
     private _compositionstart(ev: Event) {
         this._isComposition = true;
@@ -113,7 +118,55 @@ export class Events {
         this.trigger('$input', ev);
     }
 
+
+    //click
     private _click(ev: MouseEvent) {
         this.trigger('$click', ev);
+    }
+
+    //keydown
+    private _keydown(ev: KeyboardEvent) {
+        let prevent = false;
+        //enter
+        switch (Util.GetKeyCode(ev)) {
+            case EE.KeyCode.ENTER:
+                if (!Util.IsShiftKey(ev)) {
+                    this.editor.actions.doEnter(ev);
+                    this.trigger('$enter', ev);
+                }
+                break;
+            case EE.KeyCode.DELETE:
+                break;
+            case EE.KeyCode.BACKSPACE:
+                this.editor.actions.doBackspace();
+                break;
+            case EE.KeyCode.Z:
+                if (Util.IsMetaCtrlKey(ev)) {
+                    //undo
+                    prevent = true;
+                }
+                break;
+            case EE.KeyCode.Y:
+                if (Util.IsMetaCtrlKey(ev)) {
+                    //redo
+                    prevent = true;
+                }
+                break;
+        }
+        if (prevent) {
+            ev.preventDefault();
+        }
+    }
+
+    private _keyup(ev: KeyboardEvent) {
+        this.editor.selection.update();
+    }
+
+    private _touchend(ev: TouchEvent) {
+        this.editor.selection.update();
+    }
+
+    private _mouseup(ev: MouseEvent) {
+        this.editor.selection.update();
     }
 }

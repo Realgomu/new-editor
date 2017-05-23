@@ -1,4 +1,4 @@
-import * as Selection from './selection';
+import * as Util from './util';
 
 export class Actions implements EE.IActions {
     private _queue: EE.IActionStep[] = [];
@@ -9,7 +9,7 @@ export class Actions implements EE.IActions {
     }
 
     doCommandAction(name: string, pos?: EE.ISelectionPosition) {
-        if (!pos) pos = this.editor.selection.lastPos;
+        if (!pos) pos = this.editor.selection.current();
         let action: EE.IActionStep = {
             name: name,
             useCommand: true,
@@ -52,5 +52,32 @@ export class Actions implements EE.IActions {
         //     this.editor.ownerDoc.execCommand('undo');
         // }
         this.editor.ownerDoc.execCommand('undo');
+    }
+
+    doEnter(ev: Event) {
+        let cursor = this.editor.selection.current();
+        if (cursor.isCollapsed) {
+            let row = this.editor.getRowData(cursor.rowid);
+            if (cursor.start === 0) {
+                //add row before
+                let newId = this.editor.interNewRow(cursor.rowid);
+                ev.preventDefault();
+                return;
+            }
+            else if (cursor.start === row.text.length) {
+                //add row end
+                this.editor.interNewRow(cursor.rowid, true);
+                ev.preventDefault();
+                return;
+            }
+        }
+    }
+
+    doBackspace() {
+        let cursor = this.editor.selection.current();
+        if (cursor.isCollapsed && cursor.start === 0) {
+            //merge two row
+            this.editor.getData();
+        }
     }
 }
