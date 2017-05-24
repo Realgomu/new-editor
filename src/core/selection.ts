@@ -11,13 +11,29 @@ export class Selection implements EE.ISelection {
         return Object.assign({}, this._lastCursor) as EE.ICursorSelection;
     }
 
+    eachRow(func: (block: EE.IBlock, start: number, end: number) => void) {
+        this.editor.eachRow(
+            this._lastCursor.start.rowid,
+            this._lastCursor.end.rowid,
+            (block) => {
+                let start = 0, end = block.text.length;
+                if (block.rowid === this._lastCursor.start.rowid) {
+                    start = this._lastCursor.start.pos;
+                }
+                if (block.rowid === this._lastCursor.end.rowid) {
+                    end = this._lastCursor.end.pos;
+                }
+                func(block, start, end);
+            });
+    }
+
     update() {
         let selection = this.editor.ownerDoc.getSelection();
         let cursor: EE.ICursorSelection = {
             start: { rowid: '', pos: 0 },
             end: { rowid: '', pos: 0 },
         };
-        let pos = 0, lastRowid = '';
+        let pos = 0, lastRowid = '', startFirst: boolean = undefined;
         Util.TreeWalker(
             this.editor.ownerDoc,
             this.editor.rootEl,
@@ -31,9 +47,11 @@ export class Selection implements EE.ISelection {
                 }
                 if (current === selection.anchorNode) {
                     cursor.start = { rowid: lastRowid, pos: pos + selection.anchorOffset };
+                    if (startFirst === undefined) startFirst = true;
                 }
                 if (current === selection.focusNode) {
                     cursor.end = { rowid: lastRowid, pos: pos + selection.focusOffset };
+                    if (startFirst === undefined) startFirst = false;
                 }
                 if (current.nodeType === 3) {
                     pos += current.textContent.length;
@@ -43,7 +61,7 @@ export class Selection implements EE.ISelection {
             cursor.end = cursor.start;
             cursor.collapsed = true;
         }
-        else if (cursor.start.pos > cursor.end.pos) {
+        else if (!startFirst) {
             //交换start和end
             let t = cursor.end;
             cursor.end = cursor.start;
@@ -61,44 +79,7 @@ export class Selection implements EE.ISelection {
     }
 
     restore(block?: Element) {
-        let selection = this.editor.ownerDoc.getSelection();
-        if (selection) {
-            // selection.removeAllRanges();
-            // let range = this.editor.ownerDoc.createRange();
-            // if (this._lastCursor) {
-            //     if (!block) block = this.editor.ownerDoc.querySelector(`[data-row-id="${this._lastCursor.rowid}"]`);
-            //     if (block) {
-            //         Util.NodeTreeWalker(
-            //             block,
-            //             (start, current, end) => {
-            //                 if (start <= this._lastCursor.start && this._lastCursor.start <= end) {
-            //                     range.setStart(current, this._lastCursor.start - start);
-            //                 }
-            //                 if (start <= this._lastCursor.end && this._lastCursor.end <= end) {
-            //                     range.setEnd(current, this._lastCursor.end - start);
-            //                 }
-            //             },
-            //             true
-            //         );
-            //         selection.addRange(range);
-            //     }
-            // }
-            // else {
-            //     //如果上个光标记录点不存在，则将光标定位到文章末尾
-            //     let lastEl = this.editor.rootEl.lastElementChild;
-            //     let lastNode = Util.FindLastNode(lastEl);
-            //     if (lastNode) {
-            //         range.setStart(lastNode, lastNode.textContent.length);
-            //         range.setEnd(lastNode, lastNode.textContent.length);
-            //         selection.addRange(range);
-            //         this._lastCursor = {
-            //             rowid: lastEl.getAttribute('data-row-id'),
-            //             start: lastEl.textContent.length,
-            //             end: lastEl.textContent.length
-            //         }
-            //     }
-            // }
-        }
+        this.moveTo(this._lastCursor);
     }
 
     moveTo(cursor: EE.ICursorSelection) {
@@ -122,7 +103,7 @@ export class Selection implements EE.ISelection {
                         }
                         if (!cursor.mutilple) {
                             if (pos <= cursor.end.pos && cursor.end.pos <= pos + length) {
-                                range.setStart(current, cursor.end.pos - pos);
+                                range.setEnd(current, cursor.end.pos - pos);
                                 isEmpty = false;
                             }
                         }
@@ -132,16 +113,16 @@ export class Selection implements EE.ISelection {
                 )
             }
             if (cursor.mutilple) {
-                let endRow = this.editor.getRowElement(cursor.start.rowid);
+                let endRow = this.editor.getRowElement(cursor.end.rowid);
                 pos = 0;
                 if (endRow) {
                     Util.TreeWalker(
                         this.editor.ownerDoc,
-                        startRow,
+                        endRow,
                         (current: Text) => {
                             let length = current.textContent.length;
                             if (pos <= cursor.end.pos && cursor.end.pos <= pos + length) {
-                                range.setStart(current, cursor.end.pos - pos);
+                                range.setEnd(current, cursor.end.pos - pos);
                                 isEmpty = false;
                             }
                             pos += length;

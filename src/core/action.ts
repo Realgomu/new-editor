@@ -1,6 +1,15 @@
 import * as Util from './util';
 import { Editor } from './editor';
 
+export interface IActionStep {
+
+}
+
+export interface IActionObj {
+    cursor: EE.ICursorPosition,
+    
+}
+
 export class Actions implements EE.IActions {
     private _queue: any[] = [];
     private _point: number = -1;

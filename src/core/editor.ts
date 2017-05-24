@@ -181,4 +181,50 @@ export class Editor implements EE.IEditor {
             }
         }
     }
+
+    eachRow(from: string, to: string, func: (block: EE.IBlock) => void) {
+        let inRange = false;
+        for (let i = 0, l = this._page.rows.length; i < l; i++) {
+            var row = this._page.rows[i];
+            if (from === row.rowid) {
+                func(row);
+                inRange = true;
+                if (from === to) break;
+            }
+            else if (to === row.rowid) {
+                func(row);
+                inRange = false;
+            }
+            else if (inRange) {
+                func(row);
+            }
+        }
+    }
+
+    MergeInlines(list: EE.IInline[], add?: EE.IInline) {
+        let newList: EE.IInline[] = [];
+        add && newList.push(add);
+        list.forEach(item => {
+            let merge = newList.find(m => (m.start === item.end) || (m.end === item.start));
+            if (merge) {
+                if (merge.start === item.end - 1) {
+                    merge.start = item.start;
+                }
+                else if (merge.end === item.start + 1) {
+                    merge.end = item.end;
+                }
+            }
+            else {
+                newList.push(item);
+            }
+        });
+        return newList;
+    }
+
+    renderRow(block: EE.IBlock) {
+        let tool = this.tools.matchToken(block.token) as EE.IBlockTool;
+        let newEl = tool.render(block);
+        let oldEl = this.getRowElement(block.rowid);
+        oldEl.parentNode.replaceChild(newEl, oldEl);
+    }
 }
