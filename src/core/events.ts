@@ -1,10 +1,11 @@
 import * as Util from './util';
+import { Editor } from './editor';
 
 export class Events {
     private _customEvents: EE.ICustomEventMap = {};
     private _domEvents: { 0: string; 1: Element; 2: any; }[] = [];
 
-    constructor(private editor: EE.IEditor) {
+    constructor(private editor: Editor) {
 
     }
 

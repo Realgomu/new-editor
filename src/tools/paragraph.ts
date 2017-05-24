@@ -1,4 +1,5 @@
 import * as Tool from 'core/tools';
+import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'paragraph',
@@ -7,7 +8,7 @@ import * as Tool from 'core/tools';
 export default class Paragraph extends Tool.BlockTool implements EE.IActionTool {
     selectors = ['p'];
     action = 'paragraph';
-    constructor(editor: EE.IEditor) {
+    constructor(editor: Editor) {
         super(editor);
     }
 

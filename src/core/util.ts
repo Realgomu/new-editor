@@ -11,64 +11,35 @@ export function RandomID(lenght: number = 6) {
     return result;
 }
 
-export function NodeTreeWalker(root: Element, func: (start: number, current: Element | Text, end?: number) => void, onlyText = false) {
+/** 遍历dom节点 */
+export function TreeWalker(
+    doc: Document,
+    root: Element,
+    func: (current: Element | Text) => void,
+    onlyText: boolean = false
+) {
     let filter = onlyText ? NodeFilter.SHOW_TEXT : NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
-    let walker = document.createTreeWalker(root, filter);
+    let walker = document.createTreeWalker(root, filter, null, false);
     let pos = 0;
     while (walker.nextNode()) {
-        let current = walker.currentNode as Element | Text;
-        let lenght = current.textContent.length;
-        if (onlyText || current.nodeType === 1) {
-            func && func(pos, current, pos + lenght);
-        }
-        if (current.nodeType === 3) {
-            pos += lenght;
-        }
+        let current = walker.currentNode;
+        func && func(current as Element | Text);
     }
 }
 
-export function FindParend(current: Node, match: (node: Element) => boolean) {
+export function FindParend(target: Node, match: (node: Node) => boolean) {
     if (!match) {
         match = (node: Element) => {
             return node.hasAttribute('contenteditable');
         };
     }
-    let target: Element;
-    if (current.nodeType === 1) {
-        target = current as Element;
-    }
-    else if (current.nodeType === 3) {
-        target = current.parentElement;
-    }
-    else {
-        return undefined;
-    }
     while (!match(target)) {
-        if (target.hasAttribute('contenteditable') || target.nodeType === Node.DOCUMENT_NODE) {
+        if (target.nodeType === Node.DOCUMENT_NODE) {
             return undefined;
         }
-        target = target.parentElement;
+        target = target.parentNode;
     }
     return target;
-}
-
-export function FindElementParent(current: Node) {
-    return FindParend(current, (node) => {
-        return node.nodeType === 1;
-    }) as Element;
-}
-
-export function FindBlockParent(current: Node) {
-    return FindParend(current, (node) => {
-        return node.nodeType === 1 && (<Element>node).hasAttribute('data-row-id');
-    }) as Element;
-}
-
-export function FindLastNode(current: Node) {
-    while (current.lastChild) {
-        current = current.lastChild;
-    }
-    return current;
 }
 
 // http://stackoverflow.com/a/11752084/569101

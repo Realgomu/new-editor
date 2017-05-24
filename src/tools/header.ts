@@ -1,5 +1,6 @@
 import * as Tool from 'core/tools';
 import * as Util from 'core/util';
+import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'header',
@@ -8,7 +9,7 @@ import * as Util from 'core/util';
 export default class Paragraph extends Tool.BlockTool implements EE.IActionTool {
     selectors = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
     action = 'header';
-    constructor(editor: EE.IEditor) {
+    constructor(editor: Editor) {
         super(editor);
     }
 

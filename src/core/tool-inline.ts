@@ -1,9 +1,11 @@
+import { Editor } from './editor';
+
 export abstract class InlineTool implements EE.IInlineTool {
     readonly type: EE.ToolType;
     readonly token: string;
     abstract selectors: string[];
 
-    constructor(protected editor: EE.IEditor) {
+    constructor(protected editor: Editor) {
     }
 
     protected $getData(el: Element, start: number): EE.IInline {

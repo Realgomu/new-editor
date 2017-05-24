@@ -1,4 +1,5 @@
 import * as Tool from 'core/tools';
+import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'italic',
@@ -9,7 +10,7 @@ export default class Italic extends Tool.InlineTool implements EE.IActionTool {
     action = 'italic';
     useCommand = true;
 
-    constructor(editor: EE.IEditor) {
+    constructor(editor: Editor) {
         super(editor);
     }
 

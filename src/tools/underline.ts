@@ -1,4 +1,5 @@
 import * as Tool from 'core/tools';
+import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'underline',
@@ -9,7 +10,7 @@ export default class Underline extends Tool.InlineTool {
     action = 'underline';
     useDocCommand = true;
     
-    constructor(editor: EE.IEditor) {
+    constructor(editor: Editor) {
         super(editor);
     }
 }

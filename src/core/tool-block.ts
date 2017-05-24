@@ -1,24 +1,33 @@
 import * as Tool from './tools';
 import * as Util from './util';
 import * as Selection from './selection';
+import { Editor } from './editor';
 
 export abstract class BlockTool implements EE.IBlockTool {
     readonly type: EE.ToolType;
     readonly token: string;
     abstract selectors: string[];
 
-    constructor(protected editor: EE.IEditor) {
+    constructor(protected editor: Editor) {
     }
 
     getInlines(el: Element): EE.InlineMap {
         let map: EE.InlineMap = {};
-        Util.NodeTreeWalker(
+        let pos = 0;
+        Util.TreeWalker(
+            this.editor.ownerDoc,
             el,
-            (pos, child: Element) => {
-                let tool = this.editor.tools.matchInlineTool(child);
-                if (tool) {
-                    if (!map[tool.token]) map[tool.token] = [];
-                    map[tool.token].push(tool.getData(child, pos));
+            (current) => {
+                let lenght = current.textContent.length;
+                if (current.nodeType === 1) {
+                    let tool = this.editor.tools.matchInlineTool(<Element>current);
+                    if (tool) {
+                        if (!map[tool.token]) map[tool.token] = [];
+                        map[tool.token].push(tool.getData(<Element>current, pos));
+                    }
+                }
+                else if (current.nodeType === 3) {
+                    pos += lenght;
                 }
             });
         //检查inline数据，进行合并计算
@@ -26,10 +35,6 @@ export abstract class BlockTool implements EE.IBlockTool {
             map[token] = MergeInlines(map[token]);
         }
         return map;
-    }
-
-    getData(el: Element): EE.IBlock {
-        return this.$getDate(el);
     }
 
     protected $getDate(el: Element): EE.IBlock {
@@ -44,18 +49,22 @@ export abstract class BlockTool implements EE.IBlockTool {
         return block;
     }
 
+    getData(el: Element): EE.IBlock {
+        return this.$getDate(el);
+    }
+
     protected $changeBlock(tag: string = this.selectors[0]) {
-        let pos = this.editor.selection.current();
-        if (pos.rowid) {
-            let old = this.editor.ownerDoc.querySelector(`[data-row-id="${pos.rowid}"]`);
-            if (old.tagName.toLowerCase() !== tag) {
-                let rowid = old.getAttribute('data-row-id');
-                let newNode = this.editor.ownerDoc.createElement(tag);
-                newNode.setAttribute('data-row-id', rowid);
-                newNode.innerHTML = old.innerHTML;
-                old.parentElement.replaceChild(newNode, old);
-                this.editor.selection.restore(newNode);
-            }
+        let cursor = this.editor.selection.current();
+        if (cursor) {
+            // let old = this.editor.ownerDoc.querySelector(`[data-row-id="${cursor.rowid}"]`);
+            // if (old.tagName.toLowerCase() !== tag) {
+            //     let rowid = old.getAttribute('data-row-id');
+            //     let newNode = this.editor.ownerDoc.createElement(tag);
+            //     newNode.setAttribute('data-row-id', rowid);
+            //     newNode.innerHTML = old.innerHTML;
+            //     old.parentElement.replaceChild(newNode, old);
+            //     this.editor.selection.restore(newNode);
+            // }
         }
     }
 

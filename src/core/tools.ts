@@ -26,10 +26,10 @@ export function EditorTool(options: {
 
 export class Tools implements EE.ITools {
     private _toolCache: EE.IEditorTool[] = [];
-    enterTool: EE.IBlockTool;
-    constructor(private editor: EE.IEditor) {
+    rowTool: EE.IBlockTool;
+    constructor(private editor: Editor) {
         this._initOptions(editor.options.tools);
-        this.enterTool = this.matchToken('paragraph') as EE.IBlockTool;
+        this.rowTool = this.matchToken('paragraph') as EE.IBlockTool;
     }
 
     private _initOptions(token: 'all' | string[]) {
@@ -101,13 +101,13 @@ export class Tools implements EE.ITools {
 
     getActiveTokens(el: Element) {
         let list = [];
-        Util.FindParend(el, (parent => {
-            let tool = this._match(tool => {
-                return ElementTagCheck(tool, parent);
-            });
-            list.push(tool.token);
-            return parent.hasAttribute('data-row-id');
-        }));
+        // Util.FindParend(el, (parent => {
+        //     let tool = this._match(tool => {
+        //         return ElementTagCheck(tool, parent);
+        //     });
+        //     list.push(tool.token);
+        //     return parent.hasAttribute('data-row-id');
+        // }));
         return list;
     }
 }

@@ -1,4 +1,5 @@
 import * as Tool from 'core/tools';
+import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'link',
@@ -8,7 +9,7 @@ export default class Link extends Tool.InlineTool implements EE.IActionTool {
     selectors = ['a'];
     action = 'link';
 
-    constructor(editor: EE.IEditor) {
+    constructor(editor: Editor) {
         super(editor);
     }
 

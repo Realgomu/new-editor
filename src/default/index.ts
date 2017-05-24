@@ -1,11 +1,12 @@
 import { Toolbar } from './toolbar';
 import { Popover } from './popover';
+import { Editor } from 'core/editor';
 
 export class DefaultUI implements EE.IDefaultUI {
     container: HTMLElement;
     toolbar: Toolbar;
     popover: Popover;
-    constructor(private editor: EE.IEditor) {
+    constructor(private editor: Editor) {
         this.toolbar = new Toolbar(editor, this);
         this.popover = new Popover(editor, this);
     }

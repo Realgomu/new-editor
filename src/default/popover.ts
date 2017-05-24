@@ -1,9 +1,9 @@
-
+import { Editor } from 'core/editor';
 
 export class Popover implements EE.IPopover {
     panel: HTMLElement;
     constructor(
-        private editor: EE.IEditor,
+        private editor: Editor,
         private ui: EE.IDefaultUI
     ) { }
 

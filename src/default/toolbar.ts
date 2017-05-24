@@ -1,3 +1,4 @@
+import { Editor } from 'core/editor';
 
 const _buttons: EE.IButtonOption[] = [
     {
@@ -35,7 +36,7 @@ const _buttons: EE.IButtonOption[] = [
 export class Toolbar implements EE.IToolbar {
     panel: HTMLElement;
     constructor(
-        private editor: EE.IEditor,
+        private editor: Editor,
         private ui: EE.IDefaultUI
     ) { }
 

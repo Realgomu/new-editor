@@ -125,14 +125,14 @@ declare module EnrichEditor {
         initContentEditable(el: HTMLElement): void;
         getData(): IPage;
         getRowData(rowid: string): EE.IBlock;
-        getRowElementRoot(rowid: string): Element;
+        getRowElement(rowid: string): Element;
         interNewRow(rowid: string, focus?: boolean);
     }
 
 
     /** global tools container from editor */
     interface ITools {
-        readonly enterTool: EE.IBlockTool;
+        readonly rowTool: EE.IBlockTool;
         matchInlineTool(el: Element): IInlineTool;
         matchBlockTool(el: Element): IBlockTool;
         matchActionTool(name: string): IActionTool;
@@ -199,26 +199,30 @@ declare module EnrichEditor {
     type CommonListener = (editor: IEditor, ev: Event, ...args: any[]) => any;
 
     /** selection position, cursor position in block */
-    interface ISelectionPosition {
+    interface ICursorPosition {
         rowid: string;
-        start: number;
-        end: number;
-        isCollapsed?: boolean;
+        pos: number;
+    }
+    interface ICursorSelection {
+        start: ICursorPosition;
+        end: ICursorPosition;
+        collapsed?: boolean;
+        mutilple?: boolean;
         activeTokens?: string[];
     }
 
     /** global selection func for editor */
     interface ISelection {
-        current(): ISelectionPosition;
+        current(): ICursorSelection;
         update(block?: Element): void;
         restore(block?: Element): void;
-        moveTo(pos: EE.ISelectionPosition): void;
+        moveTo(pos: EE.ICursorSelection): void;
     }
 
 
     /** global action func for editor */
     interface IActions {
-        doCommandAction(name: string, pos?: EE.ISelectionPosition): void;
+        doCommandAction(name: string, pos?: EE.ICursorSelection): void;
         redo(): void;
         undo(): void;
         doEnter(ev: Event): void;
@@ -226,10 +230,6 @@ declare module EnrichEditor {
     }
 
     /** action and command step from redo/undo */
-    interface IActionStep extends ISelectionPosition {
-        name: string;
-        useCommand?: boolean;
-    }
 
 
     /** default ui for editor */

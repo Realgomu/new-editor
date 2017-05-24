@@ -63,9 +63,12 @@ export class Editor implements EE.IEditor {
 
         setTimeout(() => {
             this.getData();
+            //check empty
+            if (this._page.rows.length === 0) {
+                this.interNewRow();
+            }
 
             this.rootEl.click();
-            this.selection.restore();
             this.rootEl.focus();
         }, 300);
     }
@@ -116,7 +119,7 @@ export class Editor implements EE.IEditor {
         return this._page.rows.findIndex(r => r.rowid === rowid);
     }
 
-    getRowElementRoot(rowid: string) {
+    getRowElement(rowid: string) {
         let index = this._page.rows.findIndex(r => r.rowid === rowid);
         if (index >= 0) {
             let el = this.rootEl.querySelector(`[data-row-id="${rowid}"]`);
@@ -124,39 +127,58 @@ export class Editor implements EE.IEditor {
         }
     }
 
-    interNewRow(rowid: string, after?: boolean) {
-        let newRow = this.ownerDoc.createElement(this.tools.enterTool.selectors[0]);
+    interNewRow(rowid?: string, after?: boolean) {
+        let newRow = this.ownerDoc.createElement(this.tools.rowTool.selectors[0]);
         let newId = Util.RandomID();
         let block: EE.IBlock = {
             rowid: newId,
             text: '',
-            type: this.tools.enterTool.type,
-            token: this.tools.enterTool.token,
+            type: this.tools.rowTool.type,
+            token: this.tools.rowTool.token,
             inlines: {}
         };
         newRow.setAttribute('data-row-id', newId);
         newRow.innerHTML = '<br>';
-        let index = rowid ? this._page.rows.findIndex(r => r.rowid === rowid) : this._page.rows.length;
-        let el = this.rootEl.querySelector(`[data-row-id="${rowid}"]`);
-        if (after) {
-            if (el.nextSibling) {
-                this.rootEl.insertBefore(newRow, el.nextSibling);
-                this._page.rows.splice(index + 1, 0, block);
-            }
-            else {
-                this.rootEl.appendChild(newRow);
-                this._page.rows.push(block);
-            }
-            this.selection.moveTo({
-                rowid: newId,
-                start: 0,
-                end: 0
-            });
+        if (!rowid) {
+            this.rootEl.appendChild(newRow);
+            this._page.rows.push(block);
         }
         else {
-            this.rootEl.insertBefore(newRow, el);
-            this._page.rows.splice(index, 0, block);
+            let index = rowid ? this._page.rows.findIndex(r => r.rowid === rowid) : this._page.rows.length;
+            let el = this.rootEl.querySelector(`[data-row-id="${rowid}"]`);
+            if (after) {
+                if (el.nextSibling) {
+                    this.rootEl.insertBefore(newRow, el.nextSibling);
+                    this._page.rows.splice(index + 1, 0, block);
+                }
+                else {
+                    this.rootEl.appendChild(newRow);
+                    this._page.rows.push(block);
+                }
+                this.selection.moveTo({
+                    start: { rowid: newId, pos: 0 },
+                    end: { rowid: newId, pos: 0 }
+                });
+            }
+            else {
+                this.rootEl.insertBefore(newRow, el);
+                this._page.rows.splice(index, 0, block);
+            }
         }
         return newId;
+    }
+
+    isRowElement(el: Element, bottom: boolean = false) {
+        if (!el.hasAttribute('data-row-id')) {
+            return undefined;
+        }
+        else {
+            if (!bottom || el.querySelector('[data-row-id]')) {
+                return el.getAttribute('data-row-id');
+            }
+            else {
+                return undefined;
+            }
+        }
     }
 }
