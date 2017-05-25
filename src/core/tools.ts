@@ -1,5 +1,7 @@
 import { Editor } from './editor';
 import * as Util from './util';
+import { InlineTool } from './tool-inline';
+import { BlockTool } from './tool-block';
 
 export { InlineTool } from './tool-inline';
 export { BlockTool } from './tool-block';
@@ -24,7 +26,7 @@ export function EditorTool(options: {
     }
 }
 
-export class Tools implements EE.ITools {
+export class Tools {
     private _toolCache: EE.IEditorTool[] = [];
     rowTool: EE.IBlockTool;
     constructor(private editor: Editor) {
@@ -68,14 +70,14 @@ export class Tools implements EE.ITools {
     matchInlineTool(el: Element) {
         return this._match((tool) => {
             return tool.type < 100 && ElementTagCheck(tool, el);
-        }) as EE.IInlineTool;
+        }) as InlineTool;
     }
 
     /** 根据element的tag匹配相对应的block tool */
     matchBlockTool(el: Element) {
         return this._match((tool) => {
             return tool.type >= 100 && tool.type < 1000 && ElementTagCheck(tool, el);
-        }) as EE.IBlockTool;
+        }) as BlockTool;
     }
 
     /** 根据action name 匹配对应的 tool */
@@ -92,11 +94,11 @@ export class Tools implements EE.ITools {
     }
 
     getInlineTools() {
-        return this._toolCache.filter(t => t.type < 100) as EE.IInlineTool[];
+        return this._toolCache.filter(t => t.type < 100) as InlineTool[];
     }
 
     getBlockTools() {
-        return this._toolCache.filter(t => t.type >= 100) as EE.IBlockTool[];
+        return this._toolCache.filter(t => t.type >= 100) as BlockTool[];
     }
 
     getActiveTokens(el: Element) {

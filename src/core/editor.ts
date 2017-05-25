@@ -1,5 +1,5 @@
 import * as Util from './util';
-import { Tools } from './tools';
+import { Tools, InlineTool, BlockTool } from './tools';
 import { Events } from './events';
 import { Selection } from './selection';
 import { Actions } from './action';
@@ -98,7 +98,7 @@ export class Editor implements EE.IEditor {
     loadData(data: EE.IBlock[]) {
         this.rootEl.innerHTML = '';
         let list = data.forEach(block => {
-            let tool = this.tools.matchToken(block.token) as EE.IBlockTool;
+            let tool = this.tools.matchToken(block.token) as BlockTool;
             this.rootEl.appendChild(tool.render(block));
         });
         console.log('load data success');
@@ -201,28 +201,8 @@ export class Editor implements EE.IEditor {
         }
     }
 
-    MergeInlines(list: EE.IInline[], add?: EE.IInline) {
-        let newList: EE.IInline[] = [];
-        add && newList.push(add);
-        list.forEach(item => {
-            let merge = newList.find(m => (m.start === item.end) || (m.end === item.start));
-            if (merge) {
-                if (merge.start === item.end - 1) {
-                    merge.start = item.start;
-                }
-                else if (merge.end === item.start + 1) {
-                    merge.end = item.end;
-                }
-            }
-            else {
-                newList.push(item);
-            }
-        });
-        return newList;
-    }
-
     renderRow(block: EE.IBlock) {
-        let tool = this.tools.matchToken(block.token) as EE.IBlockTool;
+        let tool = this.tools.matchToken(block.token) as BlockTool;
         let newEl = tool.render(block);
         let oldEl = this.getRowElement(block.rowid);
         oldEl.parentNode.replaceChild(newEl, oldEl);

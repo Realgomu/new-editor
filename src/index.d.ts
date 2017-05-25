@@ -133,13 +133,6 @@ declare module EnrichEditor {
     /** global tools container from editor */
     interface ITools {
         readonly rowTool: EE.IBlockTool;
-        matchInlineTool(el: Element): IInlineTool;
-        matchBlockTool(el: Element): IBlockTool;
-        matchActionTool(name: string): IActionTool;
-        matchToken(token: string): IEditorTool;
-        getInlineTools(): IInlineTool[];
-        getBlockTools(): IBlockTool[];
-        getActiveTokens(el: Element): string[];
     }
 
     /** constructor function interface for editor tool class */
@@ -169,15 +162,11 @@ declare module EnrichEditor {
     /** inline tool interface */
     interface IInlineTool extends IEditorTool {
         selectors: string[];
-        getData(el: Element, start: number): EE.IInline;
-        render(inline: EE.IInline): IRenderNode;
     }
 
     /** block tool interface */
     interface IBlockTool extends IEditorTool {
         selectors: string[];
-        getData(el: Element): EE.IBlock;
-        render(block: EE.IBlock): HTMLElement;
     }
 
 

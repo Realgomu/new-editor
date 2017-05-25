@@ -1,13 +1,20 @@
 import * as Util from './util';
 import { Editor } from './editor';
 
-export interface IActionStep {
+type PositionRange = { 0: number, 1: number };
 
+export interface IInlineActions {
+    token: string;
+    type?: number;
+    list: PositionRange[];
+}
+
+export interface IActionStep {
+    [id: string]: IInlineActions;
 }
 
 export interface IActionObj {
     cursor: EE.ICursorPosition,
-    
 }
 
 export class Actions implements EE.IActions {

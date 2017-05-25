@@ -14,6 +14,7 @@ export abstract class BlockTool implements EE.IBlockTool {
     getInlines(el: Element): EE.InlineMap {
         let map: EE.InlineMap = {};
         let pos = 0;
+        let last: { [token: string]: EE.IInline } = {};
         Util.TreeWalker(
             this.editor.ownerDoc,
             el,
@@ -23,7 +24,15 @@ export abstract class BlockTool implements EE.IBlockTool {
                     let tool = this.editor.tools.matchInlineTool(<Element>current);
                     if (tool) {
                         if (!map[tool.token]) map[tool.token] = [];
-                        map[tool.token].push(tool.getData(<Element>current, pos));
+                        let inline = tool.getDataFromEl(<Element>current, pos);
+                        if (last[tool.token] && inline.start === last[tool.token].end) {
+                            //检查是否可以合并
+                            last[tool.token].end = inline.end;
+                        }
+                        else {
+                            map[tool.token].push(inline);
+                            last[tool.token] = inline;
+                        }
                     }
                 }
                 else if (current.nodeType === 3) {
@@ -31,9 +40,9 @@ export abstract class BlockTool implements EE.IBlockTool {
                 }
             });
         //检查inline数据，进行合并计算
-        for (let token in map) {
-            map[token] = MergeInlines(map[token]);
-        }
+        // for (let token in map) {
+        //     map[token] = MergeInlines(map[token]);
+        // }
         return map;
     }
 
@@ -94,25 +103,4 @@ export abstract class BlockTool implements EE.IBlockTool {
         this.$renderInlines(root, block.inlines);
         return root;
     }
-}
-
-//合并inline对象
-function MergeInlines(list: EE.IInline[], add?: EE.IInline) {
-    let newList: EE.IInline[] = [];
-    add && newList.push(add);
-    list.forEach(item => {
-        let merge = newList.find(m => (m.start === item.end) || (m.end === item.start));
-        if (merge) {
-            if (merge.start === item.end - 1) {
-                merge.start = item.start;
-            }
-            else if (merge.end === item.start + 1) {
-                merge.end = item.end;
-            }
-        }
-        else {
-            newList.push(item);
-        }
-    });
-    return newList;
 }

@@ -20,11 +20,9 @@ export default class Link extends Tool.InlineTool implements EE.IActionTool {
 
     }
 
-    getData(el: Element, start: number) {
-        let inline = this.$getData(el, start);
+    getDataFromEl(el: Element, start: number) {
         let href = el.getAttribute('href');
-        inline.data = href || undefined;
-        return inline;
+        return this.createData(start, el.textContent.length, href || undefined);
     }
 
     render(data: EE.IInline) {
