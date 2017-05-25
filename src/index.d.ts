@@ -157,6 +157,7 @@ declare module EnrichEditor {
         useCommand?: boolean;
         redo: Function;
         undo: Function;
+        apply?: Function;
     }
 
     /** inline tool interface */
@@ -189,29 +190,26 @@ declare module EnrichEditor {
 
     /** selection position, cursor position in block */
     interface ICursorPosition {
-        rowid: string;
-        pos: number;
-    }
-    interface ICursorSelection {
-        start: ICursorPosition;
-        end: ICursorPosition;
+        rows: string[];
+        start: number;
+        end: number;
+        activeTokens?: string[];
         collapsed?: boolean;
         mutilple?: boolean;
-        activeTokens?: string[];
     }
 
     /** global selection func for editor */
     interface ISelection {
-        current(): ICursorSelection;
+        current(): ICursorPosition;
         update(block?: Element): void;
         restore(block?: Element): void;
-        moveTo(pos: EE.ICursorSelection): void;
+        moveTo(pos: EE.ICursorPosition): void;
     }
 
 
     /** global action func for editor */
     interface IActions {
-        doCommandAction(name: string, pos?: EE.ICursorSelection): void;
+        doCommandAction(name: string, pos?: EE.ICursorPosition): void;
         redo(): void;
         undo(): void;
         doEnter(ev: Event): void;

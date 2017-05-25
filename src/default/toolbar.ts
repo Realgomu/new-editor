@@ -68,7 +68,7 @@ export class Toolbar implements EE.IToolbar {
             option.click = function (this: EE.IButtonOption, ev: MouseEvent) {
                 let tool = _editor.tools.matchActionTool(this.action);
                 if (tool) {
-                    tool.redo();
+                    tool.apply();
                 }
             }
         }

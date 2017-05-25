@@ -1,7 +1,7 @@
 import * as Util from './util';
 import { Tools, InlineTool, BlockTool } from './tools';
 import { Events } from './events';
-import { Selection } from './selection';
+import { Cursor } from 'core/cursor';
 import { Actions } from './action';
 import * as UI from 'default/index';
 
@@ -20,11 +20,11 @@ import 'tools/paragraph';
 import 'tools/pre';
 import 'tools/header';
 
-export class Editor implements EE.IEditor {
+export class Editor {
     options: EE.IEditorOptions;
     tools: Tools;
     events: Events;
-    selection: Selection;
+    cursor: Cursor;
     actions: Actions;
     defaultUI: UI.DefaultUI;
 
@@ -46,7 +46,7 @@ export class Editor implements EE.IEditor {
         //init functions
         this.tools = new Tools(this);
         this.events = new Events(this);
-        this.selection = new Selection(this);
+        this.cursor = new Cursor(this);
         this.actions = new Actions(this);
 
         //init ui
@@ -155,9 +155,10 @@ export class Editor implements EE.IEditor {
                     this.rootEl.appendChild(newRow);
                     this._page.rows.push(block);
                 }
-                this.selection.moveTo({
-                    start: { rowid: newId, pos: 0 },
-                    end: { rowid: newId, pos: 0 }
+                this.cursor.moveTo({
+                    rows: [newId],
+                    start: 0,
+                    end: 0
                 });
             }
             else {
@@ -182,21 +183,12 @@ export class Editor implements EE.IEditor {
         }
     }
 
-    eachRow(from: string, to: string, func: (block: EE.IBlock) => void) {
+    eachRow(rows: string[], func: (block: EE.IBlock) => void) {
         let inRange = false;
         for (let i = 0, l = this._page.rows.length; i < l; i++) {
             var row = this._page.rows[i];
-            if (from === row.rowid) {
-                func(row);
-                inRange = true;
-                if (from === to) break;
-            }
-            else if (to === row.rowid) {
-                func(row);
-                inRange = false;
-            }
-            else if (inRange) {
-                func(row);
+            if (rows.indexOf(row.rowid) >= 0) {
+                func && func(row);
             }
         }
     }

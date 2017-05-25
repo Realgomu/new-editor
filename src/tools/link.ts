@@ -22,7 +22,7 @@ export default class Link extends Tool.InlineTool implements EE.IActionTool {
 
     getDataFromEl(el: Element, start: number) {
         let href = el.getAttribute('href');
-        return this.createData(start, el.textContent.length, href || undefined);
+        return this.createData(start, start + el.textContent.length, href || undefined);
     }
 
     render(data: EE.IInline) {

@@ -1,6 +1,6 @@
 import * as Tool from './tools';
 import * as Util from './util';
-import * as Selection from './selection';
+import * as Selection from 'core/cursor';
 import { Editor } from './editor';
 
 export abstract class BlockTool implements EE.IBlockTool {
@@ -63,7 +63,7 @@ export abstract class BlockTool implements EE.IBlockTool {
     }
 
     protected $changeBlock(tag: string = this.selectors[0]) {
-        let cursor = this.editor.selection.current();
+        let cursor = this.editor.cursor.current();
         if (cursor) {
             // let old = this.editor.ownerDoc.querySelector(`[data-row-id="${cursor.rowid}"]`);
             // if (old.tagName.toLowerCase() !== tag) {

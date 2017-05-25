@@ -48,11 +48,11 @@ export class Events {
             let handler = list[i];
             if (handler.selector) {
                 if (ev && ev.target && this._querySelector(handler.selector, ev)) {
-                    handler.listener && handler.listener(this.editor, ev, ...args);
+                    handler.listener && handler.listener(this.editor as any, ev, ...args);
                 }
             }
             else {
-                handler.listener && handler.listener(this.editor, ev, ...args);
+                handler.listener && handler.listener(this.editor as any, ev, ...args);
             }
         }
     }
@@ -144,6 +144,7 @@ export class Events {
             case EE.KeyCode.Z:
                 if (Util.IsMetaCtrlKey(ev)) {
                     //undo
+                    this.editor.actions.undo();
                     prevent = true;
                 }
                 break;
@@ -160,14 +161,14 @@ export class Events {
     }
 
     private _keyup(ev: KeyboardEvent) {
-        this.editor.selection.update();
+        this.editor.cursor.update();
     }
 
     private _touchend(ev: TouchEvent) {
-        this.editor.selection.update();
+        this.editor.cursor.update();
     }
 
     private _mouseup(ev: MouseEvent) {
-        this.editor.selection.update();
+        this.editor.cursor.update();
     }
 }

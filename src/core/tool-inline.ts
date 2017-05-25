@@ -1,5 +1,5 @@
 import { Editor } from 'core/editor';
-import { IInlineActions, IActionStep } from 'core/action';
+import { IActionStep } from 'core/action';
 
 export abstract class InlineTool implements EE.IInlineTool {
     readonly type: EE.ToolType;
@@ -10,14 +10,14 @@ export abstract class InlineTool implements EE.IInlineTool {
     }
 
     getDataFromEl(el: Element, start: number): EE.IInline {
-        return this.createData(start, el.textContent.length);
+        return this.createData(start, start + el.textContent.length);
     }
 
     createData(start: number, end: number, data?: any) {
         let inline: EE.IInline = {
             type: this.type,
             start: start,
-            end: start + end,
+            end: end,
             data: data
         }
         return inline;
@@ -37,46 +37,46 @@ export abstract class InlineTool implements EE.IInlineTool {
     }
 
     /** 计算操作 */
-    calcActions(block: EE.IBlock, start: number, end: number) {
-        let obj: IInlineActions = { token: this.token, list: [] };
-        let list = block.inlines[this.token];
-        if (list && list.length > 0) {
-            for (let i = 0, l = list.length; i < l; i++) {
-                let inline = list[i];
-                if (start < inline.start) {
-                    if (end <= inline.start) {
-                        obj.list.push([start, end]);
-                        break;
-                    }
-                    else {
-                        obj.list.push([start, inline.start]);
-                        if (end <= inline.end) {
-                            inline[i].start = start;
-                            break;
-                        }
-                        else {
-                            start = inline.end;
-                        }
-                    }
-                }
-                else if (start <= inline.end) {
-                    if (end <= inline.end) {
-                        break;
-                    }
-                    else {
-                        start = inline.end;
-                    }
-                }
-                else if (i === l - 1) {
-                    obj.list.push([start, end]);
-                }
-            }
-        }
-        else {
-            obj.list.push([start, end]);
-        }
-        return obj;
-    }
+    // calcActions(block: EE.IBlock, start: number, end: number) {
+    //     let obj: IInlineActions = { token: this.token, list: [] };
+    //     let list = block.inlines[this.token];
+    //     if (list && list.length > 0) {
+    //         for (let i = 0, l = list.length; i < l; i++) {
+    //             let inline = list[i];
+    //             if (start < inline.start) {
+    //                 if (end <= inline.start) {
+    //                     obj.list.push([start, end]);
+    //                     break;
+    //                 }
+    //                 else {
+    //                     obj.list.push([start, inline.start]);
+    //                     if (end <= inline.end) {
+    //                         inline[i].start = start;
+    //                         break;
+    //                     }
+    //                     else {
+    //                         start = inline.end;
+    //                     }
+    //                 }
+    //             }
+    //             else if (start <= inline.end) {
+    //                 if (end <= inline.end) {
+    //                     break;
+    //                 }
+    //                 else {
+    //                     start = inline.end;
+    //                 }
+    //             }
+    //             else if (i === l - 1) {
+    //                 obj.list.push([start, end]);
+    //             }
+    //         }
+    //     }
+    //     else {
+    //         obj.list.push([start, end]);
+    //     }
+    //     return obj;
+    // }
 
     /** 合并操作 */
     mergeApply(list: EE.IInline[], apply: EE.IInline) {
@@ -86,7 +86,7 @@ export abstract class InlineTool implements EE.IInlineTool {
         }
         else {
             for (let i = 0, l = list.length; i < l; i++) {
-                let inline = list[i];
+                let inline = Object.assign({}, list[i]);
                 if (apply) {
                     if (apply.start < inline.start) {
                         if (apply.end < inline.start) {
@@ -120,33 +120,51 @@ export abstract class InlineTool implements EE.IInlineTool {
                     newList.push(inline);
                 }
             }
+            if (apply) {
+                newList.push(apply);
+            }
         }
         return newList;
     }
 
     apply(...args: any[]) {
-        let step: IActionStep = {};
-        this.editor.selection.eachRow((block, start, end) => {
+        let step: IActionStep = {
+            token: this.token,
+            cursor: this.editor.cursor.current(),
+            rows: []
+        };
+        this.editor.cursor.eachRow((block, start, end) => {
+            let from = block.inlines[this.token];
+            let to = this.mergeApply(from, this.createData(start, end));
             //计算actions
-            let actions = this.calcActions(block, start, end);
-            if (actions && actions.list.length > 0) {
-                step[block.rowid] = actions;
-            }
+            step.rows.push({
+                rowid: block.rowid,
+                from: from,
+                to: to
+            })
             //合并，重新渲染block
-            block.inlines[this.token] = this.mergeApply(block.inlines[this.token], this.createData(start, end));
+            block.inlines[this.token] = to;
             this.editor.renderRow(block);
         });
-        this.editor.selection.restore();
+        this.editor.cursor.restore();
         console.log(step);
+        this.editor.actions.push(step);
         return step;
     }
 
     redo(step: IActionStep) {
+        step.rows.forEach(row => {
+            let block = this.editor.getRowData(row.rowid);
+            block.inlines[this.token] = row.to;
+            this.editor.renderRow(block);
+        });
     }
 
     undo(step: IActionStep) {
-        for (let rowid in step) {
-
-        }
+        step.rows.forEach(row => {
+            let block = this.editor.getRowData(row.rowid);
+            block.inlines[this.token] = row.from;
+            this.editor.renderRow(block);
+        });
     }
 }

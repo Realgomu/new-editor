@@ -13,11 +13,4 @@ export default class Bold extends Tool.InlineTool implements EE.IActionTool {
     constructor(editor: Editor) {
         super(editor);
     }
-
-    redo() {
-    }
-
-    undo() {
-
-    }
 }
