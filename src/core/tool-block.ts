@@ -39,10 +39,6 @@ export abstract class BlockTool implements EE.IBlockTool {
                     pos += lenght;
                 }
             });
-        //检查inline数据，进行合并计算
-        // for (let token in map) {
-        //     map[token] = MergeInlines(map[token]);
-        // }
         return map;
     }
 
@@ -60,6 +56,23 @@ export abstract class BlockTool implements EE.IBlockTool {
 
     getData(el: Element): EE.IBlock {
         return this.$getDate(el);
+    }
+
+    protected $apply(tag: string) {
+        this.editor.cursor.eachRow((block, start, end) => {
+            let old = this.editor.getRowElement(block.rowid);
+            if (old.tagName.toLowerCase() !== tag) {
+                let newNode = this.editor.ownerDoc.createElement(tag);
+                newNode.setAttribute('data-row-id', block.rowid);
+                newNode.innerHTML = old.innerHTML;
+                old.parentElement.replaceChild(newNode, old);
+                this.editor.cursor.restore();
+            }
+        });
+    }
+
+    apply() {
+        this.$apply(this.selectors[0]);
     }
 
     protected $changeBlock(tag: string = this.selectors[0]) {

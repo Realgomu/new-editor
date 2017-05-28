@@ -43,11 +43,11 @@ export class Tools {
     private _toolCache: EE.IEditorTool[] = [];
     rowTool: EE.IBlockTool;
     constructor(private editor: Editor) {
-        this._initOptions(editor.options.tools);
+        this._loadOptions(editor.options.tools);
         this.rowTool = this.matchToken('paragraph') as EE.IBlockTool;
     }
 
-    private _initOptions(token: 'all' | string[]) {
+    private _loadOptions(token: 'all' | string[]) {
         if (typeof token === 'string' && token === 'all') {
             for (let key in toolFactory) {
                 this._toolCache.push(new toolFactory[key].ctrl(this.editor));
@@ -69,6 +69,15 @@ export class Tools {
             });
         }
         this._toolCache.sort((a, b) => b.type - a.type);
+    }
+
+    init() {
+        for (let key in this._toolCache) {
+            let tool = this._toolCache[key];
+            if (tool && tool.init) {
+                tool.init();
+            }
+        }
     }
 
     private _match(func: (tool: EE.IEditorTool) => boolean) {

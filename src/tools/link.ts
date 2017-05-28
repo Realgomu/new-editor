@@ -10,7 +10,7 @@ import { Editor } from 'core/editor';
         text: '链接'
     }
 })
-export default class Link extends Tool.InlineTool implements EE.IActionTool {
+export default class Link extends Tool.InlineTool {
     selectors = ['a'];
     action = 'link';
 
@@ -18,11 +18,13 @@ export default class Link extends Tool.InlineTool implements EE.IActionTool {
         super(editor);
     }
 
-    redo() {
-    }
-
-    undo() {
-
+    init() {
+        this.editor.events.on('$click', (Editor, ev) => {
+            console.log('click a');
+            this.editor.defaultUI.popover.show();
+            ev.preventDefault();
+            ev.stopPropagation();
+        }, 'a');
     }
 
     getDataFromEl(el: Element, start: number) {
@@ -37,5 +39,8 @@ export default class Link extends Tool.InlineTool implements EE.IActionTool {
             target: '_blank'
         };
         return node;
+    }
+
+    apply(): any {
     }
 }

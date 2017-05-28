@@ -4,9 +4,14 @@ import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'header',
-    type: EE.ToolType.Header
+    type: EE.ToolType.Header,
+    buttonOptions: {
+        name: 'h1',
+        iconFA: 'fa-header',
+        text: '标题'
+    }
 })
-export default class Paragraph extends Tool.BlockTool implements EE.IActionTool {
+export default class Paragraph extends Tool.BlockTool {
     selectors = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
     action = 'header';
     constructor(editor: Editor) {
@@ -34,12 +39,8 @@ export default class Paragraph extends Tool.BlockTool implements EE.IActionTool 
         return root;
     }
 
-    redo(level: number) {
-        let tag = 'h' + level;
-        this.$changeBlock(tag);
-    }
-
-    undo() {
-
+    apply(level = 1) {
+        let tag = this.selectors[level - 1];
+        this.$apply(tag);
     }
 }

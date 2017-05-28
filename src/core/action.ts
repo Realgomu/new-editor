@@ -93,4 +93,8 @@ export class Actions {
             this.editor.getData();
         }
     }
+
+    doInput() {
+        
+    }
 }

@@ -18,9 +18,6 @@ export class Events {
             console.log('input');
             editor.getData();
         });
-        this.on('$click', (EREditor, ev) => {
-            console.log('click link');
-        }, 'a');
     }
 
     on(name: string, listener: EE.CommonListener, selector?: string) {
@@ -76,17 +73,17 @@ export class Events {
     }
 
     private _attachEditableEvents(root: Element) {
-        this._attach('input', root, this._input.bind(this));
-        this._attach('compositionstart', root, this._compositionstart.bind(this));
-        this._attach('compositionend', root, this._compositionend.bind(this));
-        this._attach('click', root, this._click.bind(this));
-        this._attach('keydown', root, this._keydown.bind(this));
-        this._attach('keyup', root, this._keyup.bind(this));
-        this._attach('touchend', root, this._touchend.bind(this));
-        this._attach('mouseup', root, this._mouseup.bind(this));
+        this.attach('input', root, this._input.bind(this));
+        this.attach('compositionstart', root, this._compositionstart.bind(this));
+        this.attach('compositionend', root, this._compositionend.bind(this));
+        this.attach('click', root, this._click.bind(this));
+        this.attach('keydown', root, this._keydown.bind(this));
+        this.attach('keyup', root, this._keyup.bind(this));
+        this.attach('touchend', root, this._touchend.bind(this));
+        this.attach('mouseup', root, this._mouseup.bind(this));
     }
 
-    private _attach(name: string, el: Element, listener: any) {
+    attach(name: string, el: Element, listener: any) {
         el.addEventListener(name, listener);
         this._domEvents.push([name, el, listener]);
     }

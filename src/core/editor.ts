@@ -37,7 +37,10 @@ export class Editor {
             tools: 'all',
             defaultUI: true,
             inline: false,
-            toolbars: ['pre', 'h1', 'h2', '|', 'bold', 'italic', 'underline', 'strike', 'sup', 'sub', '|']
+            toolbars: [
+                'paragraph', 'h1', 'pre',
+                '|', 'bold', 'italic', 'underline', 'strike', 'sup', 'sub',
+                '|', 'link']
         };
 
         this.options = Object.assign(defaultOptions, options || {});
@@ -49,6 +52,11 @@ export class Editor {
         this.cursor = new Cursor(this);
         this.actions = new Actions(this);
 
+        //init events
+        this.events.init();
+        //do tools init func;
+        this.tools.init();
+
         //init ui
         if (this.options.defaultUI) {
             this.defaultUI = new UI.DefaultUI(this);
@@ -58,9 +66,7 @@ export class Editor {
             this.initContentEditable(el);
         }
 
-        //init events
-        this.events.init();
-
+        //init page data
         setTimeout(() => {
             this.getData();
             //check empty

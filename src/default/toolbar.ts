@@ -24,6 +24,12 @@ export class Toolbar {
                 }
             }
         });
+
+        //events
+        this.editor.events.attach('mousedown', this.panel, (ev: MouseEvent) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+        });
     }
 
     createDivider() {

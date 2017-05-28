@@ -150,6 +150,7 @@ declare module EnrichEditor {
         readonly token: string;
         selectors: string[];
         apply?: Function;
+        init?: Function;
     }
 
     /** action tool interface */

@@ -8,11 +8,10 @@
     position: fixed;
     top: 0;
     width: 100%;
-
     .divider {
         width: 1px;
         background-color: @color-hover;
-        height: 36px;
+        height: 32px;
         margin: 0 1px;
     }
 }
@@ -20,10 +19,12 @@
 .ee-button {
     min-width: @button-size;
     height: @button-size;
-    line-height: 40px;
+    line-height: @button-size;
     cursor: pointer;
     text-align: center;
-    margin: 2px;
+    display: inline-block;
+    margin: 0 1px;
+    transition: all ease-in-out 200ms;
     .fa {
         font-size: 16px;
     }
