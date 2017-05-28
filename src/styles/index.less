@@ -1,6 +1,12 @@
 @import './_variable.less';
+html {
+    overflow: hidden;
+}
 body {
     font-size: @base-font-size;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
 }
 
 * {
@@ -8,18 +14,20 @@ body {
 }
 
 #Editor {
-    width: 90%;
-    height: 400px;
-    margin: 50px auto 0;
-    border: 1px dashed #dadada;
+    width: 100vw;
+    height: 100vh;
+    // margin: 50px auto 0;
+    // border: 1px dashed #dadada;
 }
 
-.ee-box {
-    padding: 0;
-    .flex-container(column);
-    position: relative;
+.test-panel {
+    position: fixed;
+    top: 100px;
+    width: 200px;
+    z-index: 1;
 }
 
+@import './container.less';
 @import './toolbar.less';
 @import './view.less';
 @import './popover.less';

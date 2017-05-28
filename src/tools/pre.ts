@@ -3,7 +3,12 @@ import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'pre',
-    type: EE.ToolType.Pre
+    type: EE.ToolType.Pre,
+    buttonOptions: {
+        name: 'pre',
+        iconFA: 'fa-code',
+        text: '代码'
+    }
 })
 export default class Pre extends Tool.BlockTool implements EE.IActionTool {
     selectors = ['pre'];

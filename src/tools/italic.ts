@@ -3,7 +3,12 @@ import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'italic',
-    type: EE.ToolType.Italic
+    type: EE.ToolType.Italic,
+    buttonOptions: {
+        name: 'italic',
+        iconFA: 'fa-italic',
+        text: '斜体'
+    }
 })
 export default class Italic extends Tool.InlineTool implements EE.IActionTool {
     selectors = ['i', 'em'];
@@ -12,15 +17,5 @@ export default class Italic extends Tool.InlineTool implements EE.IActionTool {
 
     constructor(editor: Editor) {
         super(editor);
-    }
-
-    redo() {
-        if (this.useCommand && this.action) {
-            this.editor.actions.doCommandAction(this.action);
-        }
-    }
-
-    undo() {
-
     }
 }

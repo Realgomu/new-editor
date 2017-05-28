@@ -14,7 +14,7 @@ export class Events {
 
         //custom
         this.on('$input', (editor, ev) => {
-            editor.selection.update();
+            editor.cursor.update();
             console.log('input');
             editor.getData();
         });

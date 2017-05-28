@@ -3,7 +3,12 @@ import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'sub',
-    type: EE.ToolType.Sub
+    type: EE.ToolType.Sub,
+    buttonOptions: {
+        name: 'sub',
+        iconFA: 'fa-subscript',
+        text: '下标'
+    }
 })
 export default class Sub extends Tool.InlineTool implements EE.IActionTool {
     selectors = ['sub'];
@@ -12,15 +17,5 @@ export default class Sub extends Tool.InlineTool implements EE.IActionTool {
 
     constructor(editor: Editor) {
         super(editor);
-    }
-
-    redo() {
-        if (this.useCommand && this.action) {
-            this.editor.actions.doCommandAction(this.action);
-        }
-    }
-
-    undo() {
-
     }
 }

@@ -3,7 +3,12 @@ import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'link',
-    type: EE.ToolType.Link
+    type: EE.ToolType.Link,
+    buttonOptions: {
+        name: 'link',
+        iconFA: 'fa-link',
+        text: '链接'
+    }
 })
 export default class Link extends Tool.InlineTool implements EE.IActionTool {
     selectors = ['a'];

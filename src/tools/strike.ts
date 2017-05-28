@@ -3,7 +3,12 @@ import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'strike',
-    type: EE.ToolType.StrikeThrough
+    type: EE.ToolType.StrikeThrough,
+    buttonOptions: {
+        name: 'strike',
+        iconFA: 'fa-strikethrough',
+        text: '划线'
+    }
 })
 export default class Strike extends Tool.InlineTool implements EE.IActionTool {
     selectors = ['s'];
@@ -12,15 +17,5 @@ export default class Strike extends Tool.InlineTool implements EE.IActionTool {
 
     constructor(editor: Editor) {
         super(editor);
-    }
-
-    redo() {
-        if (this.useCommand && this.action) {
-            this.editor.actions.doCommandAction(this.action);
-        }
-    }
-
-    undo() {
-
     }
 }

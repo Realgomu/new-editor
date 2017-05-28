@@ -37,7 +37,7 @@ export class Editor {
             tools: 'all',
             defaultUI: true,
             inline: false,
-            toolbars: ['pre', 'h1', 'h2', '|', 'bold', 'italic', 'underline', 'strike', '|']
+            toolbars: ['pre', 'h1', 'h2', '|', 'bold', 'italic', 'underline', 'strike', 'sup', 'sub', '|']
         };
 
         this.options = Object.assign(defaultOptions, options || {});
@@ -77,6 +77,7 @@ export class Editor {
         this.rootEl = el;
         this.rootEl.setAttribute('contenteditable', '');
         this.rootEl.classList.add('ee-view');
+        this.rootEl.classList.add('ee-page');
     }
 
     getData() {

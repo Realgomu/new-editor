@@ -116,7 +116,7 @@ declare module EnrichEditor {
     interface IEditor {
         options: EE.IEditorOptions;
         tools: ITools;
-        selection: ISelection;
+        cursor: ISelection;
         actions: IActions;
 
         ownerDoc: Document;
@@ -149,6 +149,7 @@ declare module EnrichEditor {
         readonly type: EE.ToolType;
         readonly token: string;
         selectors: string[];
+        apply?: Function;
     }
 
     /** action tool interface */

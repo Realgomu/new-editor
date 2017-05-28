@@ -6,22 +6,35 @@ import { BlockTool } from './tool-block';
 export { InlineTool } from './tool-inline';
 export { BlockTool } from './tool-block';
 
-const _toolFactory: {
-    [token: string]: EE.IToolConstructor;
+export const toolFactory: {
+    [token: string]: {
+        ctrl: EE.IToolConstructor;
+        options: IEditorToolOptions;
+    }
 } = {};
 
-export function EditorTool(options: {
+export interface IEditorToolOptions {
     token: string;
     type: EE.ToolType;
-}) {
+    buttonOptions?: {
+        name: string;
+        iconFA?: string;
+        text?: string;
+    }
+}
+
+export function EditorTool(options: IEditorToolOptions) {
     return function (ctrl: EE.IToolConstructor) {
         ctrl.prototype.token = options.token;
         ctrl.prototype.type = options.type;
-        if (_toolFactory[options.token]) {
+        if (toolFactory[options.token]) {
             throw new Error(`repeated editor tool [${options.token}]!`);
         }
         else {
-            _toolFactory[options.token] = ctrl;
+            toolFactory[options.token] = {
+                ctrl: ctrl,
+                options: options
+            };
         }
     }
 }
@@ -36,13 +49,13 @@ export class Tools {
 
     private _initOptions(token: 'all' | string[]) {
         if (typeof token === 'string' && token === 'all') {
-            for (let key in _toolFactory) {
-                this._toolCache.push(new _toolFactory[key](this.editor));
+            for (let key in toolFactory) {
+                this._toolCache.push(new toolFactory[key].ctrl(this.editor));
             }
         }
         else {
             token.forEach(key => {
-                let ctrl = _toolFactory[key];
+                let ctrl = toolFactory[key].ctrl;
                 if (ctrl) {
                     try {
                         if (!this._toolCache[key]) {

@@ -12,11 +12,4 @@ export default class Break extends Tool.InlineTool implements EE.IActionTool {
     constructor(editor: Editor) {
         super(editor);
     }
-
-    redo() {
-    }
-
-    undo() {
-
-    }
 }
