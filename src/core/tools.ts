@@ -97,7 +97,7 @@ export class Tools {
     /** 根据element的tag匹配相对应的inline tool */
     matchInlineTool(el: Element) {
         return this._match((tool) => {
-            return tool.type < 100 && ElementTagCheck(tool, el);
+            return tool.type > 0 && tool.type < 100 && ElementTagCheck(tool, el);
         }) as InlineTool;
     }
 

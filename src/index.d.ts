@@ -20,10 +20,12 @@ declare module EnrichEditor {
         Paragraph = 100,
         Header,
         Pre = 110,
-        //extend
+        //other block
         Quote = 200,
         OL,
         UL,
+        //extends
+        Align = 1000,
     }
 
     /** page dada */
