@@ -1,8 +1,21 @@
 import * as Util from './util';
 import { Editor } from './editor';
 
+
+export interface ICustomEventMap {
+    [name: string]: IHandlerObj[];
+}
+
+export interface IHandlerObj {
+    name: string;
+    listener: CommonListener;
+    selector?: string;
+}
+
+export type CommonListener = (editor: Editor, ev: Event, ...args: any[]) => any;
+
 export class Events {
-    private _customEvents: EE.ICustomEventMap = {};
+    private _customEvents: ICustomEventMap = {};
     private _domEvents: { 0: string; 1: Element; 2: any; }[] = [];
 
     constructor(private editor: Editor) {
@@ -14,13 +27,13 @@ export class Events {
 
         //custom
         this.on('$input', (editor, ev) => {
-            editor.cursor.update();
+            editor.cursor.update(ev);
             console.log('input');
             editor.getData();
         });
     }
 
-    on(name: string, listener: EE.CommonListener, selector?: string) {
+    on(name: string, listener: CommonListener, selector?: string) {
         if (!this._customEvents[name]) {
             this._customEvents[name] = [];
         }
@@ -32,11 +45,12 @@ export class Events {
         });
     }
 
-    off(name: string, listener: EE.CommonListener) {
+    off(name: string, listener: CommonListener) {
 
     }
 
     trigger(name: string, ev: Event, ...args: any[]) {
+        console.log(`trigger event [${name}]`);
         if (!this._customEvents[name]) {
             this._customEvents[name] = [];
         }
@@ -158,14 +172,14 @@ export class Events {
     }
 
     private _keyup(ev: KeyboardEvent) {
-        this.editor.cursor.update();
+        this.editor.cursor.update(ev);
     }
 
     private _touchend(ev: TouchEvent) {
-        this.editor.cursor.update();
+        this.editor.cursor.update(ev);
     }
 
     private _mouseup(ev: MouseEvent) {
-        this.editor.cursor.update();
+        this.editor.cursor.update(ev);
     }
 }

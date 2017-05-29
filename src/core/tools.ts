@@ -23,6 +23,7 @@ export interface IEditorToolOptions {
     }
 }
 
+/** 编辑器工具decorater */
 export function EditorTool(options: IEditorToolOptions) {
     return function (ctrl: EE.IToolConstructor) {
         ctrl.prototype.token = options.token;
@@ -37,6 +38,11 @@ export function EditorTool(options: IEditorToolOptions) {
             };
         }
     }
+}
+
+/** 扩展工具 */
+export function ExtendTool() {
+
 }
 
 export class Tools {

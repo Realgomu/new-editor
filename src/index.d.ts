@@ -59,9 +59,9 @@ declare module EnrichEditor {
 
     /** dom render node */
     interface IRenderNode {
-        start: number;
-        end: number;
         tag: string;
+        start?: number;
+        end?: number;
         content?: string;
         attr?: IAttributeMap;
         // children?: IRenderNode[];
@@ -148,7 +148,7 @@ declare module EnrichEditor {
     interface IEditorTool {
         readonly type: EE.ToolType;
         readonly token: string;
-        selectors: string[];
+        selectors?: string[];
         apply?: Function;
         init?: Function;
     }
@@ -177,18 +177,6 @@ declare module EnrichEditor {
     interface IEvents {
 
     }
-
-    interface ICustomEventMap {
-        [name: string]: IHandlerObj[];
-    }
-
-    interface IHandlerObj {
-        name: string;
-        listener: CommonListener;
-        selector?: string;
-    }
-
-    type CommonListener = (editor: IEditor, ev: Event, ...args: any[]) => any;
 
     /** selection position, cursor position in block */
     interface ICursorPosition {

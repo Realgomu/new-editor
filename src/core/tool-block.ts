@@ -69,6 +69,7 @@ export abstract class BlockTool implements EE.IBlockTool {
                 this.editor.cursor.restore();
             }
         });
+        this.editor.events.trigger('$contentChanged', null);
     }
 
     apply() {

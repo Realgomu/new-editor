@@ -11,7 +11,7 @@ export class Toolbar {
     init() {
         this.panel = this.editor.ownerDoc.createElement('div');
         this.panel.classList.add('ee-toolbar');
-        this.ui.container.insertBefore(this.panel, this.editor.rootEl);
+        this.ui.container.insertBefore(this.panel, this.ui.container.childNodes[0]);
 
         this.editor.options.toolbars.forEach(item => {
             if (item === '|') {

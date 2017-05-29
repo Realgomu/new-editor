@@ -149,6 +149,7 @@ export abstract class InlineTool implements EE.IInlineTool {
         this.editor.cursor.restore();
         console.log(step);
         this.editor.actions.push(step);
+        this.editor.events.trigger('$contentChanged', null);
         return step;
     }
 

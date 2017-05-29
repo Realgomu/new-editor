@@ -11,7 +11,7 @@ export class Cursor {
         return Object.assign({}, this._lastCursor) as EE.ICursorPosition;
     }
 
-    eachRow(func: (block: EE.IBlock, start: number, end: number) => void) {
+    eachRow(func: (block: EE.IBlock, start?: number, end?: number) => void) {
         this.editor.eachRow(
             this._lastCursor.rows,
             (block) => {
@@ -26,7 +26,7 @@ export class Cursor {
             });
     }
 
-    update() {
+    update(ev?: Event) {
         let selection = this.editor.ownerDoc.getSelection();
         let cursor: EE.ICursorPosition = {
             rows: [],
@@ -76,6 +76,7 @@ export class Cursor {
 
         //判断激活的token
         this._lastCursor = cursor;
+        this.editor.events.trigger('$cursorChanged', ev);
         console.log(selection);
         console.log(this._lastCursor);
     }

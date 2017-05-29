@@ -19,6 +19,8 @@ import 'tools/sub';
 import 'tools/paragraph';
 import 'tools/pre';
 import 'tools/header';
+//extends
+import 'tools/row-tip';
 
 export class Editor {
     options: EE.IEditorOptions;
@@ -52,11 +54,6 @@ export class Editor {
         this.cursor = new Cursor(this);
         this.actions = new Actions(this);
 
-        //init events
-        this.events.init();
-        //do tools init func;
-        this.tools.init();
-
         //init ui
         if (this.options.defaultUI) {
             this.defaultUI = new UI.DefaultUI(this);
@@ -65,6 +62,12 @@ export class Editor {
         else {
             this.initContentEditable(el);
         }
+
+        //init events
+        this.events.init();
+
+        //do tools init func;
+        this.tools.init();
 
         //init page data
         setTimeout(() => {
@@ -83,7 +86,6 @@ export class Editor {
         this.rootEl = el;
         this.rootEl.setAttribute('contenteditable', '');
         this.rootEl.classList.add('ee-view');
-        this.rootEl.classList.add('ee-page');
     }
 
     getData() {

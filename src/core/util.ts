@@ -274,10 +274,12 @@ export function CreateRenderElement(doc: Document, node: EE.IRenderNode) {
     if (!node.tag) {
         //创建text节点
         let text = doc.createTextNode(node.content);
-        //删除缓存的content信息
-        delete node.content;
-        //在dom上记录位置信息
-        text.$renderNode = node;
+        if (node.start !== undefined || node.end !== undefined) {
+            //删除缓存的content信息
+            delete node.content;
+            //在dom上记录位置信息
+            text.$renderNode = node;
+        }
         return text;
     }
     else {
@@ -293,14 +295,16 @@ export function CreateRenderElement(doc: Document, node: EE.IRenderNode) {
             };
             el.appendChild(text);
         }
+        if (node.start !== undefined || node.end !== undefined) {
+            //删除缓存的content信息
+            delete node.content;
+            //在dom上记录位置信息
+            el.$renderNode = node;
+        }
         //设置attr
         for (let name in node.attr) {
             el.setAttribute(name, node.attr[name]);
         }
-        //删除缓存的content信息
-        delete node.content;
-        //在dom上记录位置信息
-        el.$renderNode = node;
         return el;
     }
 }
