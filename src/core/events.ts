@@ -12,7 +12,7 @@ export interface IHandlerObj {
     selector?: string;
 }
 
-export type CommonListener = (editor: Editor, ev: Event, ...args: any[]) => any;
+export type CommonListener = (ev: Event, ...args: any[]) => any;
 
 export class Events {
     private _customEvents: ICustomEventMap = {};
@@ -26,10 +26,10 @@ export class Events {
         this._attachEditableEvents(this.editor.rootEl);
 
         //custom
-        this.on('$input', (editor, ev) => {
-            editor.cursor.update(ev);
+        this.on('$input', (ev) => {
+            this.editor.cursor.update(ev);
             console.log('input');
-            editor.getData();
+            this.editor.getData();
         });
     }
 
@@ -58,28 +58,31 @@ export class Events {
         for (let i = 0, l = list.length; i < l; i++) {
             let handler = list[i];
             if (handler.selector) {
-                if (ev && ev.target && this._querySelector(handler.selector, ev)) {
-                    handler.listener && handler.listener(this.editor as any, ev, ...args);
+                let target = this._querySelector(handler.selector, ev)
+                if (target) {
+                    handler.listener && handler.listener(ev, target, ...args);
                 }
             }
             else {
-                handler.listener && handler.listener(this.editor as any, ev, ...args);
+                handler.listener && handler.listener(ev, ...args);
             }
         }
     }
 
     private _querySelector(selector: string, ev: Event) {
-        let nodes = this.editor.rootEl.querySelectorAll(selector);
-        for (let i = 0, l = nodes.length; i < l; i++) {
-            let node = nodes[i];
-            if (ev.target === node) {
-                return true;
-            }
-            else if (node.contains(ev.target as Node)) {
-                return true;
+        if (ev && ev.target) {
+            let nodes = this.editor.rootEl.querySelectorAll(selector);
+            for (let i = 0, l = nodes.length; i < l; i++) {
+                let node = nodes[i];
+                if (ev.target === node) {
+                    return node;
+                }
+                else if (node.contains(ev.target as Node)) {
+                    return node;
+                }
             }
         }
-        return false;
+        return undefined;
     }
 
     destroy() {

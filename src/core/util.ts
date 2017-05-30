@@ -27,19 +27,25 @@ export function TreeWalker(
     }
 }
 
-export function FindParend(target: Node, match: (node: Node) => boolean) {
+export function FindParent(target: Element, match: (el: Element) => boolean) {
     if (!match) {
-        match = (node: Element) => {
-            return node.hasAttribute('contenteditable');
+        match = (el: Element) => {
+            return el.nodeType === Node.DOCUMENT_NODE;
         };
     }
     while (!match(target)) {
-        if (target.nodeType === Node.DOCUMENT_NODE) {
-            return undefined;
-        }
-        target = target.parentNode;
+        target = target.parentElement;
     }
     return target;
+}
+
+export function NearestElement(node: Node) {
+    if (node.nodeType === 3) {
+        return node.parentNode as Element;
+    }
+    else {
+        return node as Element;
+    }
 }
 
 // http://stackoverflow.com/a/11752084/569101
@@ -313,4 +319,25 @@ export function CreateEmptyNode(doc: Document) {
     let el = doc.createElement('div');
     el.innerHTML = '&#8203;';
     return el.lastChild;
+}
+
+export function MathSelector(el: Element, selector: string) {
+    let match = false;
+    let patterns = selector.split('.');
+    if (!selector || patterns.length === 0) {
+        return false;
+    }
+    for (let i = 0, l = patterns.length; i < l; i++) {
+        if (i === 0) {
+            if (el.tagName.toLowerCase() !== patterns[i].toLowerCase()) {
+                return false;
+            }
+        }
+        else {
+            if (!el.classList.contains(patterns[i])) {
+                return false;
+            }
+        }
+    }
+    return true;
 }

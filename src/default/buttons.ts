@@ -7,7 +7,12 @@ export interface IButtonConfig {
     iconFA?: string;
     isDropdown?: boolean;
     text?: string;
-    click?: Function;
+    click?: (ev?: Event) => any;
+}
+
+export interface IToolbarButton extends IButtonConfig {
+    tool: EE.IEditorTool;
+    element: HTMLElement;
 }
 
 export class Buttons {
@@ -40,20 +45,21 @@ export class Buttons {
         }
     }
 
-    createButton(name: string) {
+    createButton(name: string): IToolbarButton {
         let config = this._configs.find(c => c.name === name);
         if (config) {
+            let toolbarButton = Object.assign({}, config) as IToolbarButton;
             let _editor = this.editor;
             let button = _editor.ownerDoc.createElement('div');
             button.classList.add('ee-button');
-            button.setAttribute('data-token', config.token);
-            button.setAttribute('title', config.text);
-            button.innerHTML = `<i class="fa ${config.iconFA}"></i>`;
-            if (!config.click) {
-                config.click = function (this: IButtonConfig, ev: MouseEvent) {
-                    let tool = _editor.tools.matchToken(this.token);
-                    if (tool) {
-                        tool.apply && tool.apply();
+            button.setAttribute('data-token', toolbarButton.token);
+            button.setAttribute('title', toolbarButton.text);
+            button.innerHTML = `<i class="fa ${toolbarButton.iconFA}"></i>`;
+            toolbarButton.tool = _editor.tools.matchToken(toolbarButton.token);
+            if (!toolbarButton.click) {
+                toolbarButton.click = (ev: MouseEvent) => {
+                    if (toolbarButton.tool && !toolbarButton.element.classList.contains('active')) {
+                        toolbarButton.tool.apply && toolbarButton.tool.apply();
                     }
                 }
             }
@@ -61,8 +67,9 @@ export class Buttons {
                 ev.stopPropagation();
                 ev.preventDefault();
             });
-            button.addEventListener('click', config.click.bind(config));
-            return button;
+            button.addEventListener('click', toolbarButton.click);
+            toolbarButton.element = button;
+            return toolbarButton;
         }
     }
 }

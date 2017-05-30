@@ -74,6 +74,7 @@ export class Tools {
                 }
             });
         }
+        //按优先级从高到低排序
         this._toolCache.sort((a, b) => b.type - a.type);
     }
 
@@ -96,15 +97,15 @@ export class Tools {
 
     /** 根据element的tag匹配相对应的inline tool */
     matchInlineTool(el: Element) {
-        return this._match((tool) => {
-            return tool.type > 0 && tool.type < 100 && ElementTagCheck(tool, el);
+        return this._match((t) => {
+            return t.type > 0 && t.type < 100 && matchSelectors(el, t);
         }) as InlineTool;
     }
 
     /** 根据element的tag匹配相对应的block tool */
     matchBlockTool(el: Element) {
-        return this._match((tool) => {
-            return tool.type >= 100 && tool.type < 1000 && ElementTagCheck(tool, el);
+        return this._match((t) => {
+            return t.type >= 100 && t.type < 1000 && matchSelectors(el, t);
         }) as BlockTool;
     }
 
@@ -122,26 +123,35 @@ export class Tools {
     }
 
     getInlineTools() {
-        return this._toolCache.filter(t => t.type < 100) as InlineTool[];
+        return this._toolCache.filter(t => t.type < 100 && t.type > 0) as InlineTool[];
     }
 
     getBlockTools() {
-        return this._toolCache.filter(t => t.type >= 100) as BlockTool[];
+        return this._toolCache.filter(t => t.type >= 100 && t.type < 1000) as BlockTool[];
     }
 
-    getActiveTokens(el: Element) {
+    getActiveTokens(target: Element) {
         let list = [];
-        // Util.FindParend(el, (parent => {
-        //     let tool = this._match(tool => {
-        //         return ElementTagCheck(tool, parent);
-        //     });
-        //     list.push(tool.token);
-        //     return parent.hasAttribute('data-row-id');
-        // }));
+        Util.FindParent(target, (el) => {
+            if (el == this.editor.rootEl) return true;
+            let tool = this._match(t => matchSelectors(el, t));
+            if (tool) {
+                list.push(tool.token);
+            }
+            return false;
+        });
         return list;
     }
 }
 
-export function ElementTagCheck(tool: EE.IEditorTool, el: Element) {
-    return tool.selectors.indexOf(el.tagName.toLowerCase()) >= 0;
+function matchSelectors(el: Element, tool: EE.IEditorTool) {
+    if (tool.selectors && tool.selectors.length > 0) {
+        for (let i = 0, l = tool.selectors.length; i < l; i++) {
+            let selector = tool.selectors[i];
+            if (Util.MathSelector(el, selector)) {
+                return true;
+            }
+        }
+    }
+    return false;
 }

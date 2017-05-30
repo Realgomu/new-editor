@@ -25,10 +25,10 @@ export default class RowTip implements EE.IEditorTool {
     }
 
     init() {
-        this.editor.events.on('$cursorChanged', (editor, ev) => {
+        this.editor.events.on('$cursorChanged', (ev) => {
             this._reload();
         });
-        this.editor.events.on('$contentChanged', (editor, ev) => {
+        this.editor.events.on('$contentChanged', (ev) => {
             this._reload();
         });
         //create el

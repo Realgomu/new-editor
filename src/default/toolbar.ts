@@ -1,8 +1,10 @@
 import { Editor } from 'core/editor';
 import { DefaultUI } from './index';
+import { IToolbarButton } from './buttons'
 
 export class Toolbar {
     panel: HTMLElement;
+    buttons: IToolbarButton[] = [];
     constructor(
         private editor: Editor,
         private ui: DefaultUI
@@ -20,7 +22,8 @@ export class Toolbar {
             else {
                 let button = this.ui.buttons.createButton(item);
                 if (button) {
-                    this.panel.appendChild(button);
+                    this.buttons.push(button);
+                    this.panel.appendChild(button.element);
                 }
             }
         });
@@ -29,6 +32,13 @@ export class Toolbar {
         this.editor.events.attach('mousedown', this.panel, (ev: MouseEvent) => {
             ev.preventDefault();
             ev.stopPropagation();
+        });
+        this.editor.events.on('$cursorChanged', () => {
+            let cursor = this.editor.cursor.current();
+            this.buttons.forEach(b => {
+                let active = cursor.activeTokens.indexOf(b.token) >= 0;
+                b.element.classList.toggle('active', active);
+            });
         });
     }
 

@@ -32,8 +32,12 @@ export class Cursor {
             rows: [],
             start: 0,
             end: 0,
+            activeTokens: []
         };
-        let pos = 0, count = 0, rowid = '', startFirst: boolean = undefined;
+        let pos = 0,
+            count = 0,
+            rowid = '',
+            startFirst: boolean = undefined;
         Util.TreeWalker(
             this.editor.ownerDoc,
             this.editor.rootEl,
@@ -74,14 +78,26 @@ export class Cursor {
             cursor.start = t;
         }
 
-        //判断激活的token
         this._lastCursor = cursor;
+        //计算激活的token
+        this._calculateActiveTokens(selection);
+        //触发事件
         this.editor.events.trigger('$cursorChanged', ev);
         console.log(selection);
         console.log(this._lastCursor);
     }
 
-    restore(block?: Element) {
+    private _calculateActiveTokens(selection: Selection) {
+        if (this._lastCursor.collapsed) {
+            let anchor = Util.NearestElement(selection.anchorNode);
+            this._lastCursor.activeTokens = this.editor.tools.getActiveTokens(anchor);
+        }
+        else if (!this._lastCursor.mutilple) {
+
+        }
+    }
+
+    restore() {
         this.moveTo(this._lastCursor);
     }
 
@@ -141,6 +157,10 @@ export class Cursor {
             }
             selection.addRange(range);
             this._lastCursor = cursor;
+            //计算激活的token
+            this._calculateActiveTokens(selection);
+            //触发事件
+            this.editor.events.trigger('$cursorChanged', null);
         }
     }
 }

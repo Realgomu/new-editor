@@ -72,6 +72,7 @@ export class Editor {
         //init page data
         setTimeout(() => {
             this.getData();
+            this.loadData(this._page.rows);
             //check empty
             if (this._page.rows.length === 0) {
                 this.interNewRow();
