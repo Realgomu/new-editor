@@ -10,18 +10,10 @@ import { Editor } from 'core/editor';
         text: '代码'
     }
 })
-export default class Pre extends Tool.BlockTool implements EE.IActionTool {
+export default class Pre extends Tool.BlockTool {
     selectors = ['pre'];
     action = 'pre';
     constructor(editor: Editor) {
         super(editor);
-    }
-
-    redo() {
-        this.$changeBlock();
-    }
-
-    undo() {
-
     }
 }

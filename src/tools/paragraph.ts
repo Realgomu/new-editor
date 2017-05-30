@@ -10,18 +10,10 @@ import { Editor } from 'core/editor';
         text: '正文'
     }
 })
-export default class Paragraph extends Tool.BlockTool implements EE.IActionTool {
+export default class Paragraph extends Tool.BlockTool {
     selectors = ['p'];
     action = 'paragraph';
     constructor(editor: Editor) {
         super(editor);
-    }
-
-    redo() {
-        this.$changeBlock();
-    }
-
-    undo() {
-
     }
 }

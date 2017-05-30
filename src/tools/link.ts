@@ -17,16 +17,15 @@ export default class Link extends Tool.InlineTool {
     constructor(editor: Editor) {
         super(editor);
 
-        let that = this;
         //按钮
         this.editor.buttons.register({
             name: 'link',
             token: 'link',
             iconFA: 'fa-link',
             text: '链接',
-            click: function (this: IToolbarButton) {
-                // let button = this.element;
-                // that._openInput(button);
+            click: (ev: Event) => {
+                this._openInput(ev.currentTarget as HTMLElement);
+                ev.stopPropagation();
             }
         });
         this.editor.buttons.register({
@@ -34,15 +33,20 @@ export default class Link extends Tool.InlineTool {
             token: 'link',
             iconFA: 'fa-external-link',
             text: '打开链接',
-            click: function () {
-                that._openCurrent();
+            click: () => {
+                this._openCurrent();
             }
         });
         this.editor.buttons.register({
             name: 'editLink',
             token: 'link',
             iconFA: 'fa-edit',
-            text: '编辑链接'
+            text: '编辑链接',
+            click: (ev: Event) => {
+                if (this._current) {
+                    this._openInput(this._current);
+                }
+            }
         });
         this.editor.buttons.register({
             name: 'deleteLink',
@@ -64,6 +68,29 @@ export default class Link extends Tool.InlineTool {
             ev.preventDefault();
             ev.stopPropagation();
         }, 'a');
+        this.editor.events.on('$cursorChanged', () => {
+            let target = this._findTarget();
+            if (target) {
+                this._openTool(target);
+            }
+            else {
+                this.editor.defaultUI.popover.hide();
+            }
+        });
+    }
+
+    private _findTarget() {
+        let cursor = this.editor.cursor.current();
+        if (cursor.activeTokens.indexOf(this.token) >= 0 && !cursor.mutilple) {
+            let block = this.editor.getRowElement(cursor.rows[0]);
+            let nodes = block.querySelectorAll('a');
+            for (let i = 0, l = nodes.length; i < l; i++) {
+                let rn = nodes[i].$renderNode;
+                if (rn && rn.start <= cursor.start && cursor.end <= rn.end) {
+                    return nodes[i];
+                }
+            }
+        }
     }
 
     getDataFromEl(el: Element, start: number) {
@@ -115,6 +142,7 @@ export default class Link extends Tool.InlineTool {
                     class: 'ee-link-input'
                 }
             }) as HTMLElement;
+            this._popInput.innerHTML = `<input type="text"><input type="text">`;
         }
         this.editor.defaultUI.popover.show(target, this._popInput);
     }

@@ -329,7 +329,7 @@ export function MathSelector(el: Element, selector: string) {
     }
     for (let i = 0, l = patterns.length; i < l; i++) {
         if (i === 0) {
-            if (el.tagName.toLowerCase() !== patterns[i].toLowerCase()) {
+            if (patterns[i] !== '*' && el.tagName.toLowerCase() !== patterns[i].toLowerCase()) {
                 return false;
             }
         }

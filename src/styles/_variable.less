@@ -1,4 +1,13 @@
 @base-font-size: 14px;
+@color-background: #fafafa;
+@color-hover: #ebebeb;
+@color-active: #1E88E5;
+@color-white: rgba(255, 255, 255, 1);
+@color-text: rgba(0, 0, 0, 0.87);
+@color-secondery: rgba(0, 0, 0, 0.54);
+@normal-shadow: 0px 1px 5px 0px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 3px 1px -2px rgba(0, 0, 0, 0.12);
+@normal-shadow-up: 0px -1px 3px 0px rgba(0, 0, 0, 0.1), 0px -2px 1px 0px rgba(0, 0, 0, 0.14), 0px -3px 1px -2px rgba(0, 0, 0, 0.1);
+@poptool-shadow: 0 1px 3px rgba(0, 0, 0, .12), 0 1px 2px rgba(0, 0, 0, .24);
 //flex 布局-容器（方向，交叉轴，主轴）
 .flex-container(@direction, @align: stretch, @justify: flex-start) {
     display: flex;
@@ -7,13 +16,23 @@
     align-items: @align;
 }
 
-@color-background: #fafafa;
-@color-hover: #ebebeb;
-@color-active: #1E88E5;
-@color-white: rgba(255, 255, 255, 1);
-@color-text: rgba(0, 0, 0, 0.87);
-@color-secondery: rgba(0, 0, 0, 0.54);
-
-@normal-shadow: 0px 1px 5px 0px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 3px 1px -2px rgba(0, 0, 0, 0.12);
-@normal-shadow-up: 0px -1px 3px 0px rgba(0, 0, 0, 0.1), 0px -2px 1px 0px rgba(0, 0, 0, 0.14), 0px -3px 1px -2px rgba(0, 0, 0, 0.1);
-@poptool-shadow: 0 1px 3px rgba(0, 0, 0, .12), 0 1px 2px rgba(0, 0, 0, .24);
+.pop-container() {
+    border-top: 5px solid #222;
+    background-color: @color-white;
+    box-shadow: @poptool-shadow;
+    border-radius: 3px;
+    margin-top: 5px;
+    &:before {
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-bottom: 5px solid #222;
+        position: absolute;
+        top: 0;
+        margin-left: -5px;
+        left: 50%;
+        display: inline-block;
+        content: " ";
+    }
+}

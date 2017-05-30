@@ -8,6 +8,8 @@ export interface IButtonConfig {
     isDropdown?: boolean;
     text?: string;
     click?: (ev?: Event) => any;
+    active?: () => boolean;
+    disable?: () => boolean;
 }
 
 export interface IToolbarButton extends IButtonConfig {
@@ -51,14 +53,14 @@ export class Buttons {
             let _editor = this.editor;
             let el = _editor.ownerDoc.createElement('div');
             el.classList.add('ee-button');
-            el.setAttribute('data-token', button.token);
+            // el.setAttribute('data-token', button.token);
             el.setAttribute('title', button.text);
             el.innerHTML = `<i class="fa ${button.iconFA}"></i>`;
             button.tool = _editor.tools.matchToken(button.token);
             if (!button.click) {
-                button.click = function (this: IToolbarButton, ev: MouseEvent) {
-                    if (this.tool && !this.element.classList.contains('active')) {
-                        this.tool.apply && this.tool.apply();
+                button.click = function (ev: MouseEvent) {
+                    if (button.tool && !button.element.classList.contains('active')) {
+                        button.tool.apply && button.tool.apply();
                     }
                 }
             }
@@ -66,7 +68,7 @@ export class Buttons {
                 ev.stopPropagation();
                 ev.preventDefault();
             })
-            this.editor.events.attach('click', el, button.click.bind(button));
+            this.editor.events.attach('click', el, button.click);
             button.element = el;
             return button;
         }

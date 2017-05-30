@@ -4,7 +4,6 @@ import * as UI from 'default/index';
 export class Popover implements EE.IPopover {
     panel: HTMLElement;
     private _lastPop: HTMLElement;
-    private _show: boolean;
     constructor(
         private editor: Editor,
         private ui: UI.DefaultUI
@@ -13,12 +12,10 @@ export class Popover implements EE.IPopover {
     init() {
         this.panel = this.editor.ownerDoc.createElement('div');
         this.panel.classList.add('ee-popover');
-        this.ui.container.appendChild(this.panel);
+        this.ui.page.appendChild(this.panel);
 
         this.editor.events.attach('click', this.editor.ownerDoc.body, (ev: MouseEvent) => {
-            if (this._show) {
-                this.hide();
-            }
+            this.hide();
         });
         this.editor.events.attach('click', this.panel, (ev: MouseEvent) => {
             ev.stopPropagation();
@@ -26,16 +23,13 @@ export class Popover implements EE.IPopover {
     }
 
     show(target: HTMLElement, pop: HTMLElement) {
-        if (!this._show) {
-            if (this._lastPop !== pop) {
-                this.panel.innerHTML = '';
-                this.panel.appendChild(pop);
-                this._lastPop = pop;
-            }
-            this.panel.style.display = "block";
-            this._setPosition(target);
-            this._show = true;
+        if (this._lastPop !== pop) {
+            this.panel.innerHTML = '';
+            this.panel.appendChild(pop);
+            this._lastPop = pop;
         }
+        this.panel.style.display = "block";
+        this._setPosition(target);
     }
 
     private _setPosition(target: HTMLElement) {
@@ -48,6 +42,5 @@ export class Popover implements EE.IPopover {
 
     hide() {
         this.panel.style.display = "none";
-        this._show = false;
     }
 }

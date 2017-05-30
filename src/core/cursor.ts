@@ -2,25 +2,25 @@ import * as Util from 'core/util';
 import { Editor } from 'core/editor';
 
 export class Cursor {
-    private _lastCursor: EE.ICursorPosition = undefined;
+    private _current: EE.ICursorPosition = undefined;
     constructor(private editor: Editor) {
 
     }
 
     current() {
-        return Object.assign({}, this._lastCursor) as EE.ICursorPosition;
+        return Object.assign({}, this._current) as EE.ICursorPosition;
     }
 
     eachRow(func: (block: EE.IBlock, start?: number, end?: number) => void) {
         this.editor.eachRow(
-            this._lastCursor.rows,
+            this._current.rows,
             (block) => {
                 let start = 0, end = block.text.length;
-                if (block.rowid === this._lastCursor.rows[0]) {
-                    start = this._lastCursor.start;
+                if (block.rowid === this._current.rows[0]) {
+                    start = this._current.start;
                 }
-                if (block.rowid === this._lastCursor.rows[this._lastCursor.rows.length - 1]) {
-                    end = this._lastCursor.end;
+                if (block.rowid === this._current.rows[this._current.rows.length - 1]) {
+                    end = this._current.end;
                 }
                 func(block, start, end);
             });
@@ -82,7 +82,7 @@ export class Cursor {
     }
 
     private _setCurrent(cursor: EE.ICursorPosition) {
-        this._lastCursor = cursor;
+        this._current = cursor;
         //计算激活的token
         this._activeTokens();
         //触发事件
@@ -93,21 +93,30 @@ export class Cursor {
 
     private _activeTokens() {
         let list = [];
-        if (!this._lastCursor.mutilple) {
-            let block = this.editor.getRowData(this._lastCursor.rows[0]);
+        if (!this._current.mutilple) {
+            let block = this.editor.getRowData(this._current.rows[0]);
             list.push(block.token);
             for (let key in block.inlines) {
                 if (block.inlines[key]
-                    .findIndex(i => i.start <= this._lastCursor.start && this._lastCursor.end <= i.end) >= 0) {
+                    .findIndex(i => i.start <= this._current.start && this._current.end <= i.end) >= 0) {
                     list.push(key);
                 }
             }
-            this._lastCursor.activeTokens = list;
+            this._current.activeTokens = list;
         }
     }
 
     restore() {
-        this.moveTo(this._lastCursor);
+        if (!this._current) {
+            let lastRow = this.editor.getLastRow();
+            this._current = {
+                rows: [lastRow.rowid],
+                start: lastRow.text.length,
+                end: lastRow.text.length,
+                collapsed: true
+            }
+        }
+        this.moveTo(this._current);
     }
 
     moveTo(cursor: EE.ICursorPosition) {

@@ -38,7 +38,7 @@ export default class RowTip implements EE.IEditorTool {
                 class: 'ee-row-tip-container'
             }
         }) as HTMLElement;
-        this.editor.defaultUI.container.appendChild(this.panel);
+        this.editor.defaultUI.page.appendChild(this.panel);
 
         this.me = Util.CreateRenderElement(this.editor.ownerDoc, {
             tag: 'div',

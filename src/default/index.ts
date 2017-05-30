@@ -4,7 +4,8 @@ import { Popover } from './popover';
 import { Editor } from 'core/editor';
 
 export class DefaultUI {
-    container: HTMLElement;
+    box: HTMLElement;
+    page: HTMLElement;
     toolbar: Toolbar;
     popover: Popover;
     constructor(private editor: Editor) {
@@ -13,34 +14,47 @@ export class DefaultUI {
     }
 
     init(el: HTMLElement) {
-        this.container = el;
-        this.container.classList.add('ee-box');
+        this.box = el;
+        this.box.classList.add('ee-box');
+        let wrapper = Util.CreateRenderElement(this.editor.ownerDoc, {
+            tag: 'div',
+            attr: {
+                class: 'ee-wrapper'
+            }
+        });
+        this.page = Util.CreateRenderElement(this.editor.ownerDoc, {
+            tag: 'div',
+            attr: {
+                class: 'ee-page'
+            }
+        }) as HTMLElement;
         let rootEl = Util.CreateRenderElement(this.editor.ownerDoc, {
             tag: 'div',
             attr: {
                 class: 'ee-view'
             }
         }) as HTMLElement;
-        rootEl.innerHTML = this.container.innerHTML;
+        rootEl.innerHTML = this.box.innerHTML;
         this.editor.initContentEditable(rootEl);
-        rootEl.classList.add('ee-page');
-        this.container.innerHTML = '';
-        this.container.appendChild(rootEl);
+        // rootEl.classList.add('ee-page');
+        this.box.innerHTML = '';
+        this.box.appendChild(wrapper);
+        wrapper.appendChild(this.page);
+        this.page.appendChild(rootEl);
 
         this.toolbar.init();
         this.popover.init();
     }
 
-    getOffset(el: HTMLElement) {
+    getOffset(target: HTMLElement, parent: HTMLElement = this.page) {
         let offset = { left: 0, top: 0 };
-        if (this.container.contains(el)) {
-            let parent: Element;
+        if (this.box.contains(target)) {
             do {
-                parent = el.offsetParent;
-                offset.left += el.offsetLeft;
-                offset.top += el.offsetTop;
+                offset.left += target.offsetLeft;
+                offset.top += target.offsetTop;
+                target = target.offsetParent as HTMLElement;
             }
-            while (parent !== this.container);
+            while (target !== parent);
         }
         return offset;
     }

@@ -41,7 +41,7 @@ declare module EnrichEditor {
         type: ToolType;
         text: string;
         inlines: InlineMap;
-        styles?: any;
+        style?: any;
         data?: any;
     }
 

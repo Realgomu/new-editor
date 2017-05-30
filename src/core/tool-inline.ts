@@ -36,48 +36,6 @@ export abstract class InlineTool implements EE.IInlineTool {
         return this.$render(inline);
     }
 
-    /** 计算操作 */
-    // calcActions(block: EE.IBlock, start: number, end: number) {
-    //     let obj: IInlineActions = { token: this.token, list: [] };
-    //     let list = block.inlines[this.token];
-    //     if (list && list.length > 0) {
-    //         for (let i = 0, l = list.length; i < l; i++) {
-    //             let inline = list[i];
-    //             if (start < inline.start) {
-    //                 if (end <= inline.start) {
-    //                     obj.list.push([start, end]);
-    //                     break;
-    //                 }
-    //                 else {
-    //                     obj.list.push([start, inline.start]);
-    //                     if (end <= inline.end) {
-    //                         inline[i].start = start;
-    //                         break;
-    //                     }
-    //                     else {
-    //                         start = inline.end;
-    //                     }
-    //                 }
-    //             }
-    //             else if (start <= inline.end) {
-    //                 if (end <= inline.end) {
-    //                     break;
-    //                 }
-    //                 else {
-    //                     start = inline.end;
-    //                 }
-    //             }
-    //             else if (i === l - 1) {
-    //                 obj.list.push([start, end]);
-    //             }
-    //         }
-    //     }
-    //     else {
-    //         obj.list.push([start, end]);
-    //     }
-    //     return obj;
-    // }
-
     /** 合并操作 */
     mergeApply(list: EE.IInline[], apply: EE.IInline) {
         let newList: EE.IInline[] = [];
@@ -128,29 +86,32 @@ export abstract class InlineTool implements EE.IInlineTool {
     }
 
     apply(...args: any[]) {
-        let step: IActionStep = {
-            token: this.token,
-            cursor: this.editor.cursor.current(),
-            rows: []
-        };
-        this.editor.cursor.eachRow((block, start, end) => {
-            let from = block.inlines[this.token];
-            let to = this.mergeApply(from, this.createData(start, end));
-            //计算actions
-            step.rows.push({
-                rowid: block.rowid,
-                from: from,
-                to: to
-            })
-            //合并，重新渲染block
-            block.inlines[this.token] = to;
-            this.editor.renderRow(block);
-        });
-        this.editor.cursor.restore();
-        console.log(step);
-        this.editor.actions.push(step);
-        this.editor.events.trigger('$contentChanged', null);
-        return step;
+        let cursor = this.editor.cursor.current();
+        if (!cursor.collapsed) {
+            let step: IActionStep = {
+                token: this.token,
+                cursor: this.editor.cursor.current(),
+                rows: []
+            };
+            this.editor.cursor.eachRow((block, start, end) => {
+                let from = block.inlines[this.token];
+                let to = this.mergeApply(from, this.createData(start, end));
+                //计算actions
+                step.rows.push({
+                    rowid: block.rowid,
+                    from: from,
+                    to: to
+                })
+                //合并，重新渲染block
+                block.inlines[this.token] = to;
+                this.editor.renderRow(block);
+            });
+            this.editor.cursor.restore();
+            console.log(step);
+            this.editor.actions.push(step);
+            this.editor.events.trigger('$contentChanged', null);
+            return step;
+        }
     }
 
     redo(step: IActionStep) {

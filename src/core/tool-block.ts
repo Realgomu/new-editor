@@ -42,20 +42,25 @@ export abstract class BlockTool implements EE.IBlockTool {
         return map;
     }
 
-    protected $getDate(el: Element): EE.IBlock {
+    protected $getDate(el: HTMLElement): EE.IBlock {
         let id = el.getAttribute('data-row-id');
         let block: EE.IBlock = {
             rowid: id || Util.RandomID(),
             token: this.token,
             type: this.type,
             text: el.textContent,
+            style: {},
             inlines: this.getInlines(el)
+        }
+        let align = el.style.textAlign || 'left';
+        if (align !== 'left') {
+            block.style['align'] = align;
         }
         return block;
     }
 
     getData(el: Element): EE.IBlock {
-        return this.$getDate(el);
+        return this.$getDate(el as HTMLElement);
     }
 
     protected $apply(tag: string) {
@@ -76,21 +81,6 @@ export abstract class BlockTool implements EE.IBlockTool {
         this.$apply(this.selectors[0]);
     }
 
-    protected $changeBlock(tag: string = this.selectors[0]) {
-        let cursor = this.editor.cursor.current();
-        if (cursor) {
-            // let old = this.editor.ownerDoc.querySelector(`[data-row-id="${cursor.rowid}"]`);
-            // if (old.tagName.toLowerCase() !== tag) {
-            //     let rowid = old.getAttribute('data-row-id');
-            //     let newNode = this.editor.ownerDoc.createElement(tag);
-            //     newNode.setAttribute('data-row-id', rowid);
-            //     newNode.innerHTML = old.innerHTML;
-            //     old.parentElement.replaceChild(newNode, old);
-            //     this.editor.selection.restore(newNode);
-            // }
-        }
-    }
-
     protected $renderInlines(el: HTMLElement, map: EE.InlineMap) {
         //inline 数据按照优先级从高到底进行插入
         this.editor.tools.getInlineTools().forEach(tool => {
@@ -103,18 +93,32 @@ export abstract class BlockTool implements EE.IBlockTool {
         });
     }
 
-    render(block: EE.IBlock) {
+    protected $render(block: EE.IBlock, tag: string = this.selectors[0]) {
         let end = block.text.length;
-        let root = Util.CreateRenderElement(this.editor.ownerDoc, {
-            tag: this.selectors[0],
+        let renderNode = {
+            tag: tag,
             start: 0,
             end: block.text.length,
             content: block.text,
             attr: {
                 'data-row-id': block.rowid
             }
-        }) as HTMLElement;
-        this.$renderInlines(root, block.inlines);
-        return root;
+        };
+        if (block.style) {
+            let style = '';
+            for (let key in block.style) {
+                style += `text-align:${block.style[key]};`;
+            }
+            if (style) {
+                renderNode.attr['style'] = style;
+            }
+        }
+        return Util.CreateRenderElement(this.editor.ownerDoc, renderNode) as HTMLElement;
+    }
+
+    render(block: EE.IBlock) {
+        let el = this.$render(block);
+        this.$renderInlines(el, block.inlines);
+        return el;
     }
 }

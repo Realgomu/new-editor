@@ -13,7 +13,7 @@ export class Toolbar {
     init() {
         this.panel = this.editor.ownerDoc.createElement('div');
         this.panel.classList.add('ee-toolbar');
-        this.ui.container.insertBefore(this.panel, this.ui.container.childNodes[0]);
+        this.ui.box.insertBefore(this.panel, this.ui.box.childNodes[0]);
 
         this.editor.options.toolbars.forEach(item => {
             if (item === '|') {
@@ -34,9 +34,15 @@ export class Toolbar {
             ev.stopPropagation();
         });
         this.editor.events.on('$cursorChanged', () => {
-            let cursor = this.editor.cursor.current();
             this.buttons.forEach(b => {
-                let active = cursor.activeTokens.indexOf(b.token) >= 0;
+                let active = false;
+                if (b.active) {
+                    active = b.active();
+                }
+                else {
+                    let cursor = this.editor.cursor.current();
+                    active = cursor.activeTokens.indexOf(b.token) >= 0;
+                }
                 b.element.classList.toggle('active', active);
             });
         });

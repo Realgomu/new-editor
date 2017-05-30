@@ -21,6 +21,7 @@ import 'tools/paragraph';
 import 'tools/pre';
 import 'tools/header';
 //extends
+import 'tools/align';
 import 'tools/row-tip';
 
 export class Editor {
@@ -44,6 +45,7 @@ export class Editor {
             toolbars: [
                 'paragraph', 'h1', 'pre',
                 '|', 'bold', 'italic', 'underline', 'strike', 'sup', 'sub',
+                '|', 'alignLeft', 'alignCenter', 'alignRight', 'alignJustify',
                 '|', 'link']
         };
 
@@ -83,6 +85,7 @@ export class Editor {
 
             this.rootEl.click();
             this.rootEl.focus();
+            this.cursor.restore();
         }, 300);
     }
 
@@ -136,8 +139,12 @@ export class Editor {
         let index = this._page.rows.findIndex(r => r.rowid === rowid);
         if (index >= 0) {
             let el = this.rootEl.querySelector(`[data-row-id="${rowid}"]`);
-            return el;
+            return el as HTMLElement;
         }
+    }
+
+    getLastRow() {
+        return this._page.rows[this._page.rows.length - 1];
     }
 
     interNewRow(rowid?: string, after?: boolean) {
