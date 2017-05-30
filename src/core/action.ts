@@ -92,14 +92,15 @@ export class Actions {
     }
 
     doBackspace() {
-        let cursor = this.editor.cursor.current();
-        if (cursor.collapsed && cursor.start === 0) {
-            //merge two row
+        setTimeout(() => {
             this.editor.getData();
-        }
+            if (this.editor.isEmpty()) {
+                this.editor.interNewRow();
+            }
+        });
     }
 
     doInput() {
-        
+
     }
 }

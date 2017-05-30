@@ -36,7 +36,7 @@ export class Editor {
     ownerDoc: Document = document;
     rootEl: HTMLElement;
 
-    private _page: EE.IPage;
+    private _pageData: EE.IPage = { rows: [] };
     constructor(el: HTMLElement, options?: EE.IEditorOptions) {
         let defaultOptions: EE.IEditorOptions = {
             tools: 'all',
@@ -77,9 +77,9 @@ export class Editor {
         //init page data
         setTimeout(() => {
             this.getData();
-            this.loadData(this._page.rows);
+            this.loadData(this._pageData.rows);
             //check empty
-            if (this._page.rows.length === 0) {
+            if (this.isEmpty()) {
                 this.interNewRow();
             }
 
@@ -95,6 +95,10 @@ export class Editor {
         this.rootEl.classList.add('ee-view');
     }
 
+    isEmpty() {
+        return this._pageData.rows.length === 0;
+    }
+
     getData() {
         let data = [];
         for (let i = 0, l = this.rootEl.childNodes.length; i < l; i++) {
@@ -102,16 +106,17 @@ export class Editor {
             if (node.nodeType === 1) {
                 let tool = this.tools.matchBlockTool(<Element>node);
                 let result = tool.getData(<Element>node);
+                if (data.findIndex(r => r.rowid === result.rowid) >= 0) {
+                    result.rowid = Util.RandomID();
+                }
                 data.push(result);
             }
         }
-        this._page = {
-            rows: data
-        };
-        return this._page;
+        this._pageData.rows = data;
+        return this._pageData;
     }
 
-    loadData(data: EE.IBlock[]) {
+    loadData(data: EE.IBlock[] = this._pageData.rows) {
         this.rootEl.innerHTML = '';
         let list = data.forEach(block => {
             let tool = this.tools.matchToken(block.token) as BlockTool;
@@ -128,15 +133,15 @@ export class Editor {
     }
 
     getRowData(rowid: string) {
-        return this._page.rows.find(r => r.rowid === rowid);
+        return this._pageData.rows.find(r => r.rowid === rowid);
     }
 
     getRowIndex(rowid: string) {
-        return this._page.rows.findIndex(r => r.rowid === rowid);
+        return this._pageData.rows.findIndex(r => r.rowid === rowid);
     }
 
     getRowElement(rowid: string) {
-        let index = this._page.rows.findIndex(r => r.rowid === rowid);
+        let index = this._pageData.rows.findIndex(r => r.rowid === rowid);
         if (index >= 0) {
             let el = this.rootEl.querySelector(`[data-row-id="${rowid}"]`);
             return el as HTMLElement;
@@ -144,7 +149,7 @@ export class Editor {
     }
 
     getLastRow() {
-        return this._page.rows[this._page.rows.length - 1];
+        return this._pageData.rows[this._pageData.rows.length - 1];
     }
 
     interNewRow(rowid?: string, after?: boolean) {
@@ -161,19 +166,19 @@ export class Editor {
         newRow.innerHTML = '<br>';
         if (!rowid) {
             this.rootEl.appendChild(newRow);
-            this._page.rows.push(block);
+            this._pageData.rows.push(block);
         }
         else {
-            let index = rowid ? this._page.rows.findIndex(r => r.rowid === rowid) : this._page.rows.length;
+            let index = rowid ? this._pageData.rows.findIndex(r => r.rowid === rowid) : this._pageData.rows.length;
             let el = this.rootEl.querySelector(`[data-row-id="${rowid}"]`);
             if (after) {
                 if (el.nextSibling) {
                     this.rootEl.insertBefore(newRow, el.nextSibling);
-                    this._page.rows.splice(index + 1, 0, block);
+                    this._pageData.rows.splice(index + 1, 0, block);
                 }
                 else {
                     this.rootEl.appendChild(newRow);
-                    this._page.rows.push(block);
+                    this._pageData.rows.push(block);
                 }
                 this.cursor.moveTo({
                     rows: [newId],
@@ -183,7 +188,7 @@ export class Editor {
             }
             else {
                 this.rootEl.insertBefore(newRow, el);
-                this._page.rows.splice(index, 0, block);
+                this._pageData.rows.splice(index, 0, block);
             }
         }
         return newId;
@@ -205,8 +210,8 @@ export class Editor {
 
     eachRow(rows: string[], func: (block: EE.IBlock) => void) {
         let inRange = false;
-        for (let i = 0, l = this._page.rows.length; i < l; i++) {
-            var row = this._page.rows[i];
+        for (let i = 0, l = this._pageData.rows.length; i < l; i++) {
+            var row = this._pageData.rows[i];
             if (rows.indexOf(row.rowid) >= 0) {
                 func && func(row);
             }

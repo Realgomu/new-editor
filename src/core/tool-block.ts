@@ -52,6 +52,9 @@ export abstract class BlockTool implements EE.IBlockTool {
             style: {},
             inlines: this.getInlines(el)
         }
+        if (!block.text) {
+            block.inlines = {};
+        }
         let align = el.style.textAlign || 'left';
         if (align !== 'left') {
             block.style['align'] = align;
@@ -67,8 +70,9 @@ export abstract class BlockTool implements EE.IBlockTool {
         this.editor.cursor.eachRow((block, start, end) => {
             let old = this.editor.getRowElement(block.rowid);
             if (old.tagName.toLowerCase() !== tag) {
-                let newNode = this.editor.ownerDoc.createElement(tag);
-                newNode.setAttribute('data-row-id', block.rowid);
+                block.token = this.token;
+                block.type = this.type;
+                let newNode = this.$render(block, tag);
                 newNode.innerHTML = old.innerHTML;
                 old.parentElement.replaceChild(newNode, old);
                 this.editor.cursor.restore();
@@ -118,7 +122,12 @@ export abstract class BlockTool implements EE.IBlockTool {
 
     render(block: EE.IBlock) {
         let el = this.$render(block);
-        this.$renderInlines(el, block.inlines);
+        if (block.text) {
+            this.$renderInlines(el, block.inlines);
+        }
+        else {
+            el.appendChild(this.editor.ownerDoc.createElement('br'));
+        }
         return el;
     }
 }

@@ -30,14 +30,14 @@ module.exports = {
                 use: 'ts-loader?sourceMap',
             },
             //css文件配置
-            {
-                test: /\.less$/i,
-                use: extractLess.extract([
-                    'css-loader?sourceMap',
-                    'less-loader?sourceMap',
-                    // 'autoprefixer-loader',
-                ])
-            },
+            // {
+            //     test: /\.less$/i,
+            //     use: extractLess.extract([
+            //         'css-loader?sourceMap',
+            //         'less-loader?sourceMap',
+            //         // 'autoprefixer-loader',
+            //     ])
+            // },
             // //html模版
             // {
             //     test: /\.html$/i,
@@ -59,7 +59,7 @@ module.exports = {
         modules: ['node_modules', 'src']
     },
     plugins: [
-        extractLess,
+        // extractLess,
         new HtmlWebpackPlugin({
             template: 'src/index.html'
         })

@@ -98,7 +98,7 @@ export class Events {
         this.attach('keyup', root, this._keyup.bind(this));
         this.attach('touchend', root, this._touchend.bind(this));
         this.attach('mouseup', root, this._mouseup.bind(this));
-        this.attach('paste', root, (ev)=>{
+        this.attach('paste', root, (ev) => {
             ev.preventDefault();
         });
     }
@@ -161,6 +161,7 @@ export class Events {
                 }
                 break;
             case EE.KeyCode.DELETE:
+                this.editor.actions.doBackspace();
                 break;
             case EE.KeyCode.BACKSPACE:
                 this.editor.actions.doBackspace();

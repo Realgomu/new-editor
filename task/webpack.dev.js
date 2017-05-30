@@ -2,6 +2,11 @@
 
 const path = require('path');
 let config = require('./webpack.base.js');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+
+const extractLess = new ExtractTextPlugin({
+    filename: 'styles.css'
+});
 
 config.output = {
     path: path.resolve(__dirname, '../.temp'),
@@ -13,4 +18,15 @@ config.devServer = {
     host: 'localhost',
     port: 4000
 };
+config.module.rules.push(
+    //css文件配置
+    {
+        test: /\.less$/i,
+        use: extractLess.extract([
+            'css-loader?sourceMap',
+            'less-loader?sourceMap',
+            // 'autoprefixer-loader',
+        ])
+    });
+config.plugins.push(extractLess);
 module.exports = config;
