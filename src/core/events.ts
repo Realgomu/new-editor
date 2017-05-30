@@ -16,7 +16,7 @@ export type CommonListener = (ev: Event, ...args: any[]) => any;
 
 export class Events {
     private _customEvents: ICustomEventMap = {};
-    private _domEvents: { 0: string; 1: Element; 2: any; }[] = [];
+    private _domEvents: { 0: string; 1: Element | Document; 2: any; }[] = [];
 
     constructor(private editor: Editor) {
 
@@ -100,9 +100,16 @@ export class Events {
         this.attach('mouseup', root, this._mouseup.bind(this));
     }
 
-    attach(name: string, el: Element, listener: any) {
+    attach(name: string, el: Element | Document, listener: any) {
         el.addEventListener(name, listener);
         this._domEvents.push([name, el, listener]);
+    }
+
+    remove(name: string, el: Element | Document, listener?: any) {
+        let event = this._domEvents.find(e => e[0] === name && e[1] === el && (!listener || e[3] === listener));
+        if (event) {
+            event[1].removeEventListener(event[0], event[2]);
+        }
     }
 
     private _removeAll() {
@@ -119,7 +126,7 @@ export class Events {
             if (this._timer) clearTimeout(this._timer);
             this._timer = setTimeout(() => {
                 this.trigger('$input', ev);
-            }, 500);
+            }, 300);
         }
     }
 
@@ -158,7 +165,7 @@ export class Events {
             case EE.KeyCode.Z:
                 if (Util.IsMetaCtrlKey(ev)) {
                     //undo
-                    this.editor.actions.undo();
+                    // this.editor.actions.undo();
                     prevent = true;
                 }
                 break;
@@ -166,6 +173,22 @@ export class Events {
                 if (Util.IsMetaCtrlKey(ev)) {
                     //redo
                     prevent = true;
+                }
+            case EE.KeyCode.A:
+                if (Util.IsMetaCtrlKey(ev)) {
+                    setTimeout(() => {
+                        this.editor.cursor.update(ev);
+                    });
+                }
+                break;
+            case EE.KeyCode.Up:
+            case EE.KeyCode.Left:
+            case EE.KeyCode.Down:
+            case EE.KeyCode.Right:
+                if (!Util.IsMetaCtrlKey(ev)) {
+                    setTimeout(() => {
+                        this.editor.cursor.update(ev);
+                    });
                 }
                 break;
         }
@@ -175,14 +198,18 @@ export class Events {
     }
 
     private _keyup(ev: KeyboardEvent) {
-        this.editor.cursor.update(ev);
+        // this.editor.cursor.update(ev);
     }
 
     private _touchend(ev: TouchEvent) {
-        this.editor.cursor.update(ev);
+        setTimeout(() => {
+            this.editor.cursor.update(ev);
+        });
     }
 
     private _mouseup(ev: MouseEvent) {
-        this.editor.cursor.update(ev);
+        setTimeout(() => {
+            this.editor.cursor.update(ev);
+        });
     }
 }

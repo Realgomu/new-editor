@@ -78,22 +78,31 @@ export class Cursor {
             cursor.start = t;
         }
 
-        this._lastCursor = cursor;
-        //计算激活的token
-        this._calculateActiveTokens(selection);
-        //触发事件
-        this.editor.events.trigger('$cursorChanged', ev);
-        console.log(selection);
-        console.log(this._lastCursor);
+        this._setCurrent(cursor);
     }
 
-    private _calculateActiveTokens(selection: Selection) {
-        if (this._lastCursor.collapsed) {
-            let anchor = Util.NearestElement(selection.anchorNode);
-            this._lastCursor.activeTokens = this.editor.tools.getActiveTokens(anchor);
-        }
-        else if (!this._lastCursor.mutilple) {
+    private _setCurrent(cursor: EE.ICursorPosition) {
+        this._lastCursor = cursor;
+        //计算激活的token
+        this._activeTokens();
+        //触发事件
+        this.editor.events.trigger('$cursorChanged', null);
+        // console.log(selection);
+        // console.log(this._lastCursor);
+    }
 
+    private _activeTokens() {
+        let list = [];
+        if (!this._lastCursor.mutilple) {
+            let block = this.editor.getRowData(this._lastCursor.rows[0]);
+            list.push(block.token);
+            for (let key in block.inlines) {
+                if (block.inlines[key]
+                    .findIndex(i => i.start <= this._lastCursor.start && this._lastCursor.end <= i.end) >= 0) {
+                    list.push(key);
+                }
+            }
+            this._lastCursor.activeTokens = list;
         }
     }
 
@@ -156,11 +165,8 @@ export class Cursor {
                 range.setEnd(startRow, cursor.end);
             }
             selection.addRange(range);
-            this._lastCursor = cursor;
-            //计算激活的token
-            this._calculateActiveTokens(selection);
-            //触发事件
-            this.editor.events.trigger('$cursorChanged', null);
+
+            this._setCurrent(cursor);
         }
     }
 }

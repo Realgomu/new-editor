@@ -72,13 +72,18 @@ export class Actions {
                 //add row before
                 let newId = this.editor.interNewRow(cursor.rows[0]);
                 ev.preventDefault();
+                this.editor.cursor.update();
                 return;
             }
             else if (cursor.start === row.text.length) {
                 //add row end
                 this.editor.interNewRow(cursor.rows[0], true);
                 ev.preventDefault();
+                this.editor.cursor.update();
                 return;
+            }
+            else {
+                //重新计算后一行的rowid
             }
         }
         else {

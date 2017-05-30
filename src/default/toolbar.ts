@@ -1,6 +1,6 @@
 import { Editor } from 'core/editor';
+import { IToolbarButton } from 'core/buttons';
 import { DefaultUI } from './index';
-import { IToolbarButton } from './buttons'
 
 export class Toolbar {
     panel: HTMLElement;
@@ -20,7 +20,7 @@ export class Toolbar {
                 this.panel.appendChild(this.createDivider());
             }
             else {
-                let button = this.ui.buttons.createButton(item);
+                let button = this.editor.buttons.createButton(item);
                 if (button) {
                     this.buttons.push(button);
                     this.panel.appendChild(button.element);

@@ -1,66 +1,69 @@
 import * as Tool from 'core/tools';
 import * as Util from 'core/util';
 import { Editor } from 'core/editor';
+import { IToolbarButton } from 'core/buttons';
 
 @Tool.EditorTool({
     token: 'link',
-    type: EE.ToolType.Link,
-    buttonOptions: {
-        name: 'link',
-        iconFA: 'fa-link',
-        text: '链接'
-    }
+    type: EE.ToolType.Link
 })
 export default class Link extends Tool.InlineTool {
     selectors = ['a'];
     action = 'link';
 
-    private _popTool: HTMLElement;
     private _current: HTMLLinkElement;
+    private _popTool: HTMLElement;
+    private _popInput: HTMLElement;
     constructor(editor: Editor) {
         super(editor);
+
+        let that = this;
+        //按钮
+        this.editor.buttons.register({
+            name: 'link',
+            token: 'link',
+            iconFA: 'fa-link',
+            text: '链接',
+            click: function (this: IToolbarButton) {
+                // let button = this.element;
+                // that._openInput(button);
+            }
+        });
+        this.editor.buttons.register({
+            name: 'openLink',
+            token: 'link',
+            iconFA: 'fa-external-link',
+            text: '打开链接',
+            click: function () {
+                that._openCurrent();
+            }
+        });
+        this.editor.buttons.register({
+            name: 'editLink',
+            token: 'link',
+            iconFA: 'fa-edit',
+            text: '编辑链接'
+        });
+        this.editor.buttons.register({
+            name: 'deleteLink',
+            token: 'link',
+            iconFA: 'fa-chain-broken',
+            text: '删除链接'
+        });
     }
 
     init() {
-        this.editor.events.on('$click', (ev, target: HTMLLinkElement) => {
+        this.editor.events.on('$click', (ev: KeyboardEvent, target: HTMLLinkElement) => {
             this._current = target;
-            this._openPop(target);
+            if (Util.IsMetaCtrlKey(ev)) {
+                this._openCurrent();
+            }
+            else {
+                this._openTool(target);
+            }
             ev.preventDefault();
             ev.stopPropagation();
         }, 'a');
-
-        if (this.editor.defaultUI.buttons) {
-            this.editor.defaultUI.buttons.register({
-                name: 'openLink',
-                token: 'link',
-                iconFA: 'fa-external-link',
-                text: '打开链接',
-                click: () => {
-                    if (this._current) {
-                        window.open(this._current.href, this._current.target);
-                    }
-                    console.log(this, 'open link');
-                }
-            });
-            this.editor.defaultUI.buttons.register({
-                name: 'editLink',
-                token: 'link',
-                iconFA: 'fa-edit',
-                text: '编辑链接',
-                click: () => {
-                    console.log(this, 'edit link');
-                }
-            });
-            this.editor.defaultUI.buttons.register({
-                name: 'deleteLink',
-                token: 'link',
-                iconFA: 'fa-chain-broken',
-                text: '删除链接',
-                click: () => {
-                    console.log(this, 'delete link');
-                }
-            });
-        }
     }
 
     getDataFromEl(el: Element, start: number) {
@@ -80,7 +83,13 @@ export default class Link extends Tool.InlineTool {
     apply(): any {
     }
 
-    private _openPop(target: HTMLElement) {
+    private _openCurrent() {
+        if (this._current) {
+            window.open(this._current.href, this._current.target);
+        }
+    }
+
+    private _openTool(target: HTMLElement) {
         if (!this._popTool) {
             this._popTool = Util.CreateRenderElement(this.editor.ownerDoc, {
                 tag: 'div',
@@ -88,10 +97,25 @@ export default class Link extends Tool.InlineTool {
                     class: 'ee-pop-toolbar'
                 }
             }) as HTMLElement;
-            this._popTool.appendChild(this.editor.defaultUI.buttons.createButton('openLink').element);
-            this._popTool.appendChild(this.editor.defaultUI.buttons.createButton('editLink').element);
-            this._popTool.appendChild(this.editor.defaultUI.buttons.createButton('deleteLink').element);
+            ['openLink', 'editLink', 'deleteLink'].forEach(item => {
+                let button = this.editor.buttons.createButton(item);
+                if (button) {
+                    this._popTool.appendChild(button.element);
+                }
+            });
         }
         this.editor.defaultUI.popover.show(target, this._popTool);
+    }
+
+    private _openInput(target: HTMLElement) {
+        if (!this._popInput) {
+            this._popInput = Util.CreateRenderElement(this.editor.ownerDoc, {
+                tag: 'div',
+                attr: {
+                    class: 'ee-link-input'
+                }
+            }) as HTMLElement;
+        }
+        this.editor.defaultUI.popover.show(target, this._popInput);
     }
 }

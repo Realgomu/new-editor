@@ -89,6 +89,7 @@ declare module EnrichEditor {
         Right = 39,
         Down = 40,
         DELETE = 46,
+        A = 65,
         K = 75,
         M = 77,
         V = 86,

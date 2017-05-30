@@ -1,8 +1,9 @@
-import * as Util from './util';
-import { Tools, InlineTool, BlockTool } from './tools';
-import { Events } from './events';
+import * as Util from 'core/util';
+import { Tools, InlineTool, BlockTool } from 'core/tools';
+import { Events } from 'core/events';
 import { Cursor } from 'core/cursor';
-import { Actions } from './action';
+import { Actions } from 'core/action';
+import { Buttons } from 'core/buttons';
 import * as UI from 'default/index';
 
 import './polyfill';
@@ -28,6 +29,7 @@ export class Editor {
     events: Events;
     cursor: Cursor;
     actions: Actions;
+    buttons: Buttons;
     defaultUI: UI.DefaultUI;
 
     ownerDoc: Document = document;
@@ -49,10 +51,11 @@ export class Editor {
         this.rootEl = el;
 
         //init functions
-        this.tools = new Tools(this);
         this.events = new Events(this);
         this.cursor = new Cursor(this);
         this.actions = new Actions(this);
+        this.buttons = new Buttons(this);
+        this.tools = new Tools(this);
 
         //init ui
         if (this.options.defaultUI) {
