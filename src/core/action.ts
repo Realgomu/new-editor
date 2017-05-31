@@ -22,19 +22,6 @@ export class Actions {
 
     }
 
-    doCommandAction(name: string, pos?: EE.ICursorPosition) {
-        if (!pos) pos = this.editor.cursor.current();
-        // let action: EE.IActionStep = {
-        //     name: name,
-        //     useCommand: true,
-        //     rowid: pos.rowid,
-        //     start: pos.start,
-        //     end: pos.end
-        // };
-        // this.editor.ownerDoc.execCommand(name);
-        // this._push(action);
-    }
-
     push(step: IActionStep) {
         if (this._queue.length >= this._max) {
             this._queue.shift();
@@ -47,7 +34,7 @@ export class Actions {
     redo() {
         this._point++;
         let step = this._queue[this._point];
-        let tool = this.editor.tools.matchToken(step.token) as EE.IActionTool;
+        let tool = this.editor.tools.matchToken(step.token);
         if (tool) {
             tool.undo(step);
         }
@@ -56,7 +43,7 @@ export class Actions {
 
     undo() {
         let step = this._queue[this._point];
-        let tool = this.editor.tools.matchToken(step.token) as EE.IActionTool;
+        let tool = this.editor.tools.matchToken(step.token);
         if (tool) {
             tool.undo(step);
         }

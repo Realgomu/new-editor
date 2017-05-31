@@ -1,8 +1,8 @@
 import { Editor } from 'core/editor';
 import { IActionStep } from 'core/action';
 
-export abstract class InlineTool implements EE.IInlineTool {
-    readonly type: EE.ToolType;
+export abstract class InlineTool implements EE.IEditorTool {
+    readonly level: EE.ToolLevel;
     readonly token: string;
     abstract selectors: string[];
 
@@ -15,7 +15,6 @@ export abstract class InlineTool implements EE.IInlineTool {
 
     createData(start: number, end: number, data?: any) {
         let inline: EE.IInline = {
-            type: this.type,
             start: start,
             end: end,
             data: data

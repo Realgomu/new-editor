@@ -3,11 +3,11 @@ import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'align',
-    type: EE.ToolType.Align,
+    level: EE.ToolLevel.Align,
 })
 export default class Align implements EE.IEditorTool {
     readonly token: string;
-    readonly type: EE.ToolType;
+    readonly level: EE.ToolLevel;
     constructor(private editor: Editor) {
         //buttons
 

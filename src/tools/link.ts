@@ -5,7 +5,7 @@ import { IToolbarButton } from 'core/buttons';
 
 @Tool.EditorTool({
     token: 'link',
-    type: EE.ToolType.Link
+    level: EE.ToolLevel.Link
 })
 export default class Link extends Tool.InlineTool {
     selectors = ['a'];

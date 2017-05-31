@@ -3,7 +3,7 @@ import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'pre',
-    type: EE.ToolType.Pre,
+    level: EE.ToolLevel.Pre,
     buttonOptions: {
         name: 'pre',
         iconFA: 'fa-code',

@@ -4,7 +4,7 @@ import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'header',
-    type: EE.ToolType.Header
+    level: EE.ToolLevel.Header
 })
 export default class Paragraph extends Tool.BlockTool {
     selectors = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];

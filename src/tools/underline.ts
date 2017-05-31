@@ -3,7 +3,7 @@ import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'underline',
-    type: EE.ToolType.Underline,
+    level: EE.ToolLevel.Underline,
     buttonOptions: {
         name: 'underline',
         iconFA: 'fa-underline',

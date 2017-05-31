@@ -13,11 +13,11 @@ interface ITip {
 
 @Tool.EditorTool({
     token: 'row-tip',
-    type: 1010,
+    level: 1010,
 })
 export default class RowTip implements EE.IEditorTool {
     readonly token: string;
-    readonly type: EE.ToolType;
+    readonly level: EE.ToolLevel;
 
     panel: HTMLElement;
     me: HTMLElement;

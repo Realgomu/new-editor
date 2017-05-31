@@ -3,9 +3,9 @@ import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'br',
-    type: EE.ToolType.Br
+    level: EE.ToolLevel.Br
 })
-export default class Break extends Tool.InlineTool implements EE.IActionTool {
+export default class Break extends Tool.InlineTool {
     selectors = ['br'];
     action = 'br';
 

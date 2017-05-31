@@ -15,7 +15,7 @@ export const toolFactory: {
 
 export interface IEditorToolOptions {
     token: string;
-    type: EE.ToolType;
+    level: EE.ToolLevel;
     buttonOptions?: {
         name: string;
         iconFA?: string;
@@ -27,7 +27,7 @@ export interface IEditorToolOptions {
 export function EditorTool(options: IEditorToolOptions) {
     return function (ctrl: EE.IToolConstructor) {
         ctrl.prototype.token = options.token;
-        ctrl.prototype.type = options.type;
+        ctrl.prototype.level = options.level;
         if (toolFactory[options.token]) {
             throw new Error(`repeated editor tool [${options.token}]!`);
         }
@@ -47,10 +47,10 @@ export function ExtendTool() {
 
 export class Tools {
     private _toolCache: EE.IEditorTool[] = [];
-    rowTool: EE.IBlockTool;
+    rowTool: BlockTool;
     constructor(private editor: Editor) {
         this._loadOptions(editor.options.tools);
-        this.rowTool = this.matchToken('paragraph') as EE.IBlockTool;
+        this.rowTool = this.matchToken('paragraph') as BlockTool;
     }
 
     private _loadOptions(token: 'all' | string[]) {
@@ -75,7 +75,7 @@ export class Tools {
             });
         }
         //按优先级从高到低排序
-        this._toolCache.sort((a, b) => b.type - a.type);
+        this._toolCache.sort((a, b) => b.level - a.level);
     }
 
     init() {
@@ -98,24 +98,17 @@ export class Tools {
     /** 根据element的tag匹配相对应的inline tool */
     matchInlineTool(el: Element) {
         return this._match((t) => {
-            return t.type > 0 && t.type < 100 && matchSelectors(el, t);
+            return t.level > 0 && t.level < 100 && matchSelectors(el, t);
         }) as InlineTool;
     }
 
     /** 根据element的tag匹配相对应的block tool */
     matchBlockTool(el: Element) {
         return this._match((t) => {
-            return t.type >= 100 && t.type < 1000 && matchSelectors(el, t);
+            return t.level >= 100 && t.level < 1000 && matchSelectors(el, t);
         }) as BlockTool;
     }
-
-    /** 根据action name 匹配对应的 tool */
-    matchActionTool(name: string) {
-        return this._match((tool: EE.IActionTool) => {
-            return tool.action && tool.action === name;
-        }) as EE.IActionTool;
-    }
-
+    
     matchToken(token: string) {
         return this._match((tool) => {
             return tool.token === token;
@@ -123,11 +116,11 @@ export class Tools {
     }
 
     getInlineTools() {
-        return this._toolCache.filter(t => t.type < 100 && t.type > 0) as InlineTool[];
+        return this._toolCache.filter(t => t.level < 100 && t.level > 0) as InlineTool[];
     }
 
     getBlockTools() {
-        return this._toolCache.filter(t => t.type >= 100 && t.type < 1000) as BlockTool[];
+        return this._toolCache.filter(t => t.level >= 100 && t.level < 1000) as BlockTool[];
     }
 
     getActiveTokens(target: Element) {

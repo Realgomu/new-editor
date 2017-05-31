@@ -125,13 +125,6 @@ export class Editor {
         console.log('load data success');
     }
 
-    excuCommand(token: string, ...args: any[]) {
-        let tool = this.tools.matchActionTool(token);
-        if (tool) {
-            tool.redo(args);
-        }
-    }
-
     getRowData(rowid: string) {
         return this._pageData.rows.find(r => r.rowid === rowid);
     }
@@ -158,7 +151,7 @@ export class Editor {
         let block: EE.IBlock = {
             rowid: newId,
             text: '',
-            type: this.tools.rowTool.type,
+            level: this.tools.rowTool.level,
             token: this.tools.rowTool.token,
             inlines: {}
         };

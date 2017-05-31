@@ -3,8 +3,8 @@ import * as Util from './util';
 import * as Selection from 'core/cursor';
 import { Editor } from './editor';
 
-export abstract class BlockTool implements EE.IBlockTool {
-    readonly type: EE.ToolType;
+export abstract class BlockTool implements EE.IEditorTool {
+    readonly level: EE.ToolLevel;
     readonly token: string;
     abstract selectors: string[];
 
@@ -47,7 +47,7 @@ export abstract class BlockTool implements EE.IBlockTool {
         let block: EE.IBlock = {
             rowid: id || Util.RandomID(),
             token: this.token,
-            type: this.type,
+            level: this.level,
             text: el.textContent,
             style: {},
             inlines: this.getInlines(el)
@@ -71,7 +71,7 @@ export abstract class BlockTool implements EE.IBlockTool {
             let old = this.editor.getRowElement(block.rowid);
             if (old.tagName.toLowerCase() !== tag) {
                 block.token = this.token;
-                block.type = this.type;
+                block.level = this.level;
                 let newNode = this.$render(block, tag);
                 newNode.innerHTML = old.innerHTML;
                 old.parentElement.replaceChild(newNode, old);

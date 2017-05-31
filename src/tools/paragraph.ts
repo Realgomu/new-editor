@@ -3,7 +3,7 @@ import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'paragraph',
-    type: EE.ToolType.Paragraph,
+    level: EE.ToolLevel.Paragraph,
     buttonOptions: {
         name: 'paragraph',
         iconFA: 'fa-paragraph',

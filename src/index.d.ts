@@ -4,7 +4,7 @@ declare var EREditor: EnrichEditor.IEditorStatic;
 
 declare module EnrichEditor {
     /** edtitor tool type enum [priority for render dom from page data] */
-    const enum ToolType {
+    const enum ToolLevel {
         None = 0,
         Br = 1,
         //inline
@@ -38,7 +38,7 @@ declare module EnrichEditor {
     interface IBlock {
         rowid: string;
         token: string;
-        type: ToolType;
+        level: ToolLevel;
         text: string;
         inlines: InlineMap;
         style?: any;
@@ -52,7 +52,6 @@ declare module EnrichEditor {
 
     /** inline data */
     interface IInline {
-        type: ToolType;
         start: number;
         end: number;
         data?: any;
@@ -66,7 +65,7 @@ declare module EnrichEditor {
         end?: number;
         content?: string;
         attr?: IAttributeMap;
-        // children?: IRenderNode[];
+        children?: IRenderNode[];
     }
 
     /** dom render node attribute map */
@@ -118,24 +117,15 @@ declare module EnrichEditor {
      */
     interface IEditor {
         options: EE.IEditorOptions;
-        tools: ITools;
-        cursor: ISelection;
-        actions: IActions;
 
         ownerDoc: Document;
         rootEl: Element;
 
-        initContentEditable(el: HTMLElement): void;
-        getData(): IPage;
-        getRowData(rowid: string): EE.IBlock;
-        getRowElement(rowid: string): Element;
-        interNewRow(rowid: string, focus?: boolean);
-    }
-
-
-    /** global tools container from editor */
-    interface ITools {
-        readonly rowTool: EE.IBlockTool;
+        // initContentEditable(el: HTMLElement): void;
+        // getData(): IPage;
+        // getRowData(rowid: string): EE.IBlock;
+        // getRowElement(rowid: string): Element;
+        // interNewRow(rowid: string, focus?: boolean);
     }
 
     /** constructor function interface for editor tool class */
@@ -143,42 +133,19 @@ declare module EnrichEditor {
         new (...args: any[]): IEditorTool;
         prototype: {
             token?: string;
-            type?: EE.ToolType;
+            level?: EE.ToolLevel;
         }
     }
 
     /** editor tool base interface */
     interface IEditorTool {
-        readonly type: EE.ToolType;
+        readonly level: EE.ToolLevel;
         readonly token: string;
         selectors?: string[];
         apply?: Function;
         init?: Function;
-    }
-
-    /** action tool interface */
-    interface IActionTool extends IEditorTool {
-        action: string;
-        useCommand?: boolean;
-        redo: Function;
-        undo: Function;
-        apply?: Function;
-    }
-
-    /** inline tool interface */
-    interface IInlineTool extends IEditorTool {
-        selectors: string[];
-    }
-
-    /** block tool interface */
-    interface IBlockTool extends IEditorTool {
-        selectors: string[];
-    }
-
-
-    /** global event interface for editor */
-    interface IEvents {
-
+        undo?: Function;
+        redo?: Function;
     }
 
     /** selection position, cursor position in block */
@@ -189,52 +156,6 @@ declare module EnrichEditor {
         activeTokens?: string[];
         collapsed?: boolean;
         mutilple?: boolean;
-    }
-
-    /** global selection func for editor */
-    interface ISelection {
-        current(): ICursorPosition;
-        update(block?: Element): void;
-        restore(block?: Element): void;
-        moveTo(pos: EE.ICursorPosition): void;
-    }
-
-
-    /** global action func for editor */
-    interface IActions {
-        doCommandAction(name: string, pos?: EE.ICursorPosition): void;
-        redo(): void;
-        undo(): void;
-        doEnter(ev: Event): void;
-        doBackspace(): void;
-    }
-
-    /** action and command step from redo/undo */
-
-
-    /** default ui for editor */
-    interface IDefaultUI {
-        container: HTMLElement;
-        toolbar: IToolbar;
-    }
-
-    /** toolbar ui for editor */
-    interface IToolbar {
-
-    }
-
-    /** pop contianer ui for editor */
-    interface IPopover {
-
-    }
-
-    interface IButtonOption {
-        name: string;
-        action: string;
-        iconFA?: string;
-        isDropdown?: boolean;
-        text?: string;
-        click?: Function;
     }
 }
 
