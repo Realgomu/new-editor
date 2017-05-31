@@ -1,3 +1,4 @@
+import * as Util from 'core/util';
 import { Editor } from 'core/editor';
 import { toolFactory } from 'core/tools';
 
@@ -49,7 +50,7 @@ export class Buttons {
     createButton(name: string): IToolbarButton {
         let config = this._configs.find(c => c.name === name);
         if (config) {
-            let button = Object.assign({}, config) as IToolbarButton;
+            let button = Util.Extend({}, config) as IToolbarButton;
             let _editor = this.editor;
             let el = _editor.ownerDoc.createElement('div');
             el.classList.add('ee-button');
@@ -59,8 +60,9 @@ export class Buttons {
             button.tool = _editor.tools.matchToken(button.token);
             if (!button.click) {
                 button.click = function (ev: MouseEvent) {
-                    if (button.tool && !button.element.classList.contains('active')) {
-                        button.tool.apply && button.tool.apply();
+                    if (button.tool) {
+                        let active = button.element.classList.contains('active');
+                        button.tool.apply && button.tool.apply(!active);
                     }
                 }
             }

@@ -27,9 +27,10 @@ export class Events {
 
         //custom
         this.on('$input', (ev) => {
-            this.editor.cursor.update(ev);
+            // this.editor.cursor.update(ev);
             console.log('input');
-            this.editor.getData();
+            this.editor.actions.doInput(ev);
+            // this.editor.getData();
         });
     }
 
@@ -161,21 +162,22 @@ export class Events {
                 }
                 break;
             case EE.KeyCode.DELETE:
-                this.editor.actions.doBackspace();
+                // this.editor.actions.doBackspace();
                 break;
             case EE.KeyCode.BACKSPACE:
-                this.editor.actions.doBackspace();
+                // this.editor.actions.doBackspace();
                 break;
             case EE.KeyCode.Z:
                 if (Util.IsMetaCtrlKey(ev)) {
                     //undo
-                    // this.editor.actions.undo();
+                    this.editor.actions.undo();
                     prevent = true;
                 }
                 break;
             case EE.KeyCode.Y:
                 if (Util.IsMetaCtrlKey(ev)) {
                     //redo
+                    this.editor.actions.redo();
                     prevent = true;
                 }
             case EE.KeyCode.A:

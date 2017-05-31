@@ -153,7 +153,6 @@ declare module EnrichEditor {
         rows: string[];
         start: number;
         end: number;
-        activeTokens?: string[];
         collapsed?: boolean;
         mutilple?: boolean;
     }

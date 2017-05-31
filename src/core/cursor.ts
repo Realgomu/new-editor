@@ -3,12 +3,17 @@ import { Editor } from 'core/editor';
 
 export class Cursor {
     private _current: EE.ICursorPosition = undefined;
+    private _activeTokens: string[] = [];
     constructor(private editor: Editor) {
 
     }
 
     current() {
-        return Object.assign({}, this._current) as EE.ICursorPosition;
+        return Util.Extend({}, this._current) as EE.ICursorPosition;
+    }
+
+    activeTokens() {
+        return this._activeTokens;
     }
 
     eachRow(func: (block: EE.IBlock, start?: number, end?: number) => void) {
@@ -31,8 +36,7 @@ export class Cursor {
         let cursor: EE.ICursorPosition = {
             rows: [],
             start: 0,
-            end: 0,
-            activeTokens: []
+            end: 0
         };
         let pos = 0,
             count = 0,
@@ -84,17 +88,17 @@ export class Cursor {
     private _setCurrent(cursor: EE.ICursorPosition) {
         this._current = cursor;
         //计算激活的token
-        this._activeTokens();
+        this._getActiveTokens();
         //触发事件
         this.editor.events.trigger('$cursorChanged', null);
         // console.log(selection);
-        // console.log(this._lastCursor);
+        // console.log(this._current);
     }
 
-    private _activeTokens() {
+    private _getActiveTokens() {
         let list = [];
         if (!this._current.mutilple) {
-            let block = this.editor.getRowData(this._current.rows[0]);
+            let block = this.editor.findRowData(this._current.rows[0]);
             list.push(block.token);
             for (let key in block.inlines) {
                 if (block.inlines[key]
@@ -102,13 +106,13 @@ export class Cursor {
                     list.push(key);
                 }
             }
-            this._current.activeTokens = list;
+            this._activeTokens = list;
         }
     }
 
     restore() {
         if (!this._current) {
-            let lastRow = this.editor.getLastRow();
+            let lastRow = this.editor.lastRow();
             this._current = {
                 rows: [lastRow.rowid],
                 start: lastRow.text.length,
@@ -124,7 +128,7 @@ export class Cursor {
         if (selection) {
             selection.removeAllRanges();
             let range = this.editor.ownerDoc.createRange();
-            let startRow = this.editor.getRowElement(cursor.rows[0]);
+            let startRow = this.editor.findRowElement(cursor.rows[0]);
             let pos = 0;
             let isEmpty = true;
             cursor.collapsed = cursor.rows.length === 1 && cursor.start === cursor.end;
@@ -151,7 +155,7 @@ export class Cursor {
                 )
             }
             if (cursor.mutilple) {
-                let endRow = this.editor.getRowElement(cursor.rows[cursor.rows.length - 1]);
+                let endRow = this.editor.findRowElement(cursor.rows[cursor.rows.length - 1]);
                 pos = 0;
                 if (endRow) {
                     Util.TreeWalker(

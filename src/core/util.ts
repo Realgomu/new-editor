@@ -11,6 +11,51 @@ export function RandomID(lenght: number = 6) {
     return result;
 }
 
+function isObject(value) { return value !== null && typeof value === 'object'; }
+function isFunction(value) { return typeof value === 'function'; }
+function isDate(value) { return toString.call(value) === '[object Date]'; }
+function isRegExp(value) { return toString.call(value) === '[object RegExp]'; }
+var isArray = Array.isArray;
+function isElement(node) {
+    return !!(node &&
+        (node.nodeName  // We are a direct element.
+            || (node.prop && node.attr && node.find)));  // We have an on and find method part of jQuery API.
+}
+/** extend func */
+function baseExtend(dst: any, objs: any[], deep = true) {
+    for (var i = 0, ii = objs.length; i < ii; ++i) {
+        var obj = objs[i];
+        if (!isObject(obj) && !isFunction(obj)) continue;
+        var keys = Object.keys(obj);
+        for (var j = 0, jj = keys.length; j < jj; j++) {
+            var key = keys[j];
+            var src = obj[key];
+
+            if (deep && isObject(src)) {
+                if (isDate(src)) {
+                    dst[key] = new Date(src.valueOf());
+                } else if (isRegExp(src)) {
+                    dst[key] = new RegExp(src);
+                } else if (src.nodeName) {
+                    dst[key] = src.cloneNode(true);
+                } else if (isElement(src)) {
+                    dst[key] = src.clone();
+                } else {
+                    if (!isObject(dst[key])) dst[key] = isArray(src) ? [] : {};
+                    baseExtend(dst[key], [src], true);
+                }
+            } else {
+                dst[key] = src;
+            }
+        }
+    }
+    return dst;
+}
+var slice = [].slice;
+export function Extend(dst, ...args: any[]) {
+    return baseExtend(dst, slice.call(arguments, 1));
+}
+
 /** 遍历dom节点 */
 export function TreeWalker(
     doc: Document,

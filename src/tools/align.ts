@@ -32,7 +32,7 @@ export default class Align implements EE.IEditorTool {
     apply(type: string = 'left') {
         this.editor.cursor.eachRow((block) => {
             block.style['align'] = type;
-            let el = this.editor.getRowElement(block.rowid);
+            let el = this.editor.findRowElement(block.rowid);
             el.style.textAlign = type;
         });
         this.editor.events.trigger('$cursorChanged', null);
@@ -41,7 +41,7 @@ export default class Align implements EE.IEditorTool {
     active(type: string = 'left') {
         let cursor = this.editor.cursor.current();
         if (!cursor.mutilple) {
-            let el = this.editor.getRowElement(cursor.rows[0]);
+            let el = this.editor.findRowElement(cursor.rows[0]);
             return type === (el.style.textAlign || 'left');
         }
         return false;

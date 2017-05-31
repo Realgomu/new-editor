@@ -49,7 +49,7 @@ export class Editor {
                 '|', 'link']
         };
 
-        this.options = Object.assign(defaultOptions, options || {});
+        this.options = Util.Extend(defaultOptions, options || {});
         this.rootEl = el;
 
         //init functions
@@ -77,7 +77,7 @@ export class Editor {
         //init page data
         setTimeout(() => {
             this.getData();
-            this.loadData(this._pageData.rows);
+            this.setData(this._pageData.rows);
             //check empty
             if (this.isEmpty()) {
                 this.interNewRow();
@@ -116,7 +116,7 @@ export class Editor {
         return this._pageData;
     }
 
-    loadData(data: EE.IBlock[] = this._pageData.rows) {
+    setData(data: EE.IBlock[] = this._pageData.rows) {
         this.rootEl.innerHTML = '';
         let list = data.forEach(block => {
             let tool = this.tools.matchToken(block.token) as BlockTool;
@@ -125,23 +125,20 @@ export class Editor {
         console.log('load data success');
     }
 
-    getRowData(rowid: string) {
+    findRowData(rowid: string) {
         return this._pageData.rows.find(r => r.rowid === rowid);
     }
 
-    getRowIndex(rowid: string) {
+    findRowIndex(rowid: string) {
         return this._pageData.rows.findIndex(r => r.rowid === rowid);
     }
 
-    getRowElement(rowid: string) {
-        let index = this._pageData.rows.findIndex(r => r.rowid === rowid);
-        if (index >= 0) {
-            let el = this.rootEl.querySelector(`[data-row-id="${rowid}"]`);
-            return el as HTMLElement;
-        }
+    findRowElement(rowid: string) {
+        let el = this.rootEl.querySelector(`[data-row-id="${rowid}"]`);
+        return el as HTMLElement;
     }
 
-    getLastRow() {
+    lastRow() {
         return this._pageData.rows[this._pageData.rows.length - 1];
     }
 
@@ -211,10 +208,23 @@ export class Editor {
         }
     }
 
+    reloadRow(rowid: string) {
+        let index = this._pageData.rows.findIndex(r => r.rowid === rowid);
+        let el = this.findRowElement(rowid);
+        if (index >= 0 && el) {
+            let tool = this.tools.matchBlockTool(el);
+            if (tool) {
+                let block = tool.getData(el);
+                this._pageData.rows.splice(index, 1, block);
+                return block;
+            }
+        }
+    }
+
     renderRow(block: EE.IBlock) {
         let tool = this.tools.matchToken(block.token) as BlockTool;
         let newEl = tool.render(block);
-        let oldEl = this.getRowElement(block.rowid);
+        let oldEl = this.findRowElement(block.rowid);
         oldEl.parentNode.replaceChild(newEl, oldEl);
     }
 }

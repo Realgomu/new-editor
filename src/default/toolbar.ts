@@ -34,14 +34,14 @@ export class Toolbar {
             ev.stopPropagation();
         });
         this.editor.events.on('$cursorChanged', () => {
+            let activeTokens = this.editor.cursor.activeTokens();
             this.buttons.forEach(b => {
                 let active = false;
                 if (b.active) {
                     active = b.active();
                 }
                 else {
-                    let cursor = this.editor.cursor.current();
-                    active = cursor.activeTokens.indexOf(b.token) >= 0;
+                    active = activeTokens.indexOf(b.token) >= 0;
                 }
                 b.element.classList.toggle('active', active);
             });
