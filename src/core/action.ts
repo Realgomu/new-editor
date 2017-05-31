@@ -51,6 +51,9 @@ export class Actions {
 
     doEnter(ev: Event) {
         let cursor = this.editor.cursor.current();
+        if (!cursor.collapsed) {
+            //todo 删除选中的
+        }
         if (cursor.collapsed) {
             let row = this.editor.findRowData(cursor.rows[0]);
             if (cursor.start === 0) {

@@ -41,7 +41,8 @@ export class Cursor {
         let pos = 0,
             count = 0,
             rowid = '',
-            startFirst: boolean = undefined;
+            startFirst: boolean = undefined,
+            endPos: number = undefined;
         Util.TreeWalker(
             this.editor.ownerDoc,
             this.editor.rootEl,
@@ -68,12 +69,13 @@ export class Cursor {
                 }
                 if (el.nodeType === 3) {
                     pos += el.textContent.length;
+                    if (count === 2 && endPos === undefined) {
+                        endPos = pos;
+                    }
                 }
             });
-        cursor.mutilple = cursor.rows.length > 1;
         if (selection.isCollapsed) {
             cursor.end = cursor.start;
-            cursor.collapsed = true;
         }
         else if (!startFirst || (!cursor.mutilple && cursor.start > cursor.end)) {
             //交换start和end
@@ -82,11 +84,16 @@ export class Cursor {
             cursor.start = t;
         }
 
+        cursor.atEnd = endPos === cursor.end;
         this._setCurrent(cursor);
     }
 
     private _setCurrent(cursor: EE.ICursorPosition) {
         this._current = cursor;
+        this._current.collapsed = this._current.rows.length === 0 && this._current.start === this._current.end;
+        this._current.mutilple = this._current.rows.length > 1;
+        this._current.atStart = this._current.start === 0;
+        this._current.atEnd = cursor.atEnd;
         //计算激活的token
         this._getActiveTokens();
         //触发事件
@@ -106,6 +113,10 @@ export class Cursor {
                     list.push(key);
                 }
             }
+            if (block.pid) {
+                let parent = this.editor.findRowData(block.pid);
+                list.push(parent.token);
+            }
             this._activeTokens = list;
         }
     }
@@ -117,7 +128,7 @@ export class Cursor {
                 rows: [lastRow.rowid],
                 start: lastRow.text.length,
                 end: lastRow.text.length,
-                collapsed: true
+                atEnd: true
             }
         }
         this.moveTo(this._current);

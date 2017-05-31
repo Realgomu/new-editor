@@ -28,9 +28,9 @@ export default class RowTip implements EE.IEditorTool {
         this.editor.events.on('$cursorChanged', (ev) => {
             this._reload();
         });
-        this.editor.events.on('$contentChanged', (ev) => {
-            this._reload();
-        });
+        // this.editor.events.on('$contentChanged', (ev) => {
+        //     this._reload();
+        // });
         //create el
         this.panel = Util.CreateRenderElement(this.editor.ownerDoc, {
             tag: 'div',
@@ -55,7 +55,7 @@ export default class RowTip implements EE.IEditorTool {
         let start = this.editor.findRowElement(cursor.rows[0]) as HTMLElement;
         let offset = this.editor.defaultUI.getOffset(start);
         top = offset.top;
-        left = offset.left;
+        left = 0;
         if (!cursor.mutilple) {
             height = start.offsetHeight;
         }

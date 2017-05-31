@@ -17,13 +17,13 @@ declare module EnrichEditor {
         //inline block
         Link = 90,
         //block
-        Paragraph = 100,
+        Hr = 100,
+        Paragraph = 101,
         Header,
         Pre = 110,
         //other block
-        Quote = 200,
-        OL,
-        UL,
+        List = 200,
+        Quote = 210,
         //extends
         Align = 1000,
     }
@@ -43,6 +43,7 @@ declare module EnrichEditor {
         inlines: InlineMap;
         style?: any;
         data?: any;
+        pid?: string;
     }
 
     /** inlines map in block */
@@ -155,6 +156,8 @@ declare module EnrichEditor {
         end: number;
         collapsed?: boolean;
         mutilple?: boolean;
+        atStart?: boolean;
+        atEnd?: boolean;
     }
 }
 

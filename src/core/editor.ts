@@ -8,7 +8,7 @@ import * as UI from 'default/index';
 
 import './polyfill';
 
-//tools
+//inlines
 import 'tools/break';
 import 'tools/link';
 import 'tools/blod';
@@ -17,9 +17,13 @@ import 'tools/underline';
 import 'tools/strike';
 import 'tools/super';
 import 'tools/sub';
+//blocks
 import 'tools/paragraph';
 import 'tools/pre';
 import 'tools/header';
+import 'tools/horizontal';
+import 'tools/quote';
+import 'tools/list';
 //extends
 import 'tools/align';
 import 'tools/row-tip';
@@ -46,7 +50,7 @@ export class Editor {
                 'paragraph', 'h1', 'pre',
                 '|', 'bold', 'italic', 'underline', 'strike', 'sup', 'sub',
                 '|', 'alignLeft', 'alignCenter', 'alignRight', 'alignJustify',
-                '|', 'link']
+                '|', 'link', 'hr', 'blockquote', 'ol', 'ul']
         };
 
         this.options = Util.Extend(defaultOptions, options || {});
@@ -100,27 +104,26 @@ export class Editor {
     }
 
     getData() {
-        let data = [];
-        for (let i = 0, l = this.rootEl.childNodes.length; i < l; i++) {
-            let node = this.rootEl.childNodes[i];
-            if (node.nodeType === 1) {
-                let tool = this.tools.matchBlockTool(<Element>node);
-                let result = tool.getData(<Element>node);
-                if (data.findIndex(r => r.rowid === result.rowid) >= 0) {
-                    result.rowid = Util.RandomID();
-                }
-                data.push(result);
+        let rows: EE.IBlock[] = [];
+        Util.NodeListForEach(this.rootEl.children, (node: Element) => {
+            let tool = this.tools.matchBlockTool(node);
+            if (tool) {
+                tool.readData(node, rows);
             }
-        }
-        this._pageData.rows = data;
+        });
+        this._pageData.rows = rows;
         return this._pageData;
     }
 
     setData(data: EE.IBlock[] = this._pageData.rows) {
         this.rootEl.innerHTML = '';
         let list = data.forEach(block => {
-            let tool = this.tools.matchToken(block.token) as BlockTool;
-            this.rootEl.appendChild(tool.render(block));
+            if (!block.pid) {
+                let tool = this.tools.matchToken(block.token) as BlockTool;
+                if (tool) {
+                    this.rootEl.appendChild(tool.render(block));
+                }
+            }
         });
         console.log('load data success');
     }
@@ -214,8 +217,8 @@ export class Editor {
         if (index >= 0 && el) {
             let tool = this.tools.matchBlockTool(el);
             if (tool) {
-                let block = tool.getData(el);
-                this._pageData.rows.splice(index, 1, block);
+                let block = tool.readData(el);
+                this._pageData.rows.splice(index, 1);
                 return block;
             }
         }

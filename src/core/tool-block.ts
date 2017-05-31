@@ -11,7 +11,7 @@ export abstract class BlockTool implements EE.IEditorTool {
     constructor(protected editor: Editor) {
     }
 
-    getInlines(el: Element): EE.InlineMap {
+    protected $getInlines(el: Element): EE.InlineMap {
         let map: EE.InlineMap = {};
         let pos = 0;
         let last: { [token: string]: EE.IInline } = {};
@@ -50,7 +50,7 @@ export abstract class BlockTool implements EE.IEditorTool {
             level: this.level,
             text: el.textContent,
             style: {},
-            inlines: this.getInlines(el)
+            inlines: this.$getInlines(el)
         }
         if (!block.text) {
             block.inlines = {};
@@ -62,8 +62,11 @@ export abstract class BlockTool implements EE.IEditorTool {
         return block;
     }
 
-    getData(el: Element): EE.IBlock {
-        return this.$getDate(el as HTMLElement);
+    readData(el: Element, list?: EE.IBlock[]): EE.IBlock {
+        let block = this.$getDate(el as HTMLElement);
+        block.inlines = this.$getInlines(el);
+        if (list) list.push(block);
+        return block;
     }
 
     protected $apply(tag: string) {
@@ -81,8 +84,10 @@ export abstract class BlockTool implements EE.IEditorTool {
         this.editor.events.trigger('$contentChanged', null);
     }
 
-    apply() {
-        this.$apply(this.selectors[0]);
+    apply(merge: boolean, ...args: any[]) {
+        if (merge) {
+            this.$apply(this.selectors[0]);
+        }
     }
 
     protected $renderInlines(el: HTMLElement, map: EE.InlineMap) {

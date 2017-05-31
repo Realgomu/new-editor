@@ -8,7 +8,7 @@ export interface IButtonConfig {
     iconFA?: string;
     isDropdown?: boolean;
     text?: string;
-    click?: (ev?: Event) => any;
+    click?: (ev: Event, target: Element) => any;
     active?: () => boolean;
     disable?: () => boolean;
 }
@@ -59,9 +59,9 @@ export class Buttons {
             el.innerHTML = `<i class="fa ${button.iconFA}"></i>`;
             button.tool = _editor.tools.matchToken(button.token);
             if (!button.click) {
-                button.click = function (ev: MouseEvent) {
+                button.click = function (ev: MouseEvent, target: Element) {
                     if (button.tool) {
-                        let active = button.element.classList.contains('active');
+                        let active = target.classList.contains('active');
                         button.tool.apply && button.tool.apply(!active);
                     }
                 }
@@ -70,7 +70,9 @@ export class Buttons {
                 ev.stopPropagation();
                 ev.preventDefault();
             })
-            this.editor.events.attach('click', el, button.click);
+            this.editor.events.attach('click', el, (ev: MouseEvent) => {
+                button.click(ev, button.element);
+            });
             button.element = el;
             return button;
         }

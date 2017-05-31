@@ -12,7 +12,6 @@ import { Editor } from 'core/editor';
 })
 export default class Paragraph extends Tool.BlockTool {
     selectors = ['p'];
-    action = 'paragraph';
     constructor(editor: Editor) {
         super(editor);
     }
