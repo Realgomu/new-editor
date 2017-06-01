@@ -41,7 +41,7 @@ export class Toolbar {
                     active = b.active();
                 }
                 else {
-                    active = activeTokens.indexOf(b.token) >= 0;
+                    active = activeTokens.findIndex(a => a.token === b.token) >= 0;
                 }
                 b.element.classList.toggle('active', active);
             });

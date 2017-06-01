@@ -1,9 +1,14 @@
 import * as Util from 'core/util';
 import { Editor } from 'core/editor';
 
+interface IActiveObj {
+    token: string;
+    el?: Element;
+}
+
 export class Cursor {
     private _current: EE.ICursorPosition = undefined;
-    private _activeTokens: string[] = [];
+    private _activeList: IActiveObj[] = [];
     constructor(private editor: Editor) {
 
     }
@@ -13,7 +18,7 @@ export class Cursor {
     }
 
     activeTokens() {
-        return this._activeTokens;
+        return this._activeList as Readonly<Array<IActiveObj>>;
     }
 
     eachRow(func: (block: EE.IBlock, start?: number, end?: number, index?: number) => void) {
@@ -104,21 +109,29 @@ export class Cursor {
     }
 
     private _getActiveTokens() {
-        let list = [];
+        let list: IActiveObj[] = [];
         if (!this._current.mutilple) {
             let block = this.editor.findRowData(this._current.rows[0]);
-            list.push(block.token);
+            list.push({
+                token: block.token,
+                el: this.editor.findRowElement(block.rowid)
+            });
             for (let key in block.inlines) {
                 if (block.inlines[key]
                     .findIndex(i => i.start <= this._current.start && this._current.end <= i.end) >= 0) {
-                    list.push(key);
+                    list.push({
+                        token: key
+                    });
                 }
             }
             if (block.pid) {
                 let parent = this.editor.findRowData(block.pid);
-                list.push(parent.token);
+                list.push({
+                    token: parent.token,
+                    el: this.editor.findRowElement(parent.rowid)
+                });
             }
-            this._activeTokens = list;
+            this._activeList = list;
         }
     }
 
