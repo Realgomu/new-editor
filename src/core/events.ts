@@ -126,6 +126,10 @@ export class Events {
     //input event
     private _timer: number;
     private _input(ev: Event) {
+        let cursor = this.editor.cursor.current();
+        if (!cursor.collapsed) {
+            this.editor.actions.doDeleteSelection();
+        }
         if (!this._isComposition) {
             if (this._timer) clearTimeout(this._timer);
             this._timer = setTimeout(() => {
@@ -157,25 +161,27 @@ export class Events {
         switch (Util.GetKeyCode(ev)) {
             case EE.KeyCode.ENTER:
                 if (!Util.IsShiftKey(ev)) {
-                    if (cursor.atEnd) {
-                        this.editor.actions.doEnterAtEnd();
-                        ev.preventDefault();
+                    ev.preventDefault();
+                    if (!cursor.collapsed) {
+                        this.editor.actions.doDeleteSelection();
                     }
-                    else if (cursor.atStart) {
-                        this.editor.actions.doEnterAtStart();
-                        ev.preventDefault();
-                    }
-                    else {
-                        this.editor.actions.specilInput(SpecilInput.Enter);
-                    }
+                    this.editor.actions.doEnter(ev);
                 }
                 break;
             case EE.KeyCode.DELETE:
+                if (!cursor.collapsed) {
+                    this.editor.actions.doDeleteSelection();
+                    ev.preventDefault();
+                }
                 if (cursor.collapsed && cursor.atEnd) {
                     ev.preventDefault();
                 }
                 break;
             case EE.KeyCode.BACKSPACE:
+                if (!cursor.collapsed) {
+                    this.editor.actions.doDeleteSelection();
+                    ev.preventDefault();
+                }
                 if (cursor.collapsed && cursor.atStart) {
                     ev.preventDefault();
                 }

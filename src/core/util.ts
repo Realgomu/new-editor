@@ -286,3 +286,40 @@ export function MathSelector(el: Element, selector: string) {
     }
     return true;
 }
+
+export function BlockDelete(block: EE.IBlock, start: number, end: number) {
+    let offset = end - start;
+    let newObj = Extend({}, block) as EE.IBlock;
+    newObj.text = block.text.substring(0, start) + block.text.substring(end, block.text.length);
+    for (let key in block.inlines) {
+        let newList = [];
+        newObj.inlines[key].forEach(inline => {
+            if (inline.end <= start) {
+                newList.push(inline)
+            }
+            else if (inline.start < start && inline.end <= end) {
+                inline.end = start;
+                newList.push(inline);
+            }
+            else if (inline.start < start && end < inline.end) {
+                newList.push({ start: inline.start, end: start, data: inline.data });
+                newList.push({ start: end - offset, end: inline.end - offset, data: inline.data });
+            }
+            else if (start <= inline.start && inline.end <= end) {
+
+            }
+            else if (start <= inline.start && end < inline.end) {
+                inline.start = end - offset;
+                inline.end = inline.end - offset;
+                newList.push(inline);
+            }
+            else if (end <= inline.start) {
+                inline.start -= offset;
+                inline.end -= offset;
+                newList.push(inline);
+            }
+        });
+        newObj.inlines[key] = newList;
+    }
+    return newObj;
+}

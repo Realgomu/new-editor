@@ -207,6 +207,7 @@ export class Editor {
                 this.rootEl.insertBefore(newEl, insert);
             }
         }
+        return newEl;
     }
 
     insertNewRow(newRow: Element, rowid: string, after = true, insertEl = false) {
@@ -241,7 +242,9 @@ export class Editor {
     removeRow(rowid: string) {
         let index = this.findRowIndex(rowid);
         let el = this.findRowElement(rowid);
-        el.remove();
+        if (el) {
+            el.remove();
+        }
         this._pageData.rows.splice(index, 1);
     }
 

@@ -86,6 +86,7 @@ export class Cursor {
 
         cursor.atEnd = endPos === cursor.end;
         this._setCurrent(cursor);
+        return this._current;
     }
 
     private _setCurrent(cursor: EE.ICursorPosition) {
@@ -191,6 +192,14 @@ export class Cursor {
             selection.addRange(range);
 
             this._setCurrent(cursor);
+        }
+        return this._current;
+    }
+
+    deleteSelection() {
+        let selection = this.editor.ownerDoc.getSelection();
+        if (selection) {
+            selection.deleteFromDocument();
         }
     }
 }

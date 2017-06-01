@@ -14,7 +14,7 @@ export const toolFactory: {
     }
 } = {};
 
-export interface IEnterBlockTool extends EE.IEditorTool {
+export interface IEnterBlockTool extends BlockTool {
     createNewRow(): HTMLElement;
     enterAtEnd(step: IActionStep, currentBlock: EE.IBlock): void;
 }
