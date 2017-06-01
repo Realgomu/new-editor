@@ -23,18 +23,17 @@ export default class Quote extends Tool.BlockTool {
         });
     }
 
-    readData(el: Element, list?: EE.IBlock[]): EE.IBlock {
+    readData(el: Element): EE.IBlock {
         let block = this.$getDate(el as HTMLElement);
         block.text = '';
         block.data = [];
-        if (list) list.push(block);
         Util.NodeListForEach(el.children, (node: Element) => {
-            let tool = this.editor.tools.matchBlockTool(node);
-            if (tool) {
-                let child = tool.readData(node, list);
-                child.pid = block.rowid;
-                block.data.push(child.rowid);
+            let childId = node.getAttribute('data-row-id');
+            if (!childId) {
+                childId = Util.RandomID();
+                node.setAttribute('data-row-id', childId);
             }
+            block.data.push(childId);
         });
         return block;
     }

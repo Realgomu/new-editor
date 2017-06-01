@@ -34,6 +34,10 @@ declare module EnrichEditor {
         extends?: any
     }
 
+    type PageSnapshot = {
+        [id: string]: EE.IBlock;
+    }
+
     /** block data */
     interface IBlock {
         rowid: string;

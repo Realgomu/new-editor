@@ -1,6 +1,5 @@
 import * as Util from 'core/util';
 import { Editor } from 'core/editor';
-import { SpecilInput } from 'core/action';
 
 export interface ICustomEventMap {
     [name: string]: IHandlerObj[];
@@ -27,10 +26,8 @@ export class Events {
 
         //custom
         this.on('$input', (ev) => {
-            // this.editor.cursor.update(ev);
             console.log('input');
             this.editor.actions.doInput(ev);
-            // this.editor.getData();
         });
     }
 
@@ -126,10 +123,6 @@ export class Events {
     //input event
     private _timer: number;
     private _input(ev: Event) {
-        let cursor = this.editor.cursor.current();
-        if (!cursor.collapsed) {
-            this.editor.actions.doDeleteSelection();
-        }
         if (!this._isComposition) {
             if (this._timer) clearTimeout(this._timer);
             this._timer = setTimeout(() => {
@@ -161,27 +154,15 @@ export class Events {
         switch (Util.GetKeyCode(ev)) {
             case EE.KeyCode.ENTER:
                 if (!Util.IsShiftKey(ev)) {
-                    ev.preventDefault();
-                    if (!cursor.collapsed) {
-                        this.editor.actions.doDeleteSelection();
-                    }
                     this.editor.actions.doEnter(ev);
                 }
                 break;
             case EE.KeyCode.DELETE:
-                if (!cursor.collapsed) {
-                    this.editor.actions.doDeleteSelection();
-                    ev.preventDefault();
-                }
                 if (cursor.collapsed && cursor.atEnd) {
                     ev.preventDefault();
                 }
                 break;
             case EE.KeyCode.BACKSPACE:
-                if (!cursor.collapsed) {
-                    this.editor.actions.doDeleteSelection();
-                    ev.preventDefault();
-                }
                 if (cursor.collapsed && cursor.atStart) {
                     ev.preventDefault();
                 }

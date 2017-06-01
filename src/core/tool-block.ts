@@ -66,10 +66,9 @@ export abstract class BlockTool implements EE.IEditorTool {
         return block;
     }
 
-    readData(el: Element, list?: EE.IBlock[]): EE.IBlock {
+    readData(el: Element): EE.IBlock {
         let block = this.$getDate(el as HTMLElement);
         block.inlines = this.$getInlines(el);
-        if (list) list.push(block);
         return block;
     }
 

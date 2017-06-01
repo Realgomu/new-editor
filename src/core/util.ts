@@ -323,3 +323,40 @@ export function BlockDelete(block: EE.IBlock, start: number, end: number) {
     }
     return newObj;
 }
+
+export function DeepCompare(a, b) {
+    for (let key of Object.keys(a)) {
+        let obj = a[key];
+        if (obj instanceof Array) {
+            if (!(b[key] instanceof Array)) {
+                return false;
+            }
+            else if (!DeepCompare(obj, b[key])) {
+                return false;
+            }
+        }
+        else if (obj instanceof Object) {
+            if (!(b[key] instanceof Object)) {
+                return false;
+            }
+            else if (!DeepCompare(obj, b[key])) {
+                return false;
+            }
+        }
+        else if (obj instanceof Date) {
+            if (!(b[key] instanceof Date)) {
+                return false;
+            }
+            else if (obj.getTime() === b[key].getting()) {
+                return false;
+            }
+        }
+        else if (obj instanceof Function) {
+            //ignore function
+        }
+        else if (obj !== b[key]) {
+            return false;
+        }
+    }
+    return true;
+}

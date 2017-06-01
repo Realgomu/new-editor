@@ -21,11 +21,10 @@ export default class Paragraph extends Tool.BlockTool {
         });
     }
 
-    readData(el: Element, list?: EE.IBlock[]): EE.IBlock {
+    readData(el: Element): EE.IBlock {
         let block = this.$getDate(el as HTMLElement);
         let level = parseInt(el.tagName.substr(1, 1));
         block.data = level;
-        if (list) list.push(block);
         return block;
     }
 
