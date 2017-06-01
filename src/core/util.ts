@@ -250,6 +250,12 @@ export function CreateRenderElement(doc: Document, node: EE.IRenderNode) {
         for (let name in node.attr) {
             el.setAttribute(name, node.attr[name]);
         }
+        //children
+        if (node.children && node.children.length > 0) {
+            node.children.forEach(child => {
+                el.appendChild(CreateRenderElement(doc, child));
+            });
+        }
         return el;
     }
 }

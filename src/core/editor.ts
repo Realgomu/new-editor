@@ -84,7 +84,7 @@ export class Editor {
             this.setData(this._pageData.rows);
             //check empty
             if (this.isEmpty()) {
-                this.interNewRow();
+                // this.interNewRow();
             }
 
             this.rootEl.click();
@@ -137,54 +137,11 @@ export class Editor {
     }
 
     findRowElement(rowid: string) {
-        let el = this.rootEl.querySelector(`[data-row-id="${rowid}"]`);
-        return el as HTMLElement;
+        return this.rootEl.querySelector(`[data-row-id="${rowid}"]`) as HTMLElement;
     }
 
     lastRow() {
         return this._pageData.rows[this._pageData.rows.length - 1];
-    }
-
-    interNewRow(rowid?: string, after?: boolean) {
-        let newRow = this.ownerDoc.createElement(this.tools.rowTool.selectors[0]);
-        let newId = Util.RandomID();
-        let block: EE.IBlock = {
-            rowid: newId,
-            text: '',
-            level: this.tools.rowTool.level,
-            token: this.tools.rowTool.token,
-            inlines: {}
-        };
-        newRow.setAttribute('data-row-id', newId);
-        newRow.innerHTML = '<br>';
-        if (!rowid) {
-            this.rootEl.appendChild(newRow);
-            this._pageData.rows.push(block);
-        }
-        else {
-            let index = rowid ? this._pageData.rows.findIndex(r => r.rowid === rowid) : this._pageData.rows.length;
-            let el = this.rootEl.querySelector(`[data-row-id="${rowid}"]`);
-            if (after) {
-                if (el.nextSibling) {
-                    this.rootEl.insertBefore(newRow, el.nextSibling);
-                    this._pageData.rows.splice(index + 1, 0, block);
-                }
-                else {
-                    this.rootEl.appendChild(newRow);
-                    this._pageData.rows.push(block);
-                }
-                this.cursor.moveTo({
-                    rows: [newId],
-                    start: 0,
-                    end: 0
-                });
-            }
-            else {
-                this.rootEl.insertBefore(newRow, el);
-                this._pageData.rows.splice(index, 0, block);
-            }
-        }
-        return newId;
     }
 
     isRowElement(el: Element, bottom: boolean = false) {
@@ -201,33 +158,97 @@ export class Editor {
         }
     }
 
-    eachRow(rows: string[], func: (block: EE.IBlock) => void) {
+    eachRow(rows: string[], func: (block: EE.IBlock, index?: number) => void) {
         let inRange = false;
         for (let i = 0, l = this._pageData.rows.length; i < l; i++) {
             var row = this._pageData.rows[i];
             if (rows.indexOf(row.rowid) >= 0) {
-                func && func(row);
+                func && func(row, i);
             }
         }
     }
 
-    reloadRow(rowid: string) {
+    reloadRow(rowid: string, refresh: boolean = false) {
         let index = this._pageData.rows.findIndex(r => r.rowid === rowid);
         let el = this.findRowElement(rowid);
         if (index >= 0 && el) {
-            let tool = this.tools.matchBlockTool(el);
+            let tool = this.tools.matchBlockTool(el) as BlockTool;
             if (tool) {
                 let block = tool.readData(el);
-                this._pageData.rows.splice(index, 1);
+                this._pageData.rows.splice(index, 1, block);
+                if (refresh) {
+                    let newEl = tool.render(block);
+                    let oldEl = this.findRowElement(block.rowid);
+                    oldEl.parentNode.replaceChild(newEl, oldEl);
+                    this.cursor.restore();
+                }
                 return block;
             }
         }
     }
 
-    renderRow(block: EE.IBlock) {
+    refreshRow(block: EE.IBlock, index?: number) {
         let tool = this.tools.matchToken(block.token) as BlockTool;
         let newEl = tool.render(block);
         let oldEl = this.findRowElement(block.rowid);
-        oldEl.parentNode.replaceChild(newEl, oldEl);
+        if (oldEl) {
+            let index = this.findRowIndex(block.rowid);
+            this._pageData.rows.splice(index, 1, block);
+            oldEl.parentNode.replaceChild(newEl, oldEl);
+        }
+        else if (index >= 0) {
+            this._pageData.rows.splice(index, 0, block);
+            if (block.pid) {
+                let parent = this.findRowData(block.pid);
+                this.refreshRow(parent);
+            }
+            else {
+                let insert = this.rootEl.children.item(index);
+                this.rootEl.insertBefore(newEl, insert);
+            }
+        }
+    }
+
+    insertNewRow(newRow: Element, rowid: string, after = true, insertEl = false) {
+        let tool = this.tools.matchBlockTool(newRow) as BlockTool;
+        if (tool) {
+            let block = tool.readData(newRow);
+            let index = this.findRowIndex(rowid);
+            if (after) {
+                this._pageData.rows.splice(index + 1, 0, block);
+            }
+            else {
+                this._pageData.rows.splice(index, 0, block);
+            }
+            if (insertEl) {
+                let targetEl = this.findRowElement(rowid);
+                if (!after) {
+                    targetEl.parentNode.insertBefore(newRow, targetEl);
+                }
+                else {
+                    if (targetEl.nextElementSibling) {
+                        targetEl.parentNode.insertBefore(newRow, targetEl.nextElementSibling);
+                    }
+                    else {
+                        targetEl.parentNode.appendChild(newRow);
+                    }
+                }
+            }
+            return block;
+        }
+    }
+
+    removeRow(rowid: string) {
+        let index = this.findRowIndex(rowid);
+        let el = this.findRowElement(rowid);
+        el.remove();
+        this._pageData.rows.splice(index, 1);
+    }
+
+    removeRows(startIndex: number, length: number, removeEl: boolean = false) {
+        this._pageData.rows.splice(startIndex, length);
+        if (removeEl) {
+
+        }
     }
 }

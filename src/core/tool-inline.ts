@@ -36,7 +36,7 @@ export abstract class InlineTool implements EE.IEditorTool {
         return this.$render(inline);
     }
 
-    /** 合并操作 */
+    /** 合并样式 */
     protected $mergeApply(list: EE.IInline[], apply: EE.IInline) {
         let newList: EE.IInline[] = [];
         if (!list || list.length === 0) {
@@ -85,6 +85,7 @@ export abstract class InlineTool implements EE.IEditorTool {
         return newList;
     }
 
+    /** 删除样式 */
     protected $removeApply(list: EE.IInline[], apply: EE.IInline) {
         let newList: EE.IInline[] = [];
         for (let i = 0, l = list.length; i < l; i++) {
@@ -124,12 +125,11 @@ export abstract class InlineTool implements EE.IEditorTool {
                 }
                 //插入一条action step
                 step.rows.push({
-                    rowid: block.rowid,
                     from: from,
                     to: to
                 })
                 //重新渲染block
-                this.editor.renderRow(to);
+                this.editor.refreshRow(to);
             });
             this.editor.cursor.restore();
             this.editor.actions.push(step);

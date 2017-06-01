@@ -59,6 +59,10 @@ export abstract class BlockTool implements EE.IEditorTool {
         if (align !== 'left') {
             block.style['align'] = align;
         }
+        //pid
+        if (el.parentElement && el.parentElement !== this.editor.rootEl && el.parentElement.hasAttribute('data-row-id')) {
+            block.pid = el.parentElement.getAttribute('data-row-id');
+        }
         return block;
     }
 

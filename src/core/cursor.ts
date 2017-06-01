@@ -9,17 +9,17 @@ export class Cursor {
     }
 
     current() {
-        return Util.Extend({}, this._current) as EE.ICursorPosition;
+        return this._current as Readonly<EE.ICursorPosition>;
     }
 
     activeTokens() {
         return this._activeTokens;
     }
 
-    eachRow(func: (block: EE.IBlock, start?: number, end?: number) => void) {
+    eachRow(func: (block: EE.IBlock, start?: number, end?: number, index?: number) => void) {
         this.editor.eachRow(
             this._current.rows,
-            (block) => {
+            (block, index) => {
                 let start = 0, end = block.text.length;
                 if (block.rowid === this._current.rows[0]) {
                     start = this._current.start;
@@ -27,7 +27,7 @@ export class Cursor {
                 if (block.rowid === this._current.rows[this._current.rows.length - 1]) {
                     end = this._current.end;
                 }
-                func(block, start, end);
+                func(block, start, end, index);
             });
     }
 
@@ -90,7 +90,7 @@ export class Cursor {
 
     private _setCurrent(cursor: EE.ICursorPosition) {
         this._current = cursor;
-        this._current.collapsed = this._current.rows.length === 0 && this._current.start === this._current.end;
+        this._current.collapsed = this._current.rows.length === 1 && this._current.start === this._current.end;
         this._current.mutilple = this._current.rows.length > 1;
         this._current.atStart = this._current.start === 0;
         this._current.atEnd = cursor.atEnd;

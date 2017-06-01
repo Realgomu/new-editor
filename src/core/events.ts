@@ -1,6 +1,6 @@
-import * as Util from './util';
-import { Editor } from './editor';
-
+import * as Util from 'core/util';
+import { Editor } from 'core/editor';
+import { SpecilInput } from 'core/action';
 
 export interface ICustomEventMap {
     [name: string]: IHandlerObj[];
@@ -152,33 +152,46 @@ export class Events {
 
     //keydown
     private _keydown(ev: KeyboardEvent) {
-        let prevent = false;
+        let cursor = this.editor.cursor.current();
         //enter
         switch (Util.GetKeyCode(ev)) {
             case EE.KeyCode.ENTER:
                 if (!Util.IsShiftKey(ev)) {
-                    this.editor.actions.doEnter(ev);
-                    this.trigger('$enter', ev);
+                    if (cursor.atEnd) {
+                        this.editor.actions.doEnterAtEnd();
+                        ev.preventDefault();
+                    }
+                    else if (cursor.atStart) {
+                        this.editor.actions.doEnterAtStart();
+                        ev.preventDefault();
+                    }
+                    else {
+                        this.editor.actions.specilInput(SpecilInput.Enter);
+                    }
                 }
                 break;
             case EE.KeyCode.DELETE:
-                // this.editor.actions.doBackspace();
+                if (cursor.collapsed && cursor.atEnd) {
+                    ev.preventDefault();
+                }
                 break;
             case EE.KeyCode.BACKSPACE:
-                // this.editor.actions.doBackspace();
+                if (cursor.collapsed && cursor.atStart) {
+                    ev.preventDefault();
+                }
                 break;
             case EE.KeyCode.Z:
                 if (Util.IsMetaCtrlKey(ev)) {
                     //undo
                     this.editor.actions.undo();
-                    prevent = true;
+                    ev.preventDefault();
                 }
                 break;
             case EE.KeyCode.Y:
                 if (Util.IsMetaCtrlKey(ev)) {
                     //redo
                     this.editor.actions.redo();
-                    prevent = true;
+                    ev.preventDefault();
                 }
             case EE.KeyCode.A:
                 if (Util.IsMetaCtrlKey(ev)) {
@@ -197,9 +210,6 @@ export class Events {
                     });
                 }
                 break;
-        }
-        if (prevent) {
-            ev.preventDefault();
         }
     }
 

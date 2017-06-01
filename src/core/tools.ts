@@ -2,6 +2,7 @@ import { Editor } from './editor';
 import * as Util from './util';
 import { InlineTool } from './tool-inline';
 import { BlockTool } from './tool-block';
+import { IActionStep } from 'core/action';
 
 export { InlineTool } from './tool-inline';
 export { BlockTool } from './tool-block';
@@ -12,6 +13,11 @@ export const toolFactory: {
         options: IEditorToolOptions;
     }
 } = {};
+
+export interface IEnterBlockTool extends EE.IEditorTool {
+    createNewRow(): HTMLElement;
+    enterAtEnd(step: IActionStep, currentBlock: EE.IBlock): void;
+}
 
 export interface IEditorToolOptions {
     token: string;
@@ -108,7 +114,7 @@ export class Tools {
             return t.level >= 100 && t.level < 1000 && matchSelectors(el, t);
         }) as BlockTool;
     }
-    
+
     matchToken(token: string) {
         return this._match((tool) => {
             return tool.token === token;

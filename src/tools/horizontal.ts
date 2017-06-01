@@ -34,7 +34,7 @@ export default class Horizontal extends Tool.BlockTool {
         if (!cursor.mutilple) {
             this.editor.rootEl.appendChild(newRow);
             this.editor.getData();
-            this.editor.interNewRow();
+            // this.editor.interNewRow();
         }
         // newRow.setAttribute('data-row-id', newId);
         // newRow.innerHTML = '<br>';
