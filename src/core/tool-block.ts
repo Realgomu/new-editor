@@ -148,19 +148,4 @@ export abstract class BlockTool implements EE.IEditorTool {
     childrenElements(el: Element) {
         return el.children;
     }
-
-    createNewRow() {
-        let el = Util.CreateRenderElement(this.editor.ownerDoc, {
-            tag: this.selectors[0],
-            attr: {
-                'data-row-id': Util.RandomID()
-            },
-            children: [{
-                tag: 'br'
-            }]
-        }) as HTMLElement;
-        let block = this.readData(el);
-        this.editor.blockMap[block.rowid] = block;
-        return el;
-    }
 }

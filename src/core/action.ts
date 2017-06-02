@@ -125,7 +125,7 @@ export class Actions {
                 useCommand = true;
             }
             //创建新行
-            let newRow = tool.createNewRow();
+            let newRow = this.editor.tools.createNewRow();
             //执行enter逻辑判断
             tool.enterAtEnd(newRow, current);
             //移动光标到新行
@@ -149,7 +149,7 @@ export class Actions {
                 useCommand = true;
             }
             //在上面插入一行
-            let newRow = tool.createNewRow();
+            let newRow = this.editor.tools.createNewRow();
             //执行enter逻辑判断
             tool.enterAtStart(newRow, current);
             if (!useCommand) {

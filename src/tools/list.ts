@@ -80,39 +80,51 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
     }
 
     apply(merge: boolean, type: string) {
-        let activeList = this.editor.cursor.activeTokens();
         let cursor = this.editor.cursor.current();
+        let activeObj = this.getActiveList();
         if (merge) {
-            let list: IList = {
-                rowid: Util.RandomID(),
-                token: this.token,
-                text: '',
-                inlines: {},
-                type: type,
-                data: []
-            };
-            let el = this.$render(list, type);
-            let insertEl: Element;
-            this.editor.cursor.eachRow((block) => {
-                list.data.push(block.rowid);
-                let child = this.editor.findBlockElement(block.rowid);
-                if (!block.pid) {
-                    insertEl = child.nextElementSibling;
-                }
-                let li = Util.CreateRenderElement(this.editor.ownerDoc, {
-                    tag: 'li'
-                })
-                li.appendChild(child);
-                el.appendChild(li);
-            });
-            this.editor.insertBlock(el, insertEl, true);
-            this.editor.cursor.restore();
-            this.editor.actions.doInput();
+            if (activeObj && activeObj.el && activeObj.el.tagName.toLowerCase() !== type) {
+                //切换列表类型
+                let list = this.editor.findBlockData(activeObj.el.getAttribute('data-row-id')) as IList;
+                list.type = type;
+                let oldEl = this.editor.findBlockElement(list.rowid);
+                let newEl = this.$render(list, list.type);
+                newEl.innerHTML = oldEl.innerHTML;
+                oldEl.parentNode.replaceChild(newEl, oldEl);
+                this.editor.cursor.restore();
+                this.editor.actions.doInput();
+            }
+            else {
+                let list: IList = {
+                    rowid: Util.RandomID(),
+                    token: this.token,
+                    text: '',
+                    inlines: {},
+                    type: type,
+                    data: []
+                };
+                let el = this.$render(list, type);
+                let insertEl: Element;
+                this.editor.cursor.eachRow((block) => {
+                    list.data.push(block.rowid);
+                    let child = this.editor.findBlockElement(block.rowid);
+                    if (!block.pid) {
+                        insertEl = child.nextElementSibling;
+                    }
+                    let li = Util.CreateRenderElement(this.editor.ownerDoc, {
+                        tag: 'li'
+                    })
+                    li.appendChild(child);
+                    el.appendChild(li);
+                });
+                this.editor.insertBlock(el, insertEl, true);
+                this.editor.cursor.restore();
+                this.editor.actions.doInput();
+            }
         }
         else {
-            let obj = activeList.find(a => a.token === this.token);
-            if (obj) {
-                let listEl = obj.el;
+            if (activeObj) {
+                let listEl = activeObj.el;
                 let rowid = listEl.getAttribute('data-row-id');
                 let block = this.editor.findBlockData(rowid);
                 if (block) {
@@ -177,8 +189,14 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
         }
     }
 
-    active(type: string) {
+    getActiveList() {
         let activeTokens = this.editor.cursor.activeTokens();
-        return activeTokens.findIndex(a => a.token === this.token && a.el && a.el.tagName.toLowerCase() === type) >= 0;
+        let obj = activeTokens.find(a => a.token === this.token);
+        return obj;
+    }
+
+    active(type: string) {
+        let obj = this.getActiveList();
+        return !!obj && !!obj.el && obj.el.tagName.toLowerCase() === type;
     }
 }
