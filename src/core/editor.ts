@@ -40,7 +40,7 @@ export class Editor {
     ownerDoc: Document = document;
     rootEl: HTMLElement;
 
-    blockMap: EE.BlockMap = {};
+    blockMap: EE.IBlockMap = {};
     blockTree: EE.IBlockNode[] = [];
     constructor(el: HTMLElement, options?: EE.IEditorOptions) {
         let defaultOptions: EE.IEditorOptions = {
@@ -81,7 +81,7 @@ export class Editor {
 
         //init page data
         setTimeout(() => {
-            this.parseData();
+            this.snapshot();
             //check empty
             if (this.isEmpty()) {
                 // this.interNewRow();
@@ -90,13 +90,24 @@ export class Editor {
             this.rootEl.click();
             this.rootEl.focus();
             this.cursor.restore();
+            this.actions.doInput();
         }, 300);
     }
 
     initContentEditable(el: HTMLElement) {
         this.rootEl = el;
-        this.rootEl.setAttribute('contenteditable', '');
+        this.rootEl.setAttribute('contenteditable', 'true');
         this.rootEl.classList.add('ee-view');
+    }
+
+    createRootElement() {
+        return Util.CreateRenderElement(this.ownerDoc, {
+            tag: 'div',
+            attr: {
+                'class': 'ee-view',
+                'contenteditable': 'true',
+            }
+        }) as HTMLElement;
     }
 
     isEmpty() {
@@ -138,8 +149,8 @@ export class Editor {
         }
     }
 
-    /** 解析文档数据 */
-    parseData(step?: IActionStep) {
+    /** 解析文档数据,生成快照 */
+    snapshot(step?: IActionStep) {
         this.blockTree = [];
         this.blockMap = {};
         Util.NodeListForEach(this.rootEl.children, (el, index) => {
@@ -148,6 +159,10 @@ export class Editor {
                 this.blockTree.push(node);
             }
         });
+        if (step) {
+            step.map = Util.Extend({}, this.blockMap);
+            step.tree = Util.Extend([], this.blockTree);
+        }
     }
 
     getData() {
@@ -214,18 +229,25 @@ export class Editor {
         }
     }
 
-    insertBlock(target: Element, insertId: string, before = false) {
-        let insertEl = this.findBlockElement(insertId);
-        if (before) {
-            insertEl.parentNode.insertBefore(target, insertEl);
+    insertBlock(target: Element, insert: string | Element, before = false) {
+        if (typeof insert === 'string') {
+            insert = this.findBlockElement(insert);
         }
-        else {
-            if (insertEl.nextElementSibling) {
-                insertEl.parentNode.insertBefore(target, insertEl.nextElementSibling);
+        if (insert) {
+            if (before) {
+                insert.parentNode.insertBefore(target, insert);
             }
             else {
-                insertEl.parentNode.appendChild(target);
+                if (insert.nextElementSibling) {
+                    insert.parentNode.insertBefore(target, insert.nextElementSibling);
+                }
+                else {
+                    insert.parentNode.appendChild(target);
+                }
             }
+        }
+        else {
+            this.rootEl.appendChild(target);
         }
     }
 

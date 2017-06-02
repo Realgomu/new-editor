@@ -112,7 +112,7 @@ export abstract class BlockTool implements EE.IEditorTool {
         if (block.text) {
             this.$renderInlines(el, block.inlines);
         }
-        else {
+        else if (this.blockType === EE.BlockType.Leaf) {
             el.appendChild(this.editor.ownerDoc.createElement('br'));
         }
         return el;
@@ -123,14 +123,13 @@ export abstract class BlockTool implements EE.IEditorTool {
             let old = this.editor.findBlockElement(block.rowid);
             if (old.tagName.toLowerCase() !== tag) {
                 block.token = this.token;
-                block.level = this.level;
                 let newNode = this.$render(block, tag);
                 newNode.innerHTML = old.innerHTML;
                 old.parentElement.replaceChild(newNode, old);
-                this.editor.cursor.restore();
             }
         });
-        this.editor.events.trigger('$contentChanged', null);
+        this.editor.cursor.restore();
+        this.editor.actions.doInput();
     }
 
     apply(merge: boolean, ...args: any[]) {

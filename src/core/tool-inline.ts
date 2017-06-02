@@ -108,11 +108,6 @@ export abstract class InlineTool implements EE.IEditorTool {
     apply(merge: boolean) {
         let cursor = this.editor.cursor.current();
         if (!cursor.collapsed) {
-            let step: IActionStep = {
-                fromCursor: cursor,
-                toCursor: cursor,
-                rows: [],
-            };
             this.editor.cursor.eachRow((block, start, end) => {
                 let from = Util.Extend({}, block, true) as EE.IBlock;
                 let to = block
@@ -123,16 +118,11 @@ export abstract class InlineTool implements EE.IEditorTool {
                 else {
                     to.inlines[this.token] = this.$removeApply(block.inlines[this.token], this.createData(start, end));
                 }
-                //插入一条action step
-                step.rows.push({
-                    from: from,
-                    to: to
-                })
                 //重新渲染block
                 this.editor.refreshBlock(to);
             });
             this.editor.cursor.restore();
-            this.editor.actions.push(step);
+            this.editor.actions.doInput();
         }
     }
 }

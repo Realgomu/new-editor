@@ -27,7 +27,7 @@ export class Events {
         //custom
         this.on('$input', (ev) => {
             console.log('input');
-            this.editor.actions.doInput(ev);
+            this.editor.actions.doInput();
         });
     }
 
@@ -150,7 +150,6 @@ export class Events {
     //keydown
     private _keydown(ev: KeyboardEvent) {
         let cursor = this.editor.cursor.current();
-        //enter
         switch (Util.GetKeyCode(ev)) {
             case EE.KeyCode.ENTER:
                 if (!Util.IsShiftKey(ev)) {
@@ -180,6 +179,7 @@ export class Events {
                     this.editor.actions.redo();
                     ev.preventDefault();
                 }
+                break;
             case EE.KeyCode.A:
                 if (Util.IsMetaCtrlKey(ev)) {
                     setTimeout(() => {

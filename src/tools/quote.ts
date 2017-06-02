@@ -39,40 +39,30 @@ export default class Quote extends Tool.BlockTool {
         return block;
     }
 
-    render(block: IQuote) {
-        let el = this.$render(block);
-        if (block.data && block.data.length > 0) {
-            block.data.forEach(id => {
-                let child = this.editor.findBlockData(id);
-                let tool = this.editor.tools.matchToken(child.token) as Tool.BlockTool;
-                if (tool && child.pid === block.rowid) {
-                    el.appendChild(tool.render(child));
-                }
-            });
-        }
-        return el;
-    }
-
     apply(merge: boolean) {
         let activeList = this.editor.cursor.activeTokens();
         let cursor = this.editor.cursor.current();
         if (merge) {
-            // let quote: IQuote = {
-            //     rowid: Util.RandomID(),
-            //     token: this.token,
-            //     text: '',
-            //     inlines: {},
-            //     data: []
-            // };
-            // let el = this.render(quote);
-            // this.editor.cursor.eachRow((block) => {
-            //     quote.data.push(block.rowid);
-            //     let child = this.editor.findBlockElement(block.rowid);
-            //     el.appendChild(child);
-            // });
-            // this.editor.insertBlock(el, , true);
-            // this.editor.cursor.restore();
-            // this.editor.actions.doInput(null);
+            let quote: IQuote = {
+                rowid: Util.RandomID(),
+                token: this.token,
+                text: '',
+                inlines: {},
+                data: []
+            };
+            let el = this.render(quote);
+            let insertEl: Element;
+            this.editor.cursor.eachRow((block) => {
+                quote.data.push(block.rowid);
+                let child = this.editor.findBlockElement(block.rowid);
+                if (!block.pid) {
+                    insertEl = child.nextElementSibling;
+                }
+                el.appendChild(child);
+            });
+            this.editor.insertBlock(el, insertEl, true);
+            this.editor.cursor.restore();
+            this.editor.actions.doInput();
         }
         else {
             let obj = activeList.find(a => a.token === this.token);
@@ -87,7 +77,7 @@ export default class Quote extends Tool.BlockTool {
                     }
                     quote.remove();
                     this.editor.cursor.restore();
-                    this.editor.actions.doInput(null);
+                    this.editor.actions.doInput();
                 }
             }
         }

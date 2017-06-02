@@ -35,6 +35,6 @@ export default class Paragraph extends Tool.BlockTool implements Tool.IEnterBloc
 
     enterAtEnd(step: IActionStep, currentBlock: EE.IBlock) {
         let newRow = this.createNewRow();
-        let index = this.editor.findRowIndex(currentBlock.rowid);
+        // let index = this.editor.findRowIndex(currentBlock.rowid);
     }
 }

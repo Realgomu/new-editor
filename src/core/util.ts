@@ -325,7 +325,11 @@ export function BlockDelete(block: EE.IBlock, start: number, end: number) {
 }
 
 export function DeepCompare(a, b) {
-    for (let key of Object.keys(a)) {
+    if (!a || !b) {
+        return false;
+    }
+    let keys = Object.keys(a).concat(Object.keys(b));
+    for (let key of keys) {
         let obj = a[key];
         if (obj instanceof Array) {
             if (!(b[key] instanceof Array)) {

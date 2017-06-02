@@ -34,7 +34,7 @@ declare module EnrichEditor {
         extends?: any
     }
 
-    type BlockMap = {
+    type IBlockMap = {
         [id: string]: EE.IBlock;
     }
 

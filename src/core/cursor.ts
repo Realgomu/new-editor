@@ -37,6 +37,10 @@ export class Cursor {
 
     update(ev?: Event) {
         let selection = this.editor.ownerDoc.getSelection();
+        if (selection.anchorNode === this.editor.rootEl) {
+            this.editor.cursor.restore();
+            return;
+        }
         let cursor: EE.ICursorPosition = {
             rows: [],
             start: 0,
