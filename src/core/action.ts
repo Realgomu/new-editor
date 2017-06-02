@@ -77,7 +77,7 @@ export class Actions {
             if (node.children && node.children.length > 0) {
                 node.children.forEach(child => {
                     let childEl = _render(child);
-                    el.appendChild(childEl);
+                    tool.appendChild(el, childEl);
                 });
             }
             return el;
@@ -107,7 +107,7 @@ export class Actions {
         this.push(this._stepCache);
     }
 
-    doEnter(ev: Event) {
+    doEnter(ev?: Event) {
         let fromCursor = this.editor.cursor.current();
         if (!this._stepCache) {
             this._stepCache = {
@@ -116,7 +116,7 @@ export class Actions {
         }
         let rowid = fromCursor.rows[0];
         let current = this.editor.findBlockData(rowid);
-        let enterTool = this.editor.tools.matchToken(current.token) as Tool.IEnterBlockTool;
+        let tool = this.editor.tools.matchToken(current.token) as Tool.IEnterBlockTool;
         if (fromCursor.atEnd) {
             ev.preventDefault();
             let useCommand = false;
@@ -124,12 +124,13 @@ export class Actions {
                 this.editor.ownerDoc.execCommand('delete');
                 useCommand = true;
             }
-            //在下面插入一行
-            let newRow = enterTool.createNewRow();
-            let newId = newRow.getAttribute('data-row-id');
-            this.editor.insertBlock(newRow, rowid, false);
+            //创建新行
+            let newRow = tool.createNewRow();
+            //执行enter逻辑判断
+            tool.enterAtEnd(newRow, current);
+            //移动光标到新行
             let toCursor = this.editor.cursor.moveTo({
-                rows: [newId],
+                rows: [newRow.getAttribute('data-row-id')],
                 start: 0,
                 end: 0,
                 atEnd: true,
@@ -148,14 +149,24 @@ export class Actions {
                 useCommand = true;
             }
             //在上面插入一行
-            let newRow = enterTool.createNewRow();
-            this.editor.insertBlock(newRow, rowid, true);
-            //设置结束的光标
+            let newRow = tool.createNewRow();
+            //执行enter逻辑判断
+            tool.enterAtStart(newRow, current);
             if (!useCommand) {
                 this.editor.snapshot(this._stepCache);
                 this._stepCache.toCursor = this.editor.cursor.update();
                 this.push(this._stepCache);
             }
+        }
+    }
+
+    doDeleteAtStart(ev?: Event) {
+        let fromCursor = this.editor.cursor.current();
+        ev.preventDefault();
+        let useCommand = false;
+        if (!fromCursor.collapsed) {
+            this.editor.ownerDoc.execCommand('delete');
+            useCommand = true;
         }
     }
 }

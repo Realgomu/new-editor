@@ -157,14 +157,14 @@ export class Events {
                 }
                 break;
             case EE.KeyCode.DELETE:
-                if (cursor.collapsed && cursor.atEnd) {
-                    ev.preventDefault();
-                }
+                // if (cursor.collapsed && cursor.atEnd) {
+                //     ev.preventDefault();
+                // }
                 break;
             case EE.KeyCode.BACKSPACE:
-                if (cursor.collapsed && cursor.atStart) {
-                    ev.preventDefault();
-                }
+                // if (cursor.collapsed && cursor.atStart) {
+                //     ev.preventDefault();
+                // }
                 break;
             case EE.KeyCode.Z:
                 if (Util.IsMetaCtrlKey(ev)) {

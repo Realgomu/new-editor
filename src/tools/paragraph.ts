@@ -21,20 +21,29 @@ export default class Paragraph extends Tool.BlockTool implements Tool.IEnterBloc
         })
     }
 
-    createNewRow() {
-        return Util.CreateRenderElement(this.editor.ownerDoc, {
-            tag: this.selectors[0],
-            attr: {
-                'data-row-id': Util.RandomID()
-            },
-            children: [{
-                tag: 'br'
-            }]
-        }) as HTMLElement;
+    enterAtEnd(newRow: Element, current: EE.IBlock, parent?: EE.IBlock) {
+        //检查parent
+        if (current.pid) {
+            let parent = this.editor.findBlockData(current.pid);
+            let tool = this.editor.tools.matchToken(parent.token) as Tool.IEnterBlockTool;
+            if (tool && tool.enterAtEnd) {
+                return tool.enterAtEnd(newRow, current, parent);
+            }
+        }
+        //插入当前行的下面
+        this.editor.insertBlock(newRow, current.rowid, false);
     }
 
-    enterAtEnd(step: IActionStep, currentBlock: EE.IBlock) {
-        let newRow = this.createNewRow();
-        // let index = this.editor.findRowIndex(currentBlock.rowid);
+    enterAtStart(newRow: Element, current: EE.IBlock, parent?: EE.IBlock) {
+        //检查parent
+        if (current.pid) {
+            let parent = this.editor.findBlockData(current.pid);
+            let tool = this.editor.tools.matchToken(parent.token) as Tool.IEnterBlockTool;
+            if (tool && tool.enterAtEnd) {
+                return tool.enterAtStart(newRow, current, parent);
+            }
+        }
+        //插入当前行的上面
+        this.editor.insertBlock(newRow, current.rowid, true);
     }
 }

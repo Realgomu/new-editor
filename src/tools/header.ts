@@ -2,6 +2,10 @@ import * as Tool from 'core/tools';
 import * as Util from 'core/util';
 import { Editor } from 'core/editor';
 
+interface IHeader extends EE.IBlock {
+    size: number;
+}
+
 @Tool.EditorTool({
     token: 'header',
     level: EE.ToolLevel.Header,
@@ -22,15 +26,15 @@ export default class Paragraph extends Tool.BlockTool {
         });
     }
 
-    readData(el: Element): EE.IBlock {
-        let block = this.$readDate(el as HTMLElement);
-        let level = parseInt(el.tagName.substr(1, 1));
-        block.data = level;
+    readData(el: Element): IHeader {
+        let block = this.$readDate(el as HTMLElement) as IHeader;
+        let size = parseInt(el.tagName.substr(1, 1));
+        block.size = size;
         return block;
     }
 
-    render(block: EE.IBlock) {
-        let el = this.$render(block, 'h' + block.data);
+    render(block: IHeader) {
+        let el = this.$render(block, 'h' + block.size);
         this.$renderInlines(el, block.inlines);
         return el;
     }

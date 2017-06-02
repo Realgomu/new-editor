@@ -123,22 +123,24 @@ export class Editor {
     }
 
     readNode(el: Element = this.rootEl, pid: string = undefined) {
-        let rowid = el.getAttribute('data-row-id');
-        //检查rowid是否重复
-        if (this.blockMap[rowid]) {
-            el.setAttribute('data-row-id', Util.RandomID());
-        }
         let tool = this.tools.matchBlockTool(el);
         if (tool) {
+            let rowid = el.getAttribute('data-row-id');
+            //检查rowid是否重复
+            if (!rowid || this.blockMap[rowid]) {
+                el.setAttribute('data-row-id', Util.RandomID());
+            }
             let block = tool.readData(el);
+            block.pid = pid;
             let node: EE.IBlockNode = {
                 id: block.rowid,
                 pid: pid,
                 children: []
             };
             this.blockMap[block.rowid] = block;
-            if (tool.blockType !== EE.BlockType.Leaf && el.children.length > 0) {
-                Util.NodeListForEach(el.children, (child) => {
+            let children = tool.childrenElements(el);
+            if (tool.blockType !== EE.BlockType.Leaf && children.length > 0) {
+                Util.NodeListForEach(children, (child) => {
                     let childNode = this.readNode(child, node.id);
                     if (childNode) {
                         node.children.push(childNode);
@@ -163,13 +165,6 @@ export class Editor {
             step.map = Util.Extend({}, this.blockMap);
             step.tree = Util.Extend([], this.blockTree);
         }
-    }
-
-    getData() {
-        // let pageData: EE.IPage = {
-        //     rows: this.rows.map(id => Util.Extend({}, this._snapshot[id]) as EE.IBlock)
-        // };
-        // return pageData;
     }
 
     setData(data: EE.IBlock[]) {

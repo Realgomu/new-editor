@@ -58,7 +58,6 @@ declare module EnrichEditor {
         text: string;
         inlines: InlineMap;
         style?: any;
-        data?: any;
         pid?: string;
     }
 

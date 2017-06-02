@@ -15,8 +15,8 @@ export const toolFactory: {
 } = {};
 
 export interface IEnterBlockTool extends BlockTool {
-    createNewRow(): HTMLElement;
-    enterAtEnd(step: IActionStep, currentBlock: EE.IBlock): void;
+    enterAtEnd?: (newRow: Element, current: EE.IBlock, parent?: EE.IBlock) => any;
+    enterAtStart?: (newRow: Element, current: EE.IBlock, parent?: EE.IBlock) => any;
 }
 
 export interface IEditorToolOptions {
@@ -52,10 +52,10 @@ export function ExtendTool() {
 
 export class Tools {
     private _toolCache: EE.IEditorTool[] = [];
-    rowTool: BlockTool;
+    rowTool: IEnterBlockTool;
     constructor(private editor: Editor) {
         this._loadOptions(editor.options.tools);
-        this.rowTool = this.matchToken('paragraph') as BlockTool;
+        this.rowTool = this.matchToken('paragraph') as IEnterBlockTool;
     }
 
     private _loadOptions(token: 'all' | string[]) {

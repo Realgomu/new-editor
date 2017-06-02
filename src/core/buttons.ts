@@ -46,7 +46,7 @@ export class Buttons {
                 button.click = function (ev: MouseEvent, target: Element) {
                     if (button.tool) {
                         let active = target.classList.contains('active');
-                        button.tool.apply && button.tool.apply(!active);
+                        button.tool.apply && button.tool.apply(!active, button.name);
                     }
                 }
             }

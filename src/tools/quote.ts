@@ -24,8 +24,8 @@ export default class Quote extends Tool.BlockTool {
         });
     }
 
-    readData(el: Element): EE.IBlock {
-        let block = this.$readDate(el as HTMLElement);
+    readData(el: Element): IQuote {
+        let block = this.$readDate(el as HTMLElement) as IQuote;
         block.text = '';
         block.data = [];
         Util.NodeListForEach(el.children, (node: Element) => {

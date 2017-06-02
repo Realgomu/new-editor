@@ -50,7 +50,10 @@ export abstract class BlockTool implements EE.IEditorTool {
             token: this.token,
             text: el.textContent,
             style: {},
-            inlines: this.$readInlines(el)
+            inlines: {},
+        }
+        if (this.blockType === EE.BlockType.Leaf) {
+            block.inlines = this.$readInlines(el);
         }
         if (!block.text) {
             block.inlines = {};
@@ -60,9 +63,9 @@ export abstract class BlockTool implements EE.IEditorTool {
             block.style['align'] = align;
         }
         //pid
-        if (el.parentElement && el.parentElement !== this.editor.rootEl && el.parentElement.hasAttribute('data-row-id')) {
-            block.pid = el.parentElement.getAttribute('data-row-id');
-        }
+        // if (el.parentElement && el.parentElement !== this.editor.rootEl && el.parentElement.hasAttribute('data-row-id')) {
+        //     block.pid = el.parentElement.getAttribute('data-row-id');
+        // }
         return block;
     }
 
@@ -136,5 +139,28 @@ export abstract class BlockTool implements EE.IEditorTool {
         if (merge) {
             this.$apply(this.selectors[0]);
         }
+    }
+
+    appendChild(el: Element, child: Element) {
+        el.appendChild(child);
+    }
+
+    childrenElements(el: Element) {
+        return el.children;
+    }
+
+    createNewRow() {
+        let el = Util.CreateRenderElement(this.editor.ownerDoc, {
+            tag: this.selectors[0],
+            attr: {
+                'data-row-id': Util.RandomID()
+            },
+            children: [{
+                tag: 'br'
+            }]
+        }) as HTMLElement;
+        let block = this.readData(el);
+        this.editor.blockMap[block.rowid] = block;
+        return el;
     }
 }
