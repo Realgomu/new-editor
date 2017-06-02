@@ -4,11 +4,6 @@ import { Editor } from 'core/editor';
 @Tool.EditorTool({
     token: 'sup',
     level: EE.ToolLevel.Super,
-    buttonOptions: {
-        name: 'sup',
-        iconFA: 'fa-superscript',
-        text: '上标'
-    }
 })
 export default class Sup extends Tool.InlineTool {
     selectors = ['sup'];
@@ -17,5 +12,12 @@ export default class Sup extends Tool.InlineTool {
 
     constructor(editor: Editor) {
         super(editor);
+
+        this.editor.buttons.register({
+            name: 'sup',
+            token: 'sup',
+            iconFA: 'fa-superscript',
+            text: '上标'
+        })
     }
 }

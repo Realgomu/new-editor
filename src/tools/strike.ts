@@ -4,11 +4,6 @@ import { Editor } from 'core/editor';
 @Tool.EditorTool({
     token: 'strike',
     level: EE.ToolLevel.StrikeThrough,
-    buttonOptions: {
-        name: 'strike',
-        iconFA: 'fa-strikethrough',
-        text: '划线'
-    }
 })
 export default class Strike extends Tool.InlineTool {
     selectors = ['s'];
@@ -17,5 +12,12 @@ export default class Strike extends Tool.InlineTool {
 
     constructor(editor: Editor) {
         super(editor);
+
+        this.editor.buttons.register({
+            name: 'strike',
+            token: 'strike',
+            iconFA: 'fa-strikethrough',
+            text: '划线'
+        })
     }
 }

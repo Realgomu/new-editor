@@ -9,6 +9,7 @@ interface IQuote extends EE.IBlock {
 @Tool.EditorTool({
     token: 'quote',
     level: EE.ToolLevel.Quote,
+    blockType: EE.BlockType.Root,
 })
 export default class Quote extends Tool.BlockTool {
     selectors = ['blockquote'];
@@ -24,7 +25,7 @@ export default class Quote extends Tool.BlockTool {
     }
 
     readData(el: Element): EE.IBlock {
-        let block = this.$getDate(el as HTMLElement);
+        let block = this.$readDate(el as HTMLElement);
         block.text = '';
         block.data = [];
         Util.NodeListForEach(el.children, (node: Element) => {
@@ -42,7 +43,7 @@ export default class Quote extends Tool.BlockTool {
         let el = this.$render(block);
         if (block.data && block.data.length > 0) {
             block.data.forEach(id => {
-                let child = this.editor.findRowData(id);
+                let child = this.editor.findBlockData(id);
                 let tool = this.editor.tools.matchToken(child.token) as Tool.BlockTool;
                 if (tool && child.pid === block.rowid) {
                     el.appendChild(tool.render(child));
@@ -56,31 +57,29 @@ export default class Quote extends Tool.BlockTool {
         let activeList = this.editor.cursor.activeTokens();
         let cursor = this.editor.cursor.current();
         if (merge) {
-            let quote: IQuote = {
-                rowid: Util.RandomID(),
-                token: this.token,
-                level: this.level,
-                text: '',
-                inlines: {},
-                data: []
-            };
-            let el = this.render(quote);
-            this.editor.cursor.eachRow((block) => {
-                quote.data.push(block.rowid);
-                let child = this.editor.findRowElement(block.rowid);
-                el.appendChild(child);
-            });
-            let insertIndex = this.editor.findRowIndex(cursor.rows[cursor.rows.length - 1]);
-            this.editor.insertRow(el, this.editor.rows[insertIndex + 1], true);
-            this.editor.cursor.restore();
-            this.editor.actions.doInput(null);
+            // let quote: IQuote = {
+            //     rowid: Util.RandomID(),
+            //     token: this.token,
+            //     text: '',
+            //     inlines: {},
+            //     data: []
+            // };
+            // let el = this.render(quote);
+            // this.editor.cursor.eachRow((block) => {
+            //     quote.data.push(block.rowid);
+            //     let child = this.editor.findBlockElement(block.rowid);
+            //     el.appendChild(child);
+            // });
+            // this.editor.insertBlock(el, , true);
+            // this.editor.cursor.restore();
+            // this.editor.actions.doInput(null);
         }
         else {
             let obj = activeList.find(a => a.token === this.token);
             if (obj) {
                 let quote = obj.el;
                 let rowid = quote.getAttribute('data-row-id');
-                let block = this.editor.findRowData(rowid);
+                let block = this.editor.findBlockData(rowid);
                 if (block) {
                     while (quote.firstElementChild) {
                         let el = quote.firstElementChild;

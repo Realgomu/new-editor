@@ -52,7 +52,7 @@ export default class RowTip implements EE.IEditorTool {
     private _reload() {
         let cursor = this.editor.cursor.current();
         let left = 0, top = 0, height = 0;
-        let start = this.editor.findRowElement(cursor.rows[0]) as HTMLElement;
+        let start = this.editor.findBlockElement(cursor.rows[0]) as HTMLElement;
         let offset = this.editor.defaultUI.getOffset(start);
         top = offset.top;
         left = 0;
@@ -60,7 +60,7 @@ export default class RowTip implements EE.IEditorTool {
             height = start.offsetHeight;
         }
         else {
-            let end = this.editor.findRowElement(cursor.rows[cursor.rows.length - 1]) as HTMLElement;
+            let end = this.editor.findBlockElement(cursor.rows[cursor.rows.length - 1]) as HTMLElement;
             offset = this.editor.defaultUI.getOffset(end);
             height = offset.top + end.offsetHeight - top;
         }

@@ -22,11 +22,7 @@ export interface IEnterBlockTool extends BlockTool {
 export interface IEditorToolOptions {
     token: string;
     level: EE.ToolLevel;
-    buttonOptions?: {
-        name: string;
-        iconFA?: string;
-        text?: string;
-    }
+    blockType?: EE.BlockType;
 }
 
 /** 编辑器工具decorater */
@@ -34,6 +30,9 @@ export function EditorTool(options: IEditorToolOptions) {
     return function (ctrl: EE.IToolConstructor) {
         ctrl.prototype.token = options.token;
         ctrl.prototype.level = options.level;
+        if (options.blockType !== undefined) {
+            ctrl.prototype.blockType = options.blockType;
+        }
         if (toolFactory[options.token]) {
             throw new Error(`repeated editor tool [${options.token}]!`);
         }

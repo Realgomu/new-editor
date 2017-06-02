@@ -34,15 +34,27 @@ declare module EnrichEditor {
         extends?: any
     }
 
-    type PageSnapshot = {
+    type BlockMap = {
         [id: string]: EE.IBlock;
+    }
+
+    const enum BlockType {
+        Normal,
+        Root,
+        Leaf,
+        Close,
+    }
+
+    interface IBlockNode {
+        id: string;
+        pid: string;
+        children: IBlockNode[];
     }
 
     /** block data */
     interface IBlock {
         rowid: string;
         token: string;
-        level: ToolLevel;
         text: string;
         inlines: InlineMap;
         style?: any;
@@ -138,7 +150,8 @@ declare module EnrichEditor {
         new (...args: any[]): IEditorTool;
         prototype: {
             token?: string;
-            level?: EE.ToolLevel;
+            level?: ToolLevel;
+            blockType?: BlockType;
         }
     }
 
@@ -146,11 +159,10 @@ declare module EnrichEditor {
     interface IEditorTool {
         readonly level: EE.ToolLevel;
         readonly token: string;
+        readonly blockType?: BlockType;
         selectors?: string[];
-        apply?: Function;
         init?: Function;
-        undo?: Function;
-        redo?: Function;
+        apply?: Function;
     }
 
     /** selection position, cursor position in block */

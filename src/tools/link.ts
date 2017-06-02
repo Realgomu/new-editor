@@ -83,7 +83,7 @@ export default class Link extends Tool.InlineTool {
         let cursor = this.editor.cursor.current();
         let activeTokens = this.editor.cursor.activeTokens();
         if (activeTokens.findIndex(a => a.token === this.token) >= 0 && !cursor.mutilple) {
-            let block = this.editor.findRowElement(cursor.rows[0]);
+            let block = this.editor.findBlockElement(cursor.rows[0]);
             let nodes = block.querySelectorAll('a');
             for (let i = 0, l = nodes.length; i < l; i++) {
                 let rn = nodes[i].$renderNode;

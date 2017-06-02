@@ -21,19 +21,18 @@ export class Cursor {
         return this._activeList as Readonly<Array<IActiveObj>>;
     }
 
-    eachRow(func: (block: EE.IBlock, start?: number, end?: number, index?: number) => void) {
-        this.editor.eachRow(
-            this._current.rows,
-            (block, index) => {
-                let start = 0, end = block.text.length;
-                if (block.rowid === this._current.rows[0]) {
-                    start = this._current.start;
-                }
-                if (block.rowid === this._current.rows[this._current.rows.length - 1]) {
-                    end = this._current.end;
-                }
-                func(block, start, end, index);
-            });
+    eachRow(func: (block: EE.IBlock, start?: number, end?: number) => void) {
+        this._current.rows.forEach(id => {
+            let block = this.editor.findBlockData(id);
+            let start = 0, end = block.text.length;
+            if (block.rowid === this._current.rows[0]) {
+                start = this._current.start;
+            }
+            if (block.rowid === this._current.rows[this._current.rows.length - 1]) {
+                end = this._current.end;
+            }
+            func && func(block, start, end);
+        })
     }
 
     update(ev?: Event) {
@@ -53,7 +52,7 @@ export class Cursor {
             this.editor.rootEl,
             (el: Element) => {
                 if (el.nodeType === 1) {
-                    let id = this.editor.isRowElement(el);
+                    let id = this.editor.isBlockElement(el);
                     if (id) {
                         rowid = id;
                         pos = 0;
@@ -111,10 +110,10 @@ export class Cursor {
     private _getActiveTokens() {
         let list: IActiveObj[] = [];
         if (!this._current.mutilple) {
-            let block = this.editor.findRowData(this._current.rows[0]);
+            let block = this.editor.findBlockData(this._current.rows[0]);
             list.push({
                 token: block.token,
-                el: this.editor.findRowElement(block.rowid)
+                el: this.editor.findBlockElement(block.rowid)
             });
             for (let key in block.inlines) {
                 if (block.inlines[key]
@@ -125,10 +124,10 @@ export class Cursor {
                 }
             }
             if (block.pid) {
-                let parent = this.editor.findRowData(block.pid);
+                let parent = this.editor.findBlockData(block.pid);
                 list.push({
                     token: parent.token,
-                    el: this.editor.findRowElement(parent.rowid)
+                    el: this.editor.findBlockElement(parent.rowid)
                 });
             }
             this._activeList = list;
@@ -137,7 +136,7 @@ export class Cursor {
 
     restore() {
         if (!this._current) {
-            let lastRow = this.editor.lastRow();
+            let lastRow = this.editor.lastBlock();
             this._current = {
                 rows: [lastRow.rowid],
                 start: lastRow.text.length,
@@ -153,7 +152,7 @@ export class Cursor {
         if (selection) {
             selection.removeAllRanges();
             let range = this.editor.ownerDoc.createRange();
-            let startRow = this.editor.findRowElement(cursor.rows[0]);
+            let startRow = this.editor.findBlockElement(cursor.rows[0]);
             let pos = 0;
             let isEmpty = true;
             cursor.collapsed = cursor.rows.length === 1 && cursor.start === cursor.end;
@@ -180,7 +179,7 @@ export class Cursor {
                 )
             }
             if (cursor.mutilple) {
-                let endRow = this.editor.findRowElement(cursor.rows[cursor.rows.length - 1]);
+                let endRow = this.editor.findBlockElement(cursor.rows[cursor.rows.length - 1]);
                 pos = 0;
                 if (endRow) {
                     Util.TreeWalker(

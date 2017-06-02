@@ -5,6 +5,7 @@ import { Editor } from 'core/editor';
 @Tool.EditorTool({
     token: 'hr',
     level: EE.ToolLevel.Hr,
+    blockType: EE.BlockType.Close,
 })
 export default class Horizontal extends Tool.BlockTool {
     selectors = ['hr'];
@@ -34,37 +35,7 @@ export default class Horizontal extends Tool.BlockTool {
         if (!cursor.mutilple) {
             this.editor.rootEl.appendChild(newRow);
             this.editor.getData();
-            // this.editor.interNewRow();
         }
-        // newRow.setAttribute('data-row-id', newId);
-        // newRow.innerHTML = '<br>';
-        // if (!rowid) {
-        //     this.rootEl.appendChild(newRow);
-        //     this._pageData.rows.push(block);
-        // }
-        // else {
-        //     let index = rowid ? this._pageData.rows.findIndex(r => r.rowid === rowid) : this._pageData.rows.length;
-        //     let el = this.rootEl.querySelector(`[data-row-id="${rowid}"]`);
-        //     if (after) {
-        //         if (el.nextSibling) {
-        //             this.rootEl.insertBefore(newRow, el.nextSibling);
-        //             this._pageData.rows.splice(index + 1, 0, block);
-        //         }
-        //         else {
-        //             this.rootEl.appendChild(newRow);
-        //             this._pageData.rows.push(block);
-        //         }
-        //         this.cursor.moveTo({
-        //             rows: [newId],
-        //             start: 0,
-        //             end: 0
-        //         });
-        //     }
-        //     else {
-        //         this.rootEl.insertBefore(newRow, el);
-        //         this._pageData.rows.splice(index, 0, block);
-        //     }
-        // }
         return newId;
     }
 }

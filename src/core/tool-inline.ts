@@ -3,8 +3,8 @@ import { Editor } from 'core/editor';
 import { IActionStep } from 'core/action';
 
 export abstract class InlineTool implements EE.IEditorTool {
-    readonly level: EE.ToolLevel;
     readonly token: string;
+    readonly level: EE.ToolLevel;
     abstract selectors: string[];
 
     constructor(protected editor: Editor) {
@@ -129,7 +129,7 @@ export abstract class InlineTool implements EE.IEditorTool {
                     to: to
                 })
                 //重新渲染block
-                this.editor.refreshRow(to);
+                this.editor.refreshBlock(to);
             });
             this.editor.cursor.restore();
             this.editor.actions.push(step);

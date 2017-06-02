@@ -4,14 +4,15 @@ import * as Selection from 'core/cursor';
 import { Editor } from './editor';
 
 export abstract class BlockTool implements EE.IEditorTool {
-    readonly level: EE.ToolLevel;
     readonly token: string;
+    readonly level: EE.ToolLevel;
+    readonly blockType: EE.BlockType;
     abstract selectors: string[];
 
     constructor(protected editor: Editor) {
     }
 
-    protected $getInlines(el: Element): EE.InlineMap {
+    protected $readInlines(el: Element): EE.InlineMap {
         let map: EE.InlineMap = {};
         let pos = 0;
         let last: { [token: string]: EE.IInline } = {};
@@ -42,15 +43,14 @@ export abstract class BlockTool implements EE.IEditorTool {
         return map;
     }
 
-    protected $getDate(el: HTMLElement): EE.IBlock {
+    protected $readDate(el: HTMLElement): EE.IBlock {
         let id = el.getAttribute('data-row-id');
         let block: EE.IBlock = {
             rowid: id || Util.RandomID(),
             token: this.token,
-            level: this.level,
             text: el.textContent,
             style: {},
-            inlines: this.$getInlines(el)
+            inlines: this.$readInlines(el)
         }
         if (!block.text) {
             block.inlines = {};
@@ -67,30 +67,9 @@ export abstract class BlockTool implements EE.IEditorTool {
     }
 
     readData(el: Element): EE.IBlock {
-        let block = this.$getDate(el as HTMLElement);
-        block.inlines = this.$getInlines(el);
+        let block = this.$readDate(el as HTMLElement);
+        block.inlines = this.$readInlines(el);
         return block;
-    }
-
-    protected $apply(tag: string) {
-        this.editor.cursor.eachRow((block, start, end) => {
-            let old = this.editor.findRowElement(block.rowid);
-            if (old.tagName.toLowerCase() !== tag) {
-                block.token = this.token;
-                block.level = this.level;
-                let newNode = this.$render(block, tag);
-                newNode.innerHTML = old.innerHTML;
-                old.parentElement.replaceChild(newNode, old);
-                this.editor.cursor.restore();
-            }
-        });
-        this.editor.events.trigger('$contentChanged', null);
-    }
-
-    apply(merge: boolean, ...args: any[]) {
-        if (merge) {
-            this.$apply(this.selectors[0]);
-        }
     }
 
     protected $renderInlines(el: HTMLElement, map: EE.InlineMap) {
@@ -137,5 +116,26 @@ export abstract class BlockTool implements EE.IEditorTool {
             el.appendChild(this.editor.ownerDoc.createElement('br'));
         }
         return el;
+    }
+
+    protected $apply(tag: string) {
+        this.editor.cursor.eachRow((block, start, end) => {
+            let old = this.editor.findBlockElement(block.rowid);
+            if (old.tagName.toLowerCase() !== tag) {
+                block.token = this.token;
+                block.level = this.level;
+                let newNode = this.$render(block, tag);
+                newNode.innerHTML = old.innerHTML;
+                old.parentElement.replaceChild(newNode, old);
+                this.editor.cursor.restore();
+            }
+        });
+        this.editor.events.trigger('$contentChanged', null);
+    }
+
+    apply(merge: boolean, ...args: any[]) {
+        if (merge) {
+            this.$apply(this.selectors[0]);
+        }
     }
 }

@@ -23,22 +23,6 @@ export class Buttons {
     constructor(
         private editor: Editor
     ) {
-        this._loadOptions();
-    }
-
-    private _loadOptions() {
-        for (let key in toolFactory) {
-            let options = toolFactory[key].options;
-            if (options.buttonOptions) {
-                let config: IButtonConfig = {
-                    name: options.buttonOptions.name,
-                    token: options.token,
-                    iconFA: options.buttonOptions.iconFA,
-                    text: options.buttonOptions.text
-                };
-                this._configs.push(config);
-            }
-        }
     }
 
     register(config: IButtonConfig) {

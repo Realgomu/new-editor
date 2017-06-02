@@ -40,13 +40,13 @@ export class Actions {
             let step = this._queue[this._point];
             step.rows.forEach(item => {
                 if (item.to) {
-                    let newEl = this.editor.refreshRow(item.to);
+                    let newEl = this.editor.refreshBlock(item.to);
                     if (newEl) {
-                        this.editor.insertRow(newEl, item.insert);
+                        this.editor.insertBlock(newEl, item.insert);
                     }
                 }
                 else {
-                    this.editor.removeRow(item.from.rowid);
+                    this.editor.removeBlock(item.from.rowid);
                 }
             });
             this.editor.cursor.moveTo(step.toCursor);
@@ -58,13 +58,13 @@ export class Actions {
             let step = this._queue[this._point];
             step.rows.forEach(item => {
                 if (item.from) {
-                    let newEl = this.editor.refreshRow(item.from);
+                    let newEl = this.editor.refreshBlock(item.from);
                     if (newEl) {
-                        this.editor.insertRow(newEl, item.insert);
+                        this.editor.insertBlock(newEl, item.insert);
                     }
                 }
                 else {
-                    this.editor.removeRow(item.to.rowid);
+                    this.editor.removeBlock(item.to.rowid);
                 }
             });
             this.editor.cursor.moveTo(step.fromCursor);
@@ -93,7 +93,7 @@ export class Actions {
             rows: []
         };
         let rowid = fromCursor.rows[0];
-        let current = this.editor.findRowData(rowid);
+        let current = this.editor.findBlockData(rowid);
         let enterTool = this.editor.tools.matchToken(current.token) as Tool.IEnterBlockTool;
         if (fromCursor.atEnd) {
             ev.preventDefault();
@@ -103,7 +103,7 @@ export class Actions {
             //在下面插入一行
             let newRow = enterTool.createNewRow();
             let newId = newRow.getAttribute('data-row-id');
-            this.editor.insertRow(newRow, rowid, false);
+            this.editor.insertBlock(newRow, rowid, false);
             this.editor.parseData(step);
             step.toCursor = this.editor.cursor.moveTo({
                 rows: [newId],
@@ -120,7 +120,7 @@ export class Actions {
             }
             //在上面插入一行
             let newRow = enterTool.createNewRow();
-            this.editor.insertRow(newRow, rowid, true);
+            this.editor.insertBlock(newRow, rowid, true);
             this.editor.parseData(step);
             //设置结束的光标
             step.toCursor = this.editor.cursor.update();

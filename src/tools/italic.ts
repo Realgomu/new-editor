@@ -4,11 +4,6 @@ import { Editor } from 'core/editor';
 @Tool.EditorTool({
     token: 'italic',
     level: EE.ToolLevel.Italic,
-    buttonOptions: {
-        name: 'italic',
-        iconFA: 'fa-italic',
-        text: '斜体'
-    }
 })
 export default class Italic extends Tool.InlineTool {
     selectors = ['i', 'em'];
@@ -17,5 +12,12 @@ export default class Italic extends Tool.InlineTool {
 
     constructor(editor: Editor) {
         super(editor);
+
+        this.editor.buttons.register({
+            name: 'italic',
+            token: 'italic',
+            iconFA: 'fa-italic',
+            text: '斜体'
+        })
     }
 }

@@ -40,8 +40,8 @@ export class Editor {
     ownerDoc: Document = document;
     rootEl: HTMLElement;
 
-    private _snapshot: EE.PageSnapshot = {};
-    rows: string[] = [];
+    blockMap: EE.BlockMap = {};
+    blockTree: EE.IBlockNode[] = [];
     constructor(el: HTMLElement, options?: EE.IEditorOptions) {
         let defaultOptions: EE.IEditorOptions = {
             tools: 'all',
@@ -100,69 +100,61 @@ export class Editor {
     }
 
     isEmpty() {
-        if (this.rows.length === 0) {
+        if (this.blockTree.length === 0) {
             return true;
         }
-        else if (this.rows.length === 1) {
-            return this._snapshot[this.rows[0]].text.length === 0;
+        else if (this.blockTree.length === 1) {
+            return this.blockTree[this.blockTree[0].id].text.length === 0;
         }
         else {
             return false;
         }
     }
 
+    readNode(el: Element = this.rootEl, pid: string = undefined) {
+        let rowid = el.getAttribute('data-row-id');
+        //检查rowid是否重复
+        if (this.blockMap[rowid]) {
+            el.setAttribute('data-row-id', Util.RandomID());
+        }
+        let tool = this.tools.matchBlockTool(el);
+        if (tool) {
+            let block = tool.readData(el);
+            let node: EE.IBlockNode = {
+                id: block.rowid,
+                pid: pid,
+                children: []
+            };
+            this.blockMap[block.rowid] = block;
+            if (tool.blockType !== EE.BlockType.Leaf && el.children.length > 0) {
+                Util.NodeListForEach(el.children, (child) => {
+                    let childNode = this.readNode(child, node.id);
+                    if (childNode) {
+                        node.children.push(childNode);
+                    }
+                })
+            }
+            return node;
+        }
+    }
+
     /** 解析文档数据 */
     parseData(step?: IActionStep) {
-        let newList: string[] = [];
-        let newSnapshot: EE.PageSnapshot = {};
-        Util.NodeListForEach(this.rootEl.querySelectorAll('[data-row-id]'), (el, index) => {
-            let rowid = el.getAttribute('data-row-id');
-            if (newList.indexOf(rowid) >= 0) {
-                el.setAttribute('data-row-id', Util.RandomID());
-            }
-            let tool = this.tools.matchBlockTool(el);
-            if (tool) {
-                let block = tool.readData(el);
-                newList.push(block.rowid);
-                newSnapshot[block.rowid] = block;
-                if (step) {
-                    let old = this._snapshot[block.rowid];
-                    if (!old) {
-                        step.rows.push({
-                            to: block,
-                            insert: el.previousElementSibling ? el.previousElementSibling.getAttribute('data-row-id') : undefined
-                        });
-                    }
-                    else {
-                        if (!Util.DeepCompare(old, block)) {
-                            step.rows.push({
-                                from: old,
-                                to: block
-                            });
-                        }
-                        delete this._snapshot[block.rowid];
-                    }
-                }
+        this.blockTree = [];
+        this.blockMap = {};
+        Util.NodeListForEach(this.rootEl.children, (el, index) => {
+            let node = this.readNode(el);
+            if (node) {
+                this.blockTree.push(node);
             }
         });
-        if (step) {
-            for (let id in this._snapshot) {
-                let index = this.rows.indexOf(id);
-                step.rows.push({
-                    from: this._snapshot[id],
-                    insert: this.rows[index - 1]
-                });
-            }
-        }
-        this.rows = newList;
-        this._snapshot = newSnapshot;
     }
 
     getData() {
-        let pageData: EE.IPage = {
-            rows: this.rows.map(id => Util.Extend({}, this._snapshot[id]) as EE.IBlock)
-        };
-        return pageData;
+        // let pageData: EE.IPage = {
+        //     rows: this.rows.map(id => Util.Extend({}, this._snapshot[id]) as EE.IBlock)
+        // };
+        // return pageData;
     }
 
     setData(data: EE.IBlock[]) {
@@ -178,25 +170,23 @@ export class Editor {
         console.log('load data success');
     }
 
-    findRowData(rowid: string) {
-        return this._snapshot[rowid];
-        // return this._pageData.rows.find(r => r.rowid === rowid);
+    findBlockData(rowid: string) {
+        return this.blockMap[rowid];
     }
 
-    findRowIndex(rowid: string) {
-        return this.rows.indexOf(rowid);
-    }
-
-    findRowElement(rowid: string) {
+    findBlockElement(rowid: string) {
         return this.rootEl.querySelector(`[data-row-id="${rowid}"]`) as HTMLElement;
     }
 
-    lastRow() {
-        let lastId = this.rows[this.rows.length - 1];
-        return this._snapshot[lastId];
+    lastBlock() {
+        let last = this.blockTree[this.blockTree.length - 1];
+        while (last.children && last.children.length > 0) {
+            last = last.children[last.children.length - 1];
+        }
+        return this.blockMap[last.id];
     }
 
-    isRowElement(el: Element, bottom: boolean = false) {
+    isBlockElement(el: Element, bottom: boolean = false) {
         if (!el.hasAttribute('data-row-id')) {
             return undefined;
         }
@@ -210,21 +200,11 @@ export class Editor {
         }
     }
 
-    eachRow(rows: string[], func: (block: EE.IBlock, index?: number) => void) {
-        let inRange = false;
-        for (let i = 0, l = this.rows.length; i < l; i++) {
-            var id = this.rows[i];
-            if (rows.indexOf(id) >= 0) {
-                func && func(this._snapshot[id], i);
-            }
-        }
-    }
-
-    refreshRow(block: EE.IBlock) {
+    refreshBlock(block: EE.IBlock) {
         let tool = this.tools.matchToken(block.token) as BlockTool;
         if (tool) {
             let newEl = tool.render(block);
-            let oldEl = this.findRowElement(block.rowid);
+            let oldEl = this.findBlockElement(block.rowid);
             if (oldEl) {
                 oldEl.parentNode.replaceChild(newEl, oldEl);
             }
@@ -234,8 +214,8 @@ export class Editor {
         }
     }
 
-    insertRow(target: Element, insertId: string, before = false) {
-        let insertEl = this.findRowElement(insertId);
+    insertBlock(target: Element, insertId: string, before = false) {
+        let insertEl = this.findBlockElement(insertId);
         if (before) {
             insertEl.parentNode.insertBefore(target, insertEl);
         }
@@ -249,8 +229,8 @@ export class Editor {
         }
     }
 
-    removeRow(rowid: string) {
-        let el = this.findRowElement(rowid);
+    removeBlock(rowid: string) {
+        let el = this.findBlockElement(rowid);
         if (el) {
             el.remove();
         }

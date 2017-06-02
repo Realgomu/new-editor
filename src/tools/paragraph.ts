@@ -6,16 +6,19 @@ import { IActionStep } from 'core/action';
 @Tool.EditorTool({
     token: 'paragraph',
     level: EE.ToolLevel.Paragraph,
-    buttonOptions: {
-        name: 'paragraph',
-        iconFA: 'fa-paragraph',
-        text: '正文'
-    }
+    blockType: EE.BlockType.Leaf,
 })
 export default class Paragraph extends Tool.BlockTool implements Tool.IEnterBlockTool {
     selectors = ['p'];
     constructor(editor: Editor) {
         super(editor);
+
+        this.editor.buttons.register({
+            name: 'paragraph',
+            token: 'paragraph',
+            iconFA: 'fa-paragraph',
+            text: '正文'
+        })
     }
 
     createNewRow() {

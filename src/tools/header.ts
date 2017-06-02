@@ -4,7 +4,8 @@ import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
     token: 'header',
-    level: EE.ToolLevel.Header
+    level: EE.ToolLevel.Header,
+    blockType: EE.BlockType.Leaf,
 })
 export default class Paragraph extends Tool.BlockTool {
     selectors = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
@@ -22,7 +23,7 @@ export default class Paragraph extends Tool.BlockTool {
     }
 
     readData(el: Element): EE.IBlock {
-        let block = this.$getDate(el as HTMLElement);
+        let block = this.$readDate(el as HTMLElement);
         let level = parseInt(el.tagName.substr(1, 1));
         block.data = level;
         return block;

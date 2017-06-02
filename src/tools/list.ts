@@ -4,6 +4,7 @@ import { Editor } from 'core/editor';
 @Tool.EditorTool({
     token: 'list',
     level: EE.ToolLevel.List,
+    blockType: EE.BlockType.Normal,
 })
 export default class List extends Tool.BlockTool {
     selectors = ['ol', 'ul', 'li'];
