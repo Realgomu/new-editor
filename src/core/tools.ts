@@ -152,7 +152,7 @@ export class Tools {
             }]
         }) as HTMLElement;
         let block = this.rowTool.readData(el);
-        this.editor.blockMap[block.rowid] = block;
+        this.editor.blockMap[block.rowid].block = block;
         return el;
     }
 }

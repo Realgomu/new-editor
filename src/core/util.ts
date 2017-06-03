@@ -364,3 +364,13 @@ export function DeepCompare(a, b) {
     }
     return true;
 }
+
+export function InsertElementAtIndex(newEl: Element, parentEl: Element, index: number) {
+    let target = parentEl.children.item(index);
+    if (target) {
+        parentEl.insertBefore(newEl, target);
+    }
+    else {
+        parentEl.appendChild(newEl);
+    }
+}

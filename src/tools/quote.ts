@@ -3,7 +3,6 @@ import * as Util from 'core/util';
 import { Editor } from 'core/editor';
 
 interface IQuote extends EE.IBlock {
-    data: string[];
 }
 
 @Tool.EditorTool({
@@ -24,20 +23,11 @@ export default class Quote extends Tool.BlockTool {
         });
     }
 
-    readData(el: Element): IQuote {
-        let block = this.$readDate(el as HTMLElement) as IQuote;
-        block.text = '';
-        block.data = [];
-        Util.NodeListForEach(el.children, (node: Element) => {
-            let childId = node.getAttribute('data-row-id');
-            if (!childId) {
-                childId = Util.RandomID();
-                node.setAttribute('data-row-id', childId);
-            }
-            block.data.push(childId);
-        });
-        return block;
-    }
+    // readData(el: Element): IQuote {
+    //     let block = this.$readDate(el as HTMLElement) as IQuote;
+    //     block.text = '';
+    //     return block;
+    // }
 
     apply(merge: boolean) {
         let activeList = this.editor.cursor.activeTokens();
@@ -48,12 +38,12 @@ export default class Quote extends Tool.BlockTool {
                 token: this.token,
                 text: '',
                 inlines: {},
-                data: []
+                // data: []
             };
             let el = this.render(quote);
             let insertEl: Element;
             this.editor.cursor.eachRow((block) => {
-                quote.data.push(block.rowid);
+                // quote.data.push(block.rowid);
                 let child = this.editor.findBlockElement(block.rowid);
                 if (!block.pid) {
                     insertEl = child.nextElementSibling;

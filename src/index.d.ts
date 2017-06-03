@@ -35,7 +35,10 @@ declare module EnrichEditor {
     }
 
     type IBlockMap = {
-        [id: string]: EE.IBlock;
+        [id: string]: {
+            node: IBlockNode,
+            block: IBlock
+        };
     }
 
     const enum BlockType {
@@ -65,6 +68,7 @@ declare module EnrichEditor {
         inlines: InlineMap;
         style?: any;
         pid?: string;
+        children?: IBlock[];
     }
 
     /** inlines map in block */

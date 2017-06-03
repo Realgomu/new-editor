@@ -121,7 +121,7 @@ export class Editor {
             return true;
         }
         else if (this.blockTree.children.length === 1) {
-            return this.blockMap[this.blockTree.children[0].rowid].text.length === 0;
+            return this.blockMap[this.blockTree.children[0].rowid].block.text.length === 0;
         }
         else {
             return false;
@@ -129,16 +129,20 @@ export class Editor {
     }
 
     readNode(el: Element, pid: string, depth: number) {
-        let rowid = '';
         let children: HTMLCollection;
-        let node: EE.IBlockNode;
+        let node: EE.IBlockNode = {
+            depth: depth,
+            rowid: '',
+            pid: pid,
+            children: []
+        };
         if (el === this.rootEl) {
             children = this.rootEl.children;
         }
         else {
             let tool = this.tools.matchBlockTool(el);
             if (tool) {
-                rowid = el.getAttribute('data-row-id');
+                let rowid = el.getAttribute('data-row-id');
                 //检查rowid是否重复
                 if (!rowid || this.blockMap[rowid]) {
                     el.setAttribute('data-row-id', Util.RandomID());
@@ -146,22 +150,20 @@ export class Editor {
                 //读取节点数据，并插入map中
                 let block = tool.readData(el);
                 block.pid = pid;
-                this.blockMap[block.rowid] = block;
-                rowid = block.rowid;
+                node.rowid = block.rowid;
+                this.blockMap[block.rowid] = {
+                    node: node,
+                    block: block
+                };
                 if (tool.blockType !== EE.BlockType.Leaf) {
-                    children = tool.getChildrenElements(el);
+                    children = this.childrenElements(el);
                 }
             }
         }
-        node = {
-            depth: depth,
-            rowid: rowid,
-            pid: pid,
-            children: []
-        };
+
         if (children && children.length > 0) {
             Util.NodeListForEach(children, (child, index) => {
-                let childNode = this.readNode(child, node.rowid, ++depth);
+                let childNode = this.readNode(child, node.rowid, depth + 1);
                 childNode.index = index;
                 if (childNode) {
                     node.children.push(childNode);
@@ -173,9 +175,8 @@ export class Editor {
 
     /** 解析文档数据,生成快照 */
     snapshot(step?: IActionStep) {
-        this.blockTree.children = [];
         this.blockMap = {};
-        this.readNode(this.rootEl, '', 0);
+        this.blockTree = this.readNode(this.rootEl, '', 0);
         if (step) {
             step.map = Util.Extend({}, this.blockMap) as EE.IBlockMap;
             step.tree = Util.Extend([], this.blockTree) as EE.IBlockNode;
@@ -195,20 +196,25 @@ export class Editor {
         console.log('load data success');
     }
 
-    findBlockData(rowid: string) {
-        return this.blockMap[rowid];
+    findBlockData(rowid: string): EE.IBlock {
+        return this.blockMap[rowid].block;
     }
 
     findBlockElement(rowid: string) {
-        return this.rootEl.querySelector(`[data-row-id="${rowid}"]`) as HTMLElement;
+        if (rowid) {
+            return this.rootEl.querySelector(`[data-row-id="${rowid}"]`) as HTMLElement;
+        }
+        else {
+            return this.rootEl;
+        }
     }
 
-    lastBlock() {
+    lastBlock(): EE.IBlock {
         let last = this.blockTree.children[this.blockTree.children.length - 1];
-        while (last.children && last.children.length > 0) {
+        while (last && last.children && last.children.length > 0) {
             last = last.children[last.children.length - 1];
         }
-        return this.blockMap[last.rowid];
+        return this.blockMap[last.rowid].block;
     }
 
     isBlockElement(el: Element, bottom: boolean = false) {
@@ -225,10 +231,13 @@ export class Editor {
         }
     }
 
-    refreshBlock(block: EE.IBlock) {
+    refreshBlock(block: EE.IBlock, forceCreate = false) {
         let tool = this.tools.matchToken(block.token) as BlockTool;
         if (tool) {
             let newEl = tool.render(block);
+            if (forceCreate) {
+                return newEl;
+            }
             let oldEl = this.findBlockElement(block.rowid);
             if (oldEl) {
                 oldEl.parentNode.replaceChild(newEl, oldEl);
@@ -236,6 +245,20 @@ export class Editor {
             else {
                 return newEl;
             }
+        }
+    }
+
+    removeBlock(row: string | HTMLElement) {
+        if (typeof row === 'string') {
+            row = this.findBlockElement(row);
+        }
+        let tagName = row.parentElement.tagName.toLowerCase();
+        if (tagName === 'li') {
+            //对于列表，同时删除li
+            row.parentElement.remove();
+        }
+        else {
+            row.remove();
         }
     }
 
@@ -261,10 +284,56 @@ export class Editor {
         }
     }
 
-    removeBlock(rowid: string) {
-        let el = this.findBlockElement(rowid);
-        if (el) {
-            el.remove();
+    childElement(parent: Element, index: number) {
+        let child = parent.children[index];
+        let tagName = parent.tagName.toLowerCase();
+        if (tagName === 'ol' || tagName === 'ul') {
+            return child.firstElementChild;
+        }
+        else {
+            return child;
+        }
+    }
+
+    childrenElements(parent: Element) {
+        let tagName = parent.tagName.toLowerCase();
+        if (tagName === 'ol' || tagName === 'ul') {
+            return parent.querySelectorAll('[data-row-id]') as any;
+        }
+        else {
+            return parent.children;
+        }
+    }
+
+    createElement(block: EE.IBlock) {
+        let tool = this.tools.matchToken(block.token) as BlockTool;
+        let oldEl = this.findBlockElement(block.rowid);
+        let newEl = tool.render(block);
+        if (oldEl) {
+            if (tool.blockType !== EE.BlockType.Leaf) {
+                while (oldEl.children.length > 0) {
+                    newEl.appendChild(oldEl.firstElementChild);
+                }
+            }
+            this.removeBlock(oldEl);
+        }
+        return newEl;
+    }
+
+    insertElement(parent: Element, child: Element, index: number = 0) {
+        let tagName = parent.tagName.toLowerCase();
+        if (tagName === 'ol' || tagName === 'ul') {
+            //对于列表，插入新节点时，增加li
+            let li = Util.CreateRenderElement(this.ownerDoc, { tag: 'li' }) as HTMLElement;
+            li.appendChild(child);
+            child = li;
+        }
+        let target = parent.children[index];
+        if (target) {
+            parent.insertBefore(child, target);
+        }
+        else {
+            parent.appendChild(child);
         }
     }
 }

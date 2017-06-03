@@ -4,7 +4,7 @@ import { Editor } from 'core/editor';
 
 interface IList extends EE.IBlock {
     type: string;
-    data: string[];
+    // data: string[];
 }
 
 @Tool.EditorTool({
@@ -41,42 +41,12 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
         let block = this.$readDate(el as HTMLElement) as IList;
         block.text = '';
         block.type = el.tagName.toLowerCase();
-        block.data = [];
-        Util.NodeListForEach(this.getChildrenElements(el), (node: Element) => {
-            let childId = node.getAttribute('data-row-id');
-            if (!childId) {
-                childId = Util.RandomID();
-                node.setAttribute('data-row-id', childId);
-            }
-            block.data.push(childId);
-        });
         return block;
     }
 
     render(block: IList) {
         let el = this.$render(block, block.type);
-        block.data.forEach(id => {
-            let li = Util.CreateRenderElement(this.editor.ownerDoc, {
-                tag: 'li'
-            })
-            el.appendChild(li);
-        });
         return el;
-    }
-
-    /** 获取子节点 */
-    getChildrenElements(el: Element) {
-        return el.querySelectorAll('[data-row-id]') as any;
-    }
-
-    /** 添加子节点 */
-    appendChild(el: Element, child: Element) {
-        for (let i = 0, l = el.children.length; i < l; i++) {
-            if (!el.children[i].hasChildNodes()) {
-                el.children[i].appendChild(child);
-                break;
-            }
-        }
     }
 
     apply(merge: boolean, type: string) {
@@ -101,12 +71,12 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
                     text: '',
                     inlines: {},
                     type: type,
-                    data: []
+                    // data: []
                 };
                 let el = this.$render(list, type);
                 let insertEl: Element;
                 this.editor.cursor.eachRow((block) => {
-                    list.data.push(block.rowid);
+                    // list.data.push(block.rowid);
                     let child = this.editor.findBlockElement(block.rowid);
                     if (!block.pid) {
                         insertEl = child.nextElementSibling;

@@ -55,23 +55,18 @@ export abstract class BlockTool implements EE.IEditorTool {
         if (this.blockType === EE.BlockType.Leaf) {
             block.inlines = this.$readInlines(el);
         }
-        if (!block.text) {
-            block.inlines = {};
+        else {
+            block.text = '';
         }
         let align = el.style.textAlign || 'left';
         if (align !== 'left') {
             block.style['align'] = align;
         }
-        //pid
-        // if (el.parentElement && el.parentElement !== this.editor.rootEl && el.parentElement.hasAttribute('data-row-id')) {
-        //     block.pid = el.parentElement.getAttribute('data-row-id');
-        // }
         return block;
     }
 
     readData(el: Element): EE.IBlock {
         let block = this.$readDate(el as HTMLElement);
-        block.inlines = this.$readInlines(el);
         return block;
     }
 
@@ -123,12 +118,12 @@ export abstract class BlockTool implements EE.IEditorTool {
 
     protected $apply(tag: string) {
         this.editor.cursor.eachRow((block, start, end) => {
-            let old = this.editor.findBlockElement(block.rowid);
-            if (old.tagName.toLowerCase() !== tag) {
+            let oldEl = this.editor.findBlockElement(block.rowid);
+            if (oldEl.tagName.toLowerCase() !== tag) {
                 block.token = this.token;
                 let newNode = this.$render(block, tag);
-                newNode.innerHTML = old.innerHTML;
-                old.parentElement.replaceChild(newNode, old);
+                newNode.innerHTML = oldEl.innerHTML;
+                oldEl.parentElement.replaceChild(newNode, oldEl);
             }
         });
         this.editor.cursor.restore();
@@ -139,13 +134,5 @@ export abstract class BlockTool implements EE.IEditorTool {
         if (merge) {
             this.$apply(this.selectors[0]);
         }
-    }
-
-    appendChild(el: Element, child: Element) {
-        el.appendChild(child);
-    }
-
-    getChildrenElements(el: Element) {
-        return el.children;
     }
 }
