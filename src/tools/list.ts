@@ -42,7 +42,7 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
         block.text = '';
         block.type = el.tagName.toLowerCase();
         block.data = [];
-        Util.NodeListForEach(this.childrenElements(el), (node: Element) => {
+        Util.NodeListForEach(this.getChildrenElements(el), (node: Element) => {
             let childId = node.getAttribute('data-row-id');
             if (!childId) {
                 childId = Util.RandomID();
@@ -65,7 +65,7 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
     }
 
     /** 获取子节点 */
-    childrenElements(el: Element) {
+    getChildrenElements(el: Element) {
         return el.querySelectorAll('[data-row-id]') as any;
     }
 

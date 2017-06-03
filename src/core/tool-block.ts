@@ -145,7 +145,7 @@ export abstract class BlockTool implements EE.IEditorTool {
         el.appendChild(child);
     }
 
-    childrenElements(el: Element) {
+    getChildrenElements(el: Element) {
         return el.children;
     }
 }

@@ -42,12 +42,18 @@ declare module EnrichEditor {
         Normal,
         Root,
         Leaf,
-        Close,
     }
 
     interface IBlockNode {
-        id: string;
+        /** row编号 */
+        rowid: string;
+        /** 父节点的row编号 */
         pid: string;
+        /** 节点位置 */
+        index?: number;
+        /** 层级 */
+        depth?: number;
+        /** 子节点 */
         children: IBlockNode[];
     }
 

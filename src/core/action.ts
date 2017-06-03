@@ -5,7 +5,7 @@ import * as Tool from 'core/tools';
 export interface IActionStep {
     fromCursor?: EE.ICursorPosition;
     toCursor?: EE.ICursorPosition;
-    tree?: EE.IBlockNode[];
+    tree?: EE.IBlockNode;
     map?: EE.IBlockMap;
     log?: any;
 }
@@ -56,8 +56,8 @@ export class Actions {
 
     private _calcChanges(from: IActionStep, to: IActionStep) {
         let _render = (node: EE.IBlockNode) => {
-            let oldBlock = from.map[node.id];
-            let newBlock = to.map[node.id];
+            let oldBlock = from.map[node.rowid];
+            let newBlock = to.map[node.rowid];
             let tool = this.editor.tools.matchToken(newBlock.token) as Tool.BlockTool;
             let el: Element;
             let useOld = true;
@@ -69,7 +69,7 @@ export class Actions {
                 useOld = false;
             }
             if (useOld) {
-                el = this.editor.findBlockElement(node.id);
+                el = this.editor.findBlockElement(node.rowid);
             }
             if (!el || !useOld) {
                 el = tool.render(newBlock);
@@ -83,7 +83,7 @@ export class Actions {
             return el;
         }
         let cacheList = []
-        to.tree.forEach(node => {
+        to.tree.children.forEach(node => {
             let el = _render(node);
             cacheList.push(el);
         });

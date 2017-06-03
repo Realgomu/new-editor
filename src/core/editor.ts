@@ -41,7 +41,13 @@ export class Editor {
     rootEl: HTMLElement;
 
     blockMap: EE.IBlockMap = {};
-    blockTree: EE.IBlockNode[] = [];
+    blockTree: EE.IBlockNode = {
+        depth: 0,
+        index: 0,
+        pid: '',
+        rowid: '',
+        children: []
+    };
     constructor(el: HTMLElement, options?: EE.IEditorOptions) {
         let defaultOptions: EE.IEditorOptions = {
             tools: 'all',
@@ -111,59 +117,68 @@ export class Editor {
     }
 
     isEmpty() {
-        if (this.blockTree.length === 0) {
+        if (this.blockTree.children.length === 0) {
             return true;
         }
-        else if (this.blockTree.length === 1) {
-            return this.blockTree[this.blockTree[0].id].text.length === 0;
+        else if (this.blockTree.children.length === 1) {
+            return this.blockMap[this.blockTree.children[0].rowid].text.length === 0;
         }
         else {
             return false;
         }
     }
 
-    readNode(el: Element = this.rootEl, pid: string = undefined) {
-        let tool = this.tools.matchBlockTool(el);
-        if (tool) {
-            let rowid = el.getAttribute('data-row-id');
-            //检查rowid是否重复
-            if (!rowid || this.blockMap[rowid]) {
-                el.setAttribute('data-row-id', Util.RandomID());
-            }
-            let block = tool.readData(el);
-            block.pid = pid;
-            let node: EE.IBlockNode = {
-                id: block.rowid,
-                pid: pid,
-                children: []
-            };
-            this.blockMap[block.rowid] = block;
-            let children = tool.childrenElements(el);
-            if (tool.blockType !== EE.BlockType.Leaf && children.length > 0) {
-                Util.NodeListForEach(children, (child) => {
-                    let childNode = this.readNode(child, node.id);
-                    if (childNode) {
-                        node.children.push(childNode);
-                    }
-                })
-            }
-            return node;
+    readNode(el: Element, pid: string, depth: number) {
+        let rowid = '';
+        let children: HTMLCollection;
+        let node: EE.IBlockNode;
+        if (el === this.rootEl) {
+            children = this.rootEl.children;
         }
+        else {
+            let tool = this.tools.matchBlockTool(el);
+            if (tool) {
+                rowid = el.getAttribute('data-row-id');
+                //检查rowid是否重复
+                if (!rowid || this.blockMap[rowid]) {
+                    el.setAttribute('data-row-id', Util.RandomID());
+                }
+                //读取节点数据，并插入map中
+                let block = tool.readData(el);
+                block.pid = pid;
+                this.blockMap[block.rowid] = block;
+                rowid = block.rowid;
+                if (tool.blockType !== EE.BlockType.Leaf) {
+                    children = tool.getChildrenElements(el);
+                }
+            }
+        }
+        node = {
+            depth: depth,
+            rowid: rowid,
+            pid: pid,
+            children: []
+        };
+        if (children && children.length > 0) {
+            Util.NodeListForEach(children, (child, index) => {
+                let childNode = this.readNode(child, node.rowid, ++depth);
+                childNode.index = index;
+                if (childNode) {
+                    node.children.push(childNode);
+                }
+            })
+        }
+        return node;
     }
 
     /** 解析文档数据,生成快照 */
     snapshot(step?: IActionStep) {
-        this.blockTree = [];
+        this.blockTree.children = [];
         this.blockMap = {};
-        Util.NodeListForEach(this.rootEl.children, (el, index) => {
-            let node = this.readNode(el);
-            if (node) {
-                this.blockTree.push(node);
-            }
-        });
+        this.readNode(this.rootEl, '', 0);
         if (step) {
-            step.map = Util.Extend({}, this.blockMap);
-            step.tree = Util.Extend([], this.blockTree);
+            step.map = Util.Extend({}, this.blockMap) as EE.IBlockMap;
+            step.tree = Util.Extend([], this.blockTree) as EE.IBlockNode;
         }
     }
 
@@ -189,11 +204,11 @@ export class Editor {
     }
 
     lastBlock() {
-        let last = this.blockTree[this.blockTree.length - 1];
+        let last = this.blockTree.children[this.blockTree.children.length - 1];
         while (last.children && last.children.length > 0) {
             last = last.children[last.children.length - 1];
         }
-        return this.blockMap[last.id];
+        return this.blockMap[last.rowid];
     }
 
     isBlockElement(el: Element, bottom: boolean = false) {

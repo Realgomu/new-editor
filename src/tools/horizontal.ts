@@ -5,7 +5,7 @@ import { Editor } from 'core/editor';
 @Tool.EditorTool({
     token: 'hr',
     level: EE.ToolLevel.Hr,
-    blockType: EE.BlockType.Close,
+    blockType: EE.BlockType.Leaf,
 })
 export default class Horizontal extends Tool.BlockTool {
     selectors = ['hr'];
