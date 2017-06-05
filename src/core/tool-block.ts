@@ -117,11 +117,11 @@ export abstract class BlockTool implements EE.IEditorTool {
     }
 
     protected $apply(tag: string) {
-        this.editor.cursor.eachRow((block, start, end) => {
-            let oldEl = this.editor.findBlockElement(block.rowid);
+        this.editor.cursor.eachRow((node, start, end) => {
+            let oldEl = this.editor.findBlockElement(node.rowid);
             if (oldEl.tagName.toLowerCase() !== tag) {
-                block.token = this.token;
-                let newNode = this.$render(block, tag);
+                node.block.token = this.token;
+                let newNode = this.$render(node.block, tag);
                 newNode.innerHTML = oldEl.innerHTML;
                 oldEl.parentElement.replaceChild(newNode, oldEl);
             }

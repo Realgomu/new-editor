@@ -21,17 +21,17 @@ export class Cursor {
         return this._activeList as Readonly<Array<IActiveObj>>;
     }
 
-    eachRow(func: (block: EE.IBlock, start?: number, end?: number) => void) {
+    eachRow(func: (node: EE.IBlockNode, start?: number, end?: number) => void) {
         this._current.rows.forEach(id => {
-            let block = this.editor.findBlockData(id);
-            let start = 0, end = block.text.length;
-            if (block.rowid === this._current.rows[0]) {
+            let node = this.editor.findBlockData(id);
+            let start = 0, end = node.block.text.length;
+            if (node.rowid === this._current.rows[0]) {
                 start = this._current.start;
             }
-            if (block.rowid === this._current.rows[this._current.rows.length - 1]) {
+            if (node.rowid === this._current.rows[this._current.rows.length - 1]) {
                 end = this._current.end;
             }
-            func && func(block, start, end);
+            func && func(node, start, end);
         })
     }
 
@@ -56,7 +56,7 @@ export class Cursor {
             this.editor.rootEl,
             (el: Element) => {
                 if (el.nodeType === 1) {
-                    let id = this.editor.isBlockElement(el);
+                    let id = this.editor.isBlockElement(el, true);
                     if (id) {
                         rowid = id;
                         pos = 0;
@@ -114,23 +114,23 @@ export class Cursor {
     private _getActiveTokens() {
         let list: IActiveObj[] = [];
         if (!this._current.mutilple) {
-            let block = this.editor.findBlockData(this._current.rows[0]);
+            let node = this.editor.findBlockData(this._current.rows[0]);
             list.push({
-                token: block.token,
-                el: this.editor.findBlockElement(block.rowid)
+                token: node.block.token,
+                el: this.editor.findBlockElement(node.rowid)
             });
-            for (let key in block.inlines) {
-                if (block.inlines[key]
+            for (let key in node.block.inlines) {
+                if (node.block.inlines[key]
                     .findIndex(i => i.start <= this._current.start && this._current.end <= i.end) >= 0) {
                     list.push({
                         token: key
                     });
                 }
             }
-            if (block.pid) {
-                let parent = this.editor.findBlockData(block.pid);
+            if (node.pid) {
+                let parent = this.editor.findBlockData(node.pid);
                 list.push({
-                    token: parent.token,
+                    token: parent.block.token,
                     el: this.editor.findBlockElement(parent.rowid)
                 });
             }

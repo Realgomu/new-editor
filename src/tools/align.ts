@@ -30,9 +30,9 @@ export default class Align implements EE.IEditorTool {
     }
 
     apply(type: string = 'left') {
-        this.editor.cursor.eachRow((block) => {
-            block.style['align'] = type;
-            let el = this.editor.findBlockElement(block.rowid);
+        this.editor.cursor.eachRow((node) => {
+            node.block.style['align'] = type;
+            let el = this.editor.findBlockElement(node.rowid);
             el.style.textAlign = type;
         });
         this.editor.actions.doInput();

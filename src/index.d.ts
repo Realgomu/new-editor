@@ -35,16 +35,13 @@ declare module EnrichEditor {
     }
 
     type IBlockMap = {
-        [id: string]: {
-            node: IBlockNode,
-            block: IBlock
-        };
+        [id: string]: IBlockNode;
     }
 
     const enum BlockType {
-        Normal,
-        Root,
         Leaf,
+        Normal,
+        Wrapper,
     }
 
     interface IBlockNode {
@@ -52,10 +49,10 @@ declare module EnrichEditor {
         rowid: string;
         /** 父节点的row编号 */
         pid: string;
+        /** 节点数据 */
+        block?: EE.IBlock;
         /** 节点位置 */
         index?: number;
-        /** 层级 */
-        depth?: number;
         /** 子节点 */
         children: IBlockNode[];
     }
@@ -64,10 +61,9 @@ declare module EnrichEditor {
     interface IBlock {
         rowid: string;
         token: string;
-        text: string;
-        inlines: InlineMap;
+        text?: string;
+        inlines?: InlineMap;
         style?: any;
-        pid?: string;
         children?: IBlock[];
     }
 

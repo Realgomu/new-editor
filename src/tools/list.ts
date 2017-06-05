@@ -10,7 +10,7 @@ interface IList extends EE.IBlock {
 @Tool.EditorTool({
     token: 'list',
     level: EE.ToolLevel.List,
-    blockType: EE.BlockType.Normal,
+    blockType: EE.BlockType.Wrapper,
 })
 export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool {
     selectors = ['ol', 'ul'];
@@ -55,7 +55,7 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
         if (merge) {
             if (activeObj && activeObj.el && activeObj.el.tagName.toLowerCase() !== type) {
                 //切换列表类型
-                let list = this.editor.findBlockData(activeObj.el.getAttribute('data-row-id')) as IList;
+                let list = this.editor.findBlockData(activeObj.el.getAttribute('data-row-id')).block as IList;
                 list.type = type;
                 let oldEl = this.editor.findBlockElement(list.rowid);
                 let newEl = this.$render(list, list.type);
@@ -111,11 +111,11 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
         }
     }
 
-    enterAtEnd(newRow: Element, current: EE.IBlock, parent?: EE.IBlock) {
+    enterAtEnd(newRow: Element, current: EE.IBlockNode, parent?: EE.IBlockNode) {
         //检查parent
         if (parent && parent.pid) {
             parent = this.editor.findBlockData(current.pid);
-            let tool = this.editor.tools.matchToken(parent.token) as Tool.IEnterBlockTool;
+            let tool = this.editor.tools.matchToken(parent.block.token) as Tool.IEnterBlockTool;
             if (tool && tool.enterAtEnd) {
                 return tool.enterAtEnd(newRow, current, parent);
             }
@@ -135,11 +135,11 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
         }
     }
 
-    enterAtStart(newRow: Element, current: EE.IBlock, parent?: EE.IBlock) {
+    enterAtStart(newRow: Element, current: EE.IBlockNode, parent?: EE.IBlockNode) {
         //检查parent
         if (parent && parent.pid) {
             let parent = this.editor.findBlockData(current.pid);
-            let tool = this.editor.tools.matchToken(parent.token) as Tool.IEnterBlockTool;
+            let tool = this.editor.tools.matchToken(parent.block.token) as Tool.IEnterBlockTool;
             if (tool && tool.enterAtEnd) {
                 return tool.enterAtStart(newRow, current, parent);
             }

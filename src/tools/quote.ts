@@ -8,7 +8,7 @@ interface IQuote extends EE.IBlock {
 @Tool.EditorTool({
     token: 'quote',
     level: EE.ToolLevel.Quote,
-    blockType: EE.BlockType.Root,
+    blockType: EE.BlockType.Wrapper,
 })
 export default class Quote extends Tool.BlockTool {
     selectors = ['blockquote'];

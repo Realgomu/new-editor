@@ -44,11 +44,11 @@ export default class Paragraph extends Tool.BlockTool {
         this.$apply(tag);
     }
 
-    enterAtEnd(newRow: Element, current: EE.IBlock, parent?: EE.IBlock) {
+    enterAtEnd(newRow: Element, current: EE.IBlockNode, parent?: EE.IBlockNode) {
         //检查parent
         if (current.pid) {
             let parent = this.editor.findBlockData(current.pid);
-            let tool = this.editor.tools.matchToken(parent.token) as Tool.IEnterBlockTool;
+            let tool = this.editor.tools.matchToken(parent.block.token) as Tool.IEnterBlockTool;
             if (tool && tool.enterAtEnd) {
                 return tool.enterAtEnd(newRow, current, parent);
             }
@@ -57,11 +57,11 @@ export default class Paragraph extends Tool.BlockTool {
         this.editor.insertBlock(newRow, current.rowid, false);
     }
 
-    enterAtStart(newRow: Element, current: EE.IBlock, parent?: EE.IBlock) {
+    enterAtStart(newRow: Element, current: EE.IBlockNode, parent?: EE.IBlockNode) {
         //检查parent
         if (current.pid) {
             let parent = this.editor.findBlockData(current.pid);
-            let tool = this.editor.tools.matchToken(parent.token) as Tool.IEnterBlockTool;
+            let tool = this.editor.tools.matchToken(parent.block.token) as Tool.IEnterBlockTool;
             if (tool && tool.enterAtEnd) {
                 return tool.enterAtStart(newRow, current, parent);
             }

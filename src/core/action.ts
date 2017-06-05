@@ -64,47 +64,6 @@ export class Actions {
         }
     }
 
-    // private _calcChanges(from: IActionStep, to: IActionStep) {
-    //     let _render = (node: EE.IBlockNode) => {
-    //         let oldBlock = from.map[node.rowid] ? from.map[node.rowid].block : undefined;
-    //         let newBlock = to.map[node.rowid].block;
-    //         let tool = this.editor.tools.matchToken(newBlock.token) as Tool.BlockTool;
-    //         let el: Element;
-    //         let useOld = true;
-    //         //判断是否使用现在的element
-    //         if (tool.blockType !== EE.BlockType.Leaf) {
-    //             useOld = false;
-    //         }
-    //         else if (!Util.DeepCompare(oldBlock, newBlock)) {
-    //             useOld = false;
-    //         }
-    //         if (useOld) {
-    //             el = this.editor.findBlockElement(node.rowid);
-    //         }
-    //         if (!el || !useOld) {
-    //             el = tool.render(newBlock);
-    //         }
-    //         if (node.children && node.children.length > 0) {
-    //             node.children.forEach(child => {
-    //                 let childEl = _render(child);
-    //                 tool.appendChild(el, childEl);
-    //             });
-    //         }
-    //         return el;
-    //     }
-    //     let cacheList = []
-    //     to.tree.children.forEach(node => {
-    //         let el = _render(node);
-    //         cacheList.push(el);
-    //     });
-    //     this.editor.rootEl.innerHTML = '';
-    //     cacheList.forEach(el => {
-    //         this.editor.rootEl.appendChild(el);
-    //     });
-    //     this.editor.blockTree = to.tree;
-    //     this.editor.blockMap = to.map;
-    // }
-
     private _stepCache: IActionStep;
     doInput() {
         if (!this._stepCache) {
@@ -126,7 +85,7 @@ export class Actions {
         }
         let rowid = fromCursor.rows[0];
         let current = this.editor.findBlockData(rowid);
-        let tool = this.editor.tools.matchToken(current.token) as Tool.IEnterBlockTool;
+        let tool = this.editor.tools.matchToken(current.block.token) as Tool.IEnterBlockTool;
         if (fromCursor.atEnd) {
             ev.preventDefault();
             let useCommand = false;
@@ -184,48 +143,46 @@ export class Actions {
     private _diffPath(fromStep: IActionStep, toStep: IActionStep) {
         let paths: IPathData[] = [];
         for (let key in toStep.map) {
-            let from = fromStep.map[key];
-            let to = toStep.map[key];
+            let fromNode = fromStep.map[key];
+            let toNode = toStep.map[key];
             //新老节点都存在
-            if (from && to) {
-                let tool = this.editor.tools.matchToken(to.block.token);
-                let changed = !Util.DeepCompare(from.block, to.block);
+            if (fromNode && toNode) {
+                let tool = this.editor.tools.matchToken(toNode.block.token);
+                let changed = !Util.DeepCompare(fromNode.block, toNode.block);
                 if (changed) {
                     paths.push({
                         type: PathType.Change,
-                        rowid: from.block.rowid,
-                        toPid: to.node.pid,
-                        toIndex: to.node.index,
-                        toBlock: to.block
+                        toPid: toNode.pid,
+                        toIndex: toNode.index,
+                        toBlock: toNode.block
                     });
                 }
-                else if (from.node.depth !== to.node.depth) {
+                else if (fromNode.pid !== toNode.pid) {
                     paths.push({
                         type: PathType.Move,
-                        rowid: from.block.rowid,
-                        toPid: to.node.pid,
-                        toIndex: to.node.index,
+                        rowid: fromNode.rowid,
+                        toPid: toNode.pid,
+                        toIndex: toNode.index,
                     });
                 }
-                else if (from.node.index !== to.node.index) {
-                    paths.push({
-                        type: PathType.Switch,
-                        rowid: from.block.rowid,
-                        toPid: to.node.pid,
-                        toIndex: to.node.index,
-                    });
+                else if (fromNode.index !== toNode.index) {
+                    // paths.push({
+                    //     type: PathType.Switch,
+                    //     rowid: from.block.rowid,
+                    //     toPid: to.node.pid,
+                    //     toIndex: to.node.index,
+                    // });
                 }
             }
             //老节点不存在
-            else if (!from) {
+            else if (!fromNode) {
                 let old = fromStep.map[key];
                 //新增
                 paths.push({
                     type: PathType.Add,
-                    rowid: to.block.rowid,
-                    toPid: to.node.pid,
-                    toIndex: to.node.index,
-                    toBlock: to.block
+                    toPid: toNode.pid,
+                    toIndex: toNode.index,
+                    toBlock: toNode.block
                 });
             }
         }
@@ -235,7 +192,7 @@ export class Actions {
             if (!to) {
                 //删除老节点
                 paths.push({
-                    type: PathType.Remove,
+                    type: PathType.Delete,
                     rowid: from.block.rowid,
                 });
             }
@@ -246,7 +203,7 @@ export class Actions {
     private _doPaths(paths: IPathData[]) {
         paths
             //按照增加、删除、移动的顺序处理
-            .sort((a, b) => b.type - a.type)
+            .sort((a, b) => a.type - b.type)
             .forEach(p => {
 
                 switch (p.type) {
@@ -257,7 +214,7 @@ export class Actions {
                             this.editor.insertElement(parent, newEl, p.toIndex);
                         }
                         break;
-                    case PathType.Remove:
+                    case PathType.Delete:
                         {
                             this.editor.removeBlock(p.rowid);
                         }
@@ -268,19 +225,20 @@ export class Actions {
                             let parent = this.editor.findBlockElement(p.toPid);
                             this.editor.insertElement(parent, el, p.toIndex);
                         }
-                    case PathType.Switch:
-                        {
-                            let el = this.editor.findBlockElement(p.rowid);
-                            let parent = this.editor.findBlockElement(p.toPid);
-                            let target = this.editor.childElement(parent, p.toIndex);
-                            //同层移动，比较位置是否有变化
-                            if (target === el) {
-                            }
-                            else {
-                                this.editor.insertElement(parent, el, p.toIndex);
-                            }
-                        }
                         break;
+                    // case PathType.Switch:
+                    //     {
+                    //         let el = this.editor.findBlockElement(p.rowid);
+                    //         let parent = this.editor.findBlockElement(p.toPid);
+                    //         let target = this.editor.childElement(parent, p.toIndex);
+                    //         //同层移动，比较位置是否有变化
+                    //         if (target === el) {
+                    //         }
+                    //         else {
+                    //             this.editor.insertElement(parent, el, p.toIndex);
+                    //         }
+                    //     }
+                    //     break;
                     case PathType.Change:
                         {
                             let newEl = this.editor.createElement(p.toBlock);
@@ -293,15 +251,14 @@ export class Actions {
     }
 }
 const enum PathType {
-    Switch,
-    Remove,
-    Move,
-    Change,
     Add,
+    Change,
+    Move,
+    Delete,
 }
 interface IPathData {
     type: PathType;
-    rowid: string;
+    rowid?: string;
     toPid?: string;
     toIndex?: number;
     toBlock?: EE.IBlock;

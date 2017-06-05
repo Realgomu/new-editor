@@ -15,8 +15,8 @@ export const toolFactory: {
 } = {};
 
 export interface IEnterBlockTool extends BlockTool {
-    enterAtEnd?: (newRow: Element, current: EE.IBlock, parent?: EE.IBlock) => any;
-    enterAtStart?: (newRow: Element, current: EE.IBlock, parent?: EE.IBlock) => any;
+    enterAtEnd?: (newRow: Element, current: EE.IBlockNode, parent?: EE.IBlockNode) => any;
+    enterAtStart?: (newRow: Element, current: EE.IBlockNode, parent?: EE.IBlockNode) => any;
 }
 
 export interface IEditorToolOptions {

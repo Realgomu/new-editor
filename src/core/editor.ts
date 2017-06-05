@@ -41,13 +41,7 @@ export class Editor {
     rootEl: HTMLElement;
 
     blockMap: EE.IBlockMap = {};
-    blockTree: EE.IBlockNode = {
-        depth: 0,
-        index: 0,
-        pid: '',
-        rowid: '',
-        children: []
-    };
+    blockTree: EE.IBlockNode;
     constructor(el: HTMLElement, options?: EE.IEditorOptions) {
         let defaultOptions: EE.IEditorOptions = {
             tools: 'all',
@@ -128,10 +122,9 @@ export class Editor {
         }
     }
 
-    readNode(el: Element, pid: string, depth: number) {
+    readNode(el: Element, pid: string) {
         let children: HTMLCollection;
         let node: EE.IBlockNode = {
-            depth: depth,
             rowid: '',
             pid: pid,
             children: []
@@ -149,13 +142,10 @@ export class Editor {
                 }
                 //读取节点数据，并插入map中
                 let block = tool.readData(el);
-                block.pid = pid;
                 node.rowid = block.rowid;
-                this.blockMap[block.rowid] = {
-                    node: node,
-                    block: block
-                };
-                if (tool.blockType !== EE.BlockType.Leaf) {
+                node.block = block;
+                this.blockMap[block.rowid] = node;
+                if (tool.blockType === EE.BlockType.Wrapper) {
                     children = this.childrenElements(el);
                 }
             }
@@ -163,7 +153,7 @@ export class Editor {
 
         if (children && children.length > 0) {
             Util.NodeListForEach(children, (child, index) => {
-                let childNode = this.readNode(child, node.rowid, depth + 1);
+                let childNode = this.readNode(child, node.rowid);
                 childNode.index = index;
                 if (childNode) {
                     node.children.push(childNode);
@@ -176,7 +166,7 @@ export class Editor {
     /** 解析文档数据,生成快照 */
     snapshot(step?: IActionStep) {
         this.blockMap = {};
-        this.blockTree = this.readNode(this.rootEl, '', 0);
+        this.blockTree = this.readNode(this.rootEl, '');
         if (step) {
             step.map = Util.Extend({}, this.blockMap) as EE.IBlockMap;
             step.tree = Util.Extend([], this.blockTree) as EE.IBlockNode;
@@ -184,20 +174,20 @@ export class Editor {
     }
 
     setData(data: EE.IBlock[]) {
-        this.rootEl.innerHTML = '';
-        let list = data.forEach(block => {
-            if (!block.pid) {
-                let tool = this.tools.matchToken(block.token) as BlockTool;
-                if (tool) {
-                    this.rootEl.appendChild(tool.render(block));
-                }
-            }
-        });
-        console.log('load data success');
+        // this.rootEl.innerHTML = '';
+        // let list = data.forEach(block => {
+        //     if (!block.pid) {
+        //         let tool = this.tools.matchToken(block.token) as BlockTool;
+        //         if (tool) {
+        //             this.rootEl.appendChild(tool.render(block));
+        //         }
+        //     }
+        // });
+        // console.log('load data success');
     }
 
-    findBlockData(rowid: string): EE.IBlock {
-        return this.blockMap[rowid].block;
+    findBlockData(rowid: string): EE.IBlockNode {
+        return this.blockMap[rowid];
     }
 
     findBlockElement(rowid: string) {
@@ -222,7 +212,7 @@ export class Editor {
             return undefined;
         }
         else {
-            if (!bottom || el.querySelector('[data-row-id]')) {
+            if (!bottom || !el.querySelector('[data-row-id]')) {
                 return el.getAttribute('data-row-id');
             }
             else {

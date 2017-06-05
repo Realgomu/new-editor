@@ -108,15 +108,14 @@ export abstract class InlineTool implements EE.IEditorTool {
     apply(merge: boolean) {
         let cursor = this.editor.cursor.current();
         if (!cursor.collapsed) {
-            this.editor.cursor.eachRow((block, start, end) => {
-                let from = Util.Extend({}, block, true) as EE.IBlock;
-                let to = block
+            this.editor.cursor.eachRow((node, start, end) => {
+                let to = node.block;
                 //合并
                 if (merge) {
-                    to.inlines[this.token] = this.$mergeApply(block.inlines[this.token], this.createData(start, end));
+                    to.inlines[this.token] = this.$mergeApply(to.inlines[this.token], this.createData(start, end));
                 }
                 else {
-                    to.inlines[this.token] = this.$removeApply(block.inlines[this.token], this.createData(start, end));
+                    to.inlines[this.token] = this.$removeApply(to.inlines[this.token], this.createData(start, end));
                 }
                 //重新渲染block
                 this.editor.refreshBlock(to);
