@@ -302,8 +302,8 @@ export function BlockDelete(block: EE.IBlock, start: number, end: number) {
                 newList.push(inline);
             }
             else if (inline.start < start && end < inline.end) {
-                newList.push({ start: inline.start, end: start, data: inline.data });
-                newList.push({ start: end - offset, end: inline.end - offset, data: inline.data });
+                newList.push({ start: inline.start, end: start });
+                newList.push({ start: end - offset, end: inline.end - offset });
             }
             else if (start <= inline.start && inline.end <= end) {
 

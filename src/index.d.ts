@@ -40,7 +40,7 @@ declare module EnrichEditor {
 
     const enum BlockType {
         Leaf,
-        Normal,
+        Close,
         Wrapper,
     }
 
@@ -61,8 +61,8 @@ declare module EnrichEditor {
     interface IBlock {
         rowid: string;
         token: string;
-        text?: string;
-        inlines?: InlineMap;
+        text: string;
+        inlines: InlineMap;
         style?: any;
         children?: IBlock[];
     }
@@ -76,7 +76,6 @@ declare module EnrichEditor {
     interface IInline {
         start: number;
         end: number;
-        data?: any;
     }
 
 

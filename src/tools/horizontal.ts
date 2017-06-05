@@ -25,20 +25,21 @@ export default class Horizontal extends Tool.BlockTool {
 
     apply() {
         let newId = Util.RandomID();
-        let newEl = Util.CreateRenderElement(this.editor.ownerDoc, {
+        let newHrEl = Util.CreateRenderElement(this.editor.ownerDoc, {
             tag: 'hr',
             attr: {
                 'data-row-id': newId
             }
         }) as HTMLElement;
-        let insertEl: Element;
-        this.editor.cursor.eachRow((block) => {
-            let child = this.editor.findBlockElement(block.rowid);
-            if (!block.pid) {
-                insertEl = child.nextElementSibling;
-            }
-        });
-        this.editor.insertBlock(newEl, insertEl, true);
+        let lastRow = this.editor.cursor.findLastRow();
+        let index = lastRow.index + 1;
+        if (lastRow) {
+            this.editor.insertElement(this.editor.rootEl, newHrEl, lastRow.index + 1);
+        }
+        if (index === this.editor.blockTree.children.length) {
+            let newRowEl = this.editor.tools.createNewRow();
+            this.editor.insertElement(this.editor.rootEl, newRowEl, lastRow.index + 2);
+        }
         this.editor.actions.doInput();
         return newId;
     }

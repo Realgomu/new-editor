@@ -2,6 +2,7 @@ import * as Tool from './tools';
 import * as Util from './util';
 import * as Selection from 'core/cursor';
 import { Editor } from './editor';
+import { IToolbarButton } from 'core/buttons';
 
 export abstract class BlockTool implements EE.IEditorTool {
     readonly token: string;
@@ -25,7 +26,7 @@ export abstract class BlockTool implements EE.IEditorTool {
                     let tool = this.editor.tools.matchInlineTool(<Element>current);
                     if (tool) {
                         if (!map[tool.token]) map[tool.token] = [];
-                        let inline = tool.getDataFromEl(<Element>current, pos);
+                        let inline = tool.readData(<Element>current, pos);
                         if (last[tool.token] && inline.start === last[tool.token].end) {
                             //检查是否可以合并
                             last[tool.token].end = inline.end;
@@ -49,10 +50,9 @@ export abstract class BlockTool implements EE.IEditorTool {
             rowid: id || Util.RandomID(),
             token: this.token,
             text: el.textContent,
-            style: {},
             inlines: {},
         }
-        if (this.blockType === EE.BlockType.Leaf) {
+        if (this.blockType === EE.BlockType.Leaf && block.text) {
             block.inlines = this.$readInlines(el);
         }
         else {
@@ -60,7 +60,9 @@ export abstract class BlockTool implements EE.IEditorTool {
         }
         let align = el.style.textAlign || 'left';
         if (align !== 'left') {
-            block.style['align'] = align;
+            block.style = {
+                align: align
+            };
         }
         return block;
     }
@@ -76,7 +78,7 @@ export abstract class BlockTool implements EE.IEditorTool {
             let list = map[tool.token];
             if (list) {
                 list.forEach(item => {
-                    Util.InsertRenderTree(this.editor.ownerDoc, el, tool.render(item));
+                    Util.InsertRenderTree(this.editor.ownerDoc, el, tool.renderNode(item));
                 })
             }
         });
@@ -130,8 +132,8 @@ export abstract class BlockTool implements EE.IEditorTool {
         this.editor.actions.doInput();
     }
 
-    apply(merge: boolean, ...args: any[]) {
-        if (merge) {
+    apply(button: IToolbarButton) {
+        if (!button.active) {
             this.$apply(this.selectors[0]);
         }
     }

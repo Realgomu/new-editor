@@ -1,4 +1,5 @@
 import * as Tool from 'core/tools';
+import * as Core from 'core/editor';
 import * as Util from 'core/util';
 import { Editor } from 'core/editor';
 
@@ -22,7 +23,7 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
             token: 'list',
             iconFA: 'fa-list-ol',
             text: '编号列表',
-            active: () => {
+            checkActive: () => {
                 return this.active('ol');
             }
         });
@@ -31,7 +32,7 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
             token: 'list',
             iconFA: 'fa-list-ul',
             text: '项目编号',
-            active: () => {
+            checkActive: () => {
                 return this.active('ul');
             }
         });
@@ -49,17 +50,22 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
         return el;
     }
 
-    apply(merge: boolean, type: string) {
+    apply(button: Core.IToolbarButton) {
+        let type = button.name;
         let cursor = this.editor.cursor.current();
+        let activeList = this.editor.cursor.activeTokens();
         let activeObj = this.getActiveList();
-        if (merge) {
+        if (!button.active) {
             if (activeObj && activeObj.el && activeObj.el.tagName.toLowerCase() !== type) {
                 //切换列表类型
                 let list = this.editor.findBlockNode(activeObj.el.getAttribute('data-row-id')).block as IList;
                 list.type = type;
                 let oldEl = this.editor.findBlockElement(list.rowid);
                 let newEl = this.$render(list, list.type);
-                newEl.innerHTML = oldEl.innerHTML;
+                while (oldEl.firstElementChild) {
+                    let el = oldEl.firstElementChild;
+                    newEl.appendChild(el);
+                }
                 oldEl.parentNode.replaceChild(newEl, oldEl);
                 this.editor.cursor.restore();
                 this.editor.actions.doInput();
@@ -71,39 +77,39 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
                     text: '',
                     inlines: {},
                     type: type,
-                    // data: []
                 };
                 let el = this.$render(list, type);
-                let insertEl: Element;
-                this.editor.cursor.eachRow((block) => {
-                    // list.data.push(block.rowid);
-                    let child = this.editor.findBlockElement(block.rowid);
-                    if (!block.pid) {
-                        insertEl = child.nextElementSibling;
-                    }
-                    let li = Util.CreateRenderElement(this.editor.ownerDoc, {
-                        tag: 'li'
-                    })
-                    li.appendChild(child);
+                let parent: Element;
+                let index: number;
+                this.editor.cursor.eachRow(node => {
+                    let row = this.editor.findBlockElement(node.rowid);
+                    let li = Util.CreateRenderElement(this.editor.ownerDoc, { tag: 'li' });
+                    li.appendChild(row);
                     el.appendChild(li);
+                    if (parent === undefined) {
+                        parent = this.editor.findBlockElement(node.pid);
+                    }
+                    if (index === undefined) {
+                        index = node.index;
+                    }
                 });
-                this.editor.insertBlock(el, insertEl, true);
+                this.editor.insertElement(parent, el, index);
                 this.editor.cursor.restore();
                 this.editor.actions.doInput();
             }
         }
         else {
             if (activeObj) {
-                let listEl = activeObj.el;
-                let rowid = listEl.getAttribute('data-row-id');
+                let oldEl = activeObj.el;
+                let rowid = oldEl.getAttribute('data-row-id');
                 let block = this.editor.findBlockNode(rowid);
                 if (block) {
-                    while (listEl.firstElementChild) {
-                        let el = listEl.firstElementChild.firstElementChild;
-                        this.editor.rootEl.insertBefore(el, listEl);
-                        listEl.firstElementChild.remove();
+                    while (oldEl.firstElementChild) {
+                        let el = oldEl.firstElementChild.firstElementChild;
+                        this.editor.rootEl.insertBefore(el, oldEl);
+                        oldEl.firstElementChild.remove();
                     }
-                    listEl.remove();
+                    oldEl.remove();
                     this.editor.cursor.restore();
                     this.editor.actions.doInput();
                 }
@@ -112,14 +118,6 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
     }
 
     enterAtEnd(newRow: Element, current: EE.IBlockNode, parent?: EE.IBlockNode) {
-        //检查parent
-        // if (parent && parent.pid) {
-        //     parent = this.editor.findBlockNode(current.pid);
-        //     let tool = this.editor.tools.matchToken(parent.block.token) as Tool.IEnterBlockTool;
-        //     if (tool && tool.enterAtEnd) {
-        //         return tool.enterAtEnd(newRow, current, parent);
-        //     }
-        // }
         //在下面插入一行
         let target = this.editor.findBlockElement(current.rowid);
         let li = target.parentElement;
@@ -136,14 +134,6 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
     }
 
     enterAtStart(newRow: Element, current: EE.IBlockNode, parent?: EE.IBlockNode) {
-        //检查parent
-        // if (parent && parent.pid) {
-        //     let parent = this.editor.findBlockNode(current.pid);
-        //     let tool = this.editor.tools.matchToken(parent.block.token) as Tool.IEnterBlockTool;
-        //     if (tool && tool.enterAtEnd) {
-        //         return tool.enterAtStart(newRow, current, parent);
-        //     }
-        // }
         //插入当前行的上面
         let target = this.editor.findBlockElement(current.rowid);
         let li = target.parentElement;

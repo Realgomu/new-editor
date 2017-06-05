@@ -141,7 +141,7 @@ export class Tools {
         return list;
     }
 
-    createNewRow(pid: string) {
+    createNewRow(pid: string = '') {
         let el = Util.CreateRenderElement(this.editor.ownerDoc, {
             tag: this.rowTool.selectors[0],
             attr: {

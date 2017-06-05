@@ -1,5 +1,6 @@
 import * as Tool from 'core/tools';
 import * as Util from 'core/util';
+import * as Core from 'core/editor';
 import { Editor } from 'core/editor';
 
 @Tool.EditorTool({
@@ -20,10 +21,10 @@ export default class Quote extends Tool.BlockTool {
         });
     }
 
-    apply(merge: boolean) {
+    apply(button: Core.IToolbarButton) {
         let activeList = this.editor.cursor.activeTokens();
         let cursor = this.editor.cursor.current();
-        if (merge) {
+        if (!button.active) {
             let quote: EE.IBlock = {
                 rowid: Util.RandomID(),
                 token: this.token,

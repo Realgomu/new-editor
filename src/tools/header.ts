@@ -1,6 +1,7 @@
 import * as Tool from 'core/tools';
 import * as Util from 'core/util';
 import { Editor } from 'core/editor';
+import * as Core from 'core/editor';
 
 interface IHeader extends EE.IBlock {
     size: number;
@@ -20,6 +21,7 @@ export default class Paragraph extends Tool.BlockTool {
         //按钮
         this.editor.buttons.register({
             name: 'h1',
+            level: 1,
             token: 'header',
             iconFA: 'fa-header',
             text: '标题',
@@ -39,8 +41,8 @@ export default class Paragraph extends Tool.BlockTool {
         return el;
     }
 
-    apply(merge: boolean, level = 1) {
-        let tag = this.selectors[level - 1];
+    apply(button: Core.IToolbarButton) {
+        let tag = this.selectors[button.level - 1];
         this.$apply(tag);
     }
 

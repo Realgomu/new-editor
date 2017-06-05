@@ -22,7 +22,7 @@ export default class Align implements EE.IEditorTool {
                 click: () => {
                     this.apply(type);
                 },
-                active: () => {
+                checkActive: () => {
                     return this.active(type);
                 }
             });
@@ -31,7 +31,10 @@ export default class Align implements EE.IEditorTool {
 
     apply(type: string = 'left') {
         this.editor.cursor.eachRow((node) => {
-            node.block.style['align'] = type;
+            if (!node.block.style) {
+                node.block.style = {};
+            }
+            node.block.style.align = type;
             let el = this.editor.findBlockElement(node.rowid);
             el.style.textAlign = type;
         });

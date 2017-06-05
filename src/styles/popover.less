@@ -8,4 +8,24 @@
         padding: 0 3px;
         .pop-container();
     }
+    .ee-pop-footer {
+        height: 32px;
+        .flex-container(row, center, flex-end);
+        text-align: right;
+        >a {
+            display: inline-block;
+            cursor: pointer;
+            line-height: 28px;
+            padding: 0 8px;
+            text-align: center;
+            color: @color-secondery;
+            margin-left: 8px;
+            &.submit {
+                color: @color-active;
+            }
+            &:hover {
+                background-color: @color-hover;
+            }
+        }
+    }
 }

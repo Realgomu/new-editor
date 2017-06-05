@@ -3,6 +3,10 @@ import * as Util from 'core/util';
 import { Editor } from 'core/editor';
 import { IToolbarButton } from 'core/buttons';
 
+interface ILink extends EE.IInline {
+    href: string;
+}
+
 @Tool.EditorTool({
     token: 'link',
     level: EE.ToolLevel.Link
@@ -13,7 +17,7 @@ export default class Link extends Tool.InlineTool {
 
     private _current: HTMLLinkElement;
     private _popTool: HTMLElement;
-    private _popInput: HTMLElement;
+    private _popEdit: HTMLElement;
     constructor(editor: Editor) {
         super(editor);
 
@@ -23,9 +27,8 @@ export default class Link extends Tool.InlineTool {
             token: 'link',
             iconFA: 'fa-link',
             text: '链接',
-            click: (ev: Event) => {
-                this._openInput(ev.currentTarget as HTMLElement);
-                ev.stopPropagation();
+            click: (ev: Event, button: IToolbarButton) => {
+                this.apply(button);
             }
         });
         this.editor.buttons.register({
@@ -34,7 +37,7 @@ export default class Link extends Tool.InlineTool {
             iconFA: 'fa-external-link',
             text: '打开链接',
             click: () => {
-                this._openCurrent();
+                this._linkCurrent();
             }
         });
         this.editor.buttons.register({
@@ -44,7 +47,7 @@ export default class Link extends Tool.InlineTool {
             text: '编辑链接',
             click: (ev: Event) => {
                 if (this._current) {
-                    this._openInput(this._current);
+                    this._openEdit(this._current);
                 }
             }
         });
@@ -52,7 +55,10 @@ export default class Link extends Tool.InlineTool {
             name: 'deleteLink',
             token: 'link',
             iconFA: 'fa-chain-broken',
-            text: '删除链接'
+            text: '删除链接',
+            click: () => {
+                this._delele();
+            }
         });
     }
 
@@ -60,18 +66,15 @@ export default class Link extends Tool.InlineTool {
         this.editor.events.on('$click', (ev: KeyboardEvent, target: HTMLLinkElement) => {
             this._current = target;
             if (Util.IsMetaCtrlKey(ev)) {
-                this._openCurrent();
-            }
-            else {
-                this._openTool(target);
+                this._linkCurrent();
             }
             ev.preventDefault();
             ev.stopPropagation();
         }, 'a');
         this.editor.events.on('$cursorChanged', () => {
-            let target = this._findTarget();
-            if (target) {
-                this._openTool(target);
+            this._current = this._findTarget();
+            if (this._current) {
+                this._openTool();
             }
             else {
                 this.editor.defaultUI.popover.hide();
@@ -82,42 +85,40 @@ export default class Link extends Tool.InlineTool {
     private _findTarget() {
         let cursor = this.editor.cursor.current();
         let activeTokens = this.editor.cursor.activeTokens();
-        if (activeTokens.findIndex(a => a.token === this.token) >= 0 && !cursor.mutilple) {
-            let block = this.editor.findBlockElement(cursor.rows[0]);
-            let nodes = block.querySelectorAll('a');
-            for (let i = 0, l = nodes.length; i < l; i++) {
-                let rn = nodes[i].$renderNode;
-                if (rn && rn.start <= cursor.start && cursor.end <= rn.end) {
-                    return nodes[i];
-                }
-            }
+        if (!cursor.mutilple && activeTokens.findIndex(a => a.token === this.token) >= 0) {
+            return this.editor.findInlineElement(cursor.rows[0], 'a', cursor.start, cursor.end) as HTMLLinkElement;
         }
     }
 
-    getDataFromEl(el: Element, start: number) {
+    readData(el: Element, start: number) {
         let href = el.getAttribute('href');
-        return this.createData(start, start + el.textContent.length, href || undefined);
+        let data = this.$createData(start, start + el.textContent.length) as ILink;
+        data.href = href;
+        return data;
     }
 
-    render(data: EE.IInline) {
-        let node = this.$render(data);
+    renderNode(data: ILink) {
+        let node = this.$renderNode(data);
         node.attr = {
-            href: data.data,
+            href: data.href,
             target: '_blank'
         };
         return node;
     }
 
-    apply(): any {
+    apply(button: IToolbarButton) {
+        if (!button.active) {
+
+        }
     }
 
-    private _openCurrent() {
+    private _linkCurrent() {
         if (this._current) {
             window.open(this._current.href, this._current.target);
         }
     }
 
-    private _openTool(target: HTMLElement) {
+    private _openTool(target: HTMLElement = this._current) {
         if (!this._popTool) {
             this._popTool = Util.CreateRenderElement(this.editor.ownerDoc, {
                 tag: 'div',
@@ -135,16 +136,31 @@ export default class Link extends Tool.InlineTool {
         this.editor.defaultUI.popover.show(target, this._popTool);
     }
 
-    private _openInput(target: HTMLElement) {
-        if (!this._popInput) {
-            this._popInput = Util.CreateRenderElement(this.editor.ownerDoc, {
+    private _openEdit(target: HTMLElement = this._current) {
+        if (!this._popEdit) {
+            this._popEdit = Util.CreateRenderElement(this.editor.ownerDoc, {
                 tag: 'div',
                 attr: {
                     class: 'ee-link-input'
                 }
             }) as HTMLElement;
-            this._popInput.innerHTML = `<input type="text"><input type="text">`;
+            this._popEdit.innerHTML = `
+<input name="href" type="text" placeholder="URL" value="${this._current.href}">
+<input name="text" type="text" placeholder="文字" value="${this._current.textContent}">
+<div class="ee-pop-footer"><a>取消</a><a class="submit">确定</a></div>
+`;
         }
-        this.editor.defaultUI.popover.show(target, this._popInput);
+        this.editor.defaultUI.popover.show(target, this._popEdit);
+        setTimeout(() => {
+            let $href = this._popEdit.querySelector('input[name="href"]') as HTMLInputElement;
+            $href.focus();
+        }, 150);
+    }
+
+    private _delele() {
+        if (this._current) {
+            this._current.remove();
+            this.editor.actions.doInput();
+        }
     }
 }

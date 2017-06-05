@@ -1,6 +1,7 @@
 import * as Util from 'core/util';
 import { Editor } from 'core/editor';
-import { IActionStep } from 'core/action';
+import { BlockTool } from 'core/tools';
+import { IToolbarButton } from 'core/buttons';
 
 export abstract class InlineTool implements EE.IEditorTool {
     readonly token: string;
@@ -10,20 +11,19 @@ export abstract class InlineTool implements EE.IEditorTool {
     constructor(protected editor: Editor) {
     }
 
-    getDataFromEl(el: Element, start: number): EE.IInline {
-        return this.createData(start, start + el.textContent.length);
-    }
-
-    createData(start: number, end: number, data?: any) {
+    protected $createData(start: number, end: number) {
         let inline: EE.IInline = {
             start: start,
             end: end,
-            data: data
         }
         return inline;
     }
 
-    protected $render(inline: EE.IInline) {
+    readData(el: Element, start: number): EE.IInline {
+        return this.$createData(start, start + el.textContent.length);
+    }
+
+    protected $renderNode(inline: EE.IInline) {
         let node: EE.IRenderNode = {
             tag: this.selectors[0],
             start: inline.start,
@@ -32,8 +32,8 @@ export abstract class InlineTool implements EE.IEditorTool {
         return node;
     }
 
-    render(inline: EE.IInline) {
-        return this.$render(inline);
+    renderNode(inline: EE.IInline) {
+        return this.$renderNode(inline);
     }
 
     /** 合并样式 */
@@ -92,10 +92,10 @@ export abstract class InlineTool implements EE.IEditorTool {
             let inline = Util.Extend({}, list[i]);
             if (apply.start >= inline.start && apply.end <= inline.end) {
                 if (apply.start > inline.start) {
-                    newList.push({ start: inline.start, end: apply.start, data: inline.data });
+                    newList.push({ start: inline.start, end: apply.start });
                 }
                 if (apply.end < inline.end) {
-                    newList.push({ start: apply.end, end: inline.end, data: inline.data });
+                    newList.push({ start: apply.end, end: inline.end });
                 }
             }
             else {
@@ -105,20 +105,20 @@ export abstract class InlineTool implements EE.IEditorTool {
         return newList;
     }
 
-    apply(merge: boolean) {
+    apply(button: IToolbarButton) {
         let cursor = this.editor.cursor.current();
         if (!cursor.collapsed) {
             this.editor.cursor.eachRow((node, start, end) => {
                 let to = node.block;
                 //合并
-                if (merge) {
-                    to.inlines[this.token] = this.$mergeApply(to.inlines[this.token], this.createData(start, end));
+                if (!button.active) {
+                    to.inlines[this.token] = this.$mergeApply(to.inlines[this.token], this.$createData(start, end));
                 }
                 else {
-                    to.inlines[this.token] = this.$removeApply(to.inlines[this.token], this.createData(start, end));
+                    to.inlines[this.token] = this.$removeApply(to.inlines[this.token], this.$createData(start, end));
                 }
                 //重新渲染block
-                this.editor.refreshBlock(to);
+                this.editor.createElement(to);
             });
             this.editor.cursor.restore();
             this.editor.actions.doInput();

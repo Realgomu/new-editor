@@ -35,6 +35,15 @@ export class Cursor {
         })
     }
 
+    findLastRow(): EE.IBlockNode {
+        let lastId = this._current.rows[this._current.rows.length - 1];
+        let parent = this.editor.findBlockNode(lastId);
+        while (parent.pid) {
+            parent = this.editor.findBlockNode(parent.pid);
+        }
+        return parent;
+    }
+
     update(ev?: Event) {
         let selection = this.editor.ownerDoc.getSelection();
         if (selection.anchorNode === this.editor.rootEl) {
@@ -49,8 +58,7 @@ export class Cursor {
         let pos = 0,
             count = 0,
             rowid = '',
-            startFirst: boolean = undefined,
-            endPos: number = undefined;
+            startFirst: boolean = undefined;
         Util.TreeWalker(
             this.editor.ownerDoc,
             this.editor.rootEl,
@@ -77,9 +85,6 @@ export class Cursor {
                 }
                 if (el.nodeType === 3) {
                     pos += el.textContent.length;
-                    if (count === 2 && endPos === undefined) {
-                        endPos = pos;
-                    }
                 }
             });
         if (selection.isCollapsed) {
@@ -92,7 +97,6 @@ export class Cursor {
             cursor.start = t;
         }
 
-        cursor.atEnd = cursor.end === endPos;
         this._setCurrent(cursor);
         return this._current;
     }
@@ -144,12 +148,12 @@ export class Cursor {
             }
         });
         this._activeList = list;
-        console.log(list);
+        // console.log(list);
     }
 
     restore() {
         if (!this._current) {
-            let lastRow = this.editor.lastBlock();
+            let lastRow = this.editor.lastLeafBlock();
             this._current = {
                 rows: [lastRow.rowid],
                 start: lastRow.text.length,
@@ -219,12 +223,5 @@ export class Cursor {
             this._setCurrent(cursor);
         }
         return this._current;
-    }
-
-    deleteSelection() {
-        let selection = this.editor.ownerDoc.getSelection();
-        if (selection) {
-            selection.deleteFromDocument();
-        }
     }
 }

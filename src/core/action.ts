@@ -152,8 +152,6 @@ export class Actions {
                 if (changed) {
                     paths.push({
                         type: PathType.Change,
-                        toPid: toNode.pid,
-                        toIndex: toNode.index,
                         toBlock: toNode.block
                     });
                 }
@@ -216,7 +214,7 @@ export class Actions {
                         break;
                     case PathType.Delete:
                         {
-                            this.editor.removeBlock(p.rowid);
+                            this.editor.removeElement(p.rowid);
                         }
                         break;
                     case PathType.Move:
@@ -242,8 +240,6 @@ export class Actions {
                     case PathType.Change:
                         {
                             let newEl = this.editor.createElement(p.toBlock);
-                            let parent = this.editor.findBlockElement(p.toPid);
-                            this.editor.insertElement(parent, newEl, p.toIndex);
                         }
                         break;
                 }

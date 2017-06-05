@@ -1,3 +1,7 @@
+//polyfill
+import './polyfill';
+
+//
 import * as Util from 'core/util';
 import { Tools, InlineTool, BlockTool } from 'core/tools';
 import { Events } from 'core/events';
@@ -6,7 +10,8 @@ import { Actions, IActionStep } from 'core/action';
 import { Buttons } from 'core/buttons';
 import * as UI from 'default/index';
 
-import './polyfill';
+export * from 'core/tools';
+export * from 'core/buttons';
 
 //inlines
 import 'tools/break';
@@ -122,7 +127,7 @@ export class Editor {
         }
     }
 
-    readNode(el: Element, pid: string) {
+    readElement(el: Element, pid: string) {
         let children: HTMLCollection;
         let node: EE.IBlockNode = {
             rowid: '',
@@ -140,6 +145,10 @@ export class Editor {
                 if (!rowid || this.blockMap[rowid]) {
                     el.setAttribute('data-row-id', Util.RandomID());
                 }
+                //检查是否是空元素
+                if (tool.blockType === EE.BlockType.Leaf && el.innerHTML == '') {
+                    el.innerHTML = '<br>';
+                }
                 //读取节点数据，并插入map中
                 let block = tool.readData(el);
                 node.rowid = block.rowid;
@@ -153,7 +162,7 @@ export class Editor {
 
         if (children && children.length > 0) {
             Util.NodeListForEach(children, (child, index) => {
-                let childNode = this.readNode(child, node.rowid);
+                let childNode = this.readElement(child, node.rowid);
                 childNode.index = index;
                 if (childNode) {
                     node.children.push(childNode);
@@ -166,7 +175,7 @@ export class Editor {
     /** 解析文档数据,生成快照 */
     snapshot(step?: IActionStep) {
         this.blockMap = {};
-        this.blockTree = this.readNode(this.rootEl, '');
+        this.blockTree = this.readElement(this.rootEl, '');
         if (step) {
             step.map = Util.Extend({}, this.blockMap) as EE.IBlockMap;
             step.tree = Util.Extend([], this.blockTree) as EE.IBlockNode;
@@ -174,7 +183,6 @@ export class Editor {
     }
 
     reload() {
-        
     }
 
     setData(data: EE.IBlock[]) {
@@ -203,7 +211,7 @@ export class Editor {
         }
     }
 
-    lastBlock(): EE.IBlock {
+    lastLeafBlock(): EE.IBlock {
         let last = this.blockTree.children[this.blockTree.children.length - 1];
         while (last && last.children && last.children.length > 0) {
             last = last.children[last.children.length - 1];
@@ -225,24 +233,7 @@ export class Editor {
         }
     }
 
-    refreshBlock(block: EE.IBlock, forceCreate = false) {
-        let tool = this.tools.matchToken(block.token) as BlockTool;
-        if (tool) {
-            let newEl = tool.render(block);
-            if (forceCreate) {
-                return newEl;
-            }
-            let oldEl = this.findBlockElement(block.rowid);
-            if (oldEl) {
-                oldEl.parentNode.replaceChild(newEl, oldEl);
-            }
-            else {
-                return newEl;
-            }
-        }
-    }
-
-    removeBlock(row: string | HTMLElement) {
+    removeElement(row: string | HTMLElement) {
         if (typeof row === 'string') {
             row = this.findBlockElement(row);
         }
@@ -299,6 +290,7 @@ export class Editor {
         }
     }
 
+    /** 创建新element并删除老的 */
     createElement(block: EE.IBlock) {
         let tool = this.tools.matchToken(block.token) as BlockTool;
         let oldEl = this.findBlockElement(block.rowid);
@@ -309,7 +301,7 @@ export class Editor {
                     newEl.appendChild(oldEl.firstElementChild);
                 }
             }
-            this.removeBlock(oldEl);
+            oldEl.parentNode.replaceChild(newEl, oldEl);
         }
         return newEl;
     }
@@ -329,5 +321,27 @@ export class Editor {
         else {
             parent.appendChild(child);
         }
+    }
+
+    findInlineElement(rowid: string, selector: string, start: number, end: number) {
+        let rowEl = this.findBlockElement(rowid);
+        let pos: number = 0;
+        let targetEl: Element;
+        Util.TreeWalker(
+            this.ownerDoc,
+            rowEl,
+            (node) => {
+                let length = node.textContent.length;
+                if (node.nodeType === 1) {
+                    if (Util.MathSelector(node as Element, selector) && pos <= start && end <= pos + length) {
+                        targetEl = node as Element;
+                    }
+                }
+                else if (node.nodeType === 3) {
+                    pos += length
+                }
+            }
+        );
+        return targetEl;
     }
 }
