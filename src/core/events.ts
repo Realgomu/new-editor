@@ -48,7 +48,7 @@ export class Events {
     }
 
     trigger(name: string, ev: Event, ...args: any[]) {
-        console.log(`trigger event [${name}]`);
+        // console.log(`trigger event [${name}]`);
         if (!this._customEvents[name]) {
             this._customEvents[name] = [];
         }

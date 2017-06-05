@@ -141,7 +141,7 @@ export class Tools {
         return list;
     }
 
-    createNewRow() {
+    createNewRow(pid: string) {
         let el = Util.CreateRenderElement(this.editor.ownerDoc, {
             tag: this.rowTool.selectors[0],
             attr: {
@@ -152,7 +152,12 @@ export class Tools {
             }]
         }) as HTMLElement;
         let block = this.rowTool.readData(el);
-        this.editor.blockMap[block.rowid].block = block;
+        this.editor.blockMap[block.rowid] = {
+            rowid: block.rowid,
+            pid: pid,
+            block: block,
+            children: []
+        };
         return el;
     }
 }

@@ -84,7 +84,7 @@ export class Actions {
             }
         }
         let rowid = fromCursor.rows[0];
-        let current = this.editor.findBlockData(rowid);
+        let current = this.editor.findBlockNode(rowid);
         let tool = this.editor.tools.matchToken(current.block.token) as Tool.IEnterBlockTool;
         if (fromCursor.atEnd) {
             ev.preventDefault();
@@ -94,7 +94,7 @@ export class Actions {
                 useCommand = true;
             }
             //创建新行
-            let newRow = this.editor.tools.createNewRow();
+            let newRow = this.editor.tools.createNewRow(current.pid);
             //执行enter逻辑判断
             tool.enterAtEnd(newRow, current);
             //移动光标到新行
@@ -118,7 +118,7 @@ export class Actions {
                 useCommand = true;
             }
             //在上面插入一行
-            let newRow = this.editor.tools.createNewRow();
+            let newRow = this.editor.tools.createNewRow(current.pid);
             //执行enter逻辑判断
             tool.enterAtStart(newRow, current);
             if (!useCommand) {

@@ -47,7 +47,7 @@ export default class Paragraph extends Tool.BlockTool {
     enterAtEnd(newRow: Element, current: EE.IBlockNode, parent?: EE.IBlockNode) {
         //检查parent
         if (current.pid) {
-            let parent = this.editor.findBlockData(current.pid);
+            let parent = this.editor.findBlockNode(current.pid);
             let tool = this.editor.tools.matchToken(parent.block.token) as Tool.IEnterBlockTool;
             if (tool && tool.enterAtEnd) {
                 return tool.enterAtEnd(newRow, current, parent);
@@ -60,7 +60,7 @@ export default class Paragraph extends Tool.BlockTool {
     enterAtStart(newRow: Element, current: EE.IBlockNode, parent?: EE.IBlockNode) {
         //检查parent
         if (current.pid) {
-            let parent = this.editor.findBlockData(current.pid);
+            let parent = this.editor.findBlockNode(current.pid);
             let tool = this.editor.tools.matchToken(parent.block.token) as Tool.IEnterBlockTool;
             if (tool && tool.enterAtEnd) {
                 return tool.enterAtStart(newRow, current, parent);

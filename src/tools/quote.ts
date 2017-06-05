@@ -2,9 +2,6 @@ import * as Tool from 'core/tools';
 import * as Util from 'core/util';
 import { Editor } from 'core/editor';
 
-interface IQuote extends EE.IBlock {
-}
-
 @Tool.EditorTool({
     token: 'quote',
     level: EE.ToolLevel.Quote,
@@ -23,49 +20,45 @@ export default class Quote extends Tool.BlockTool {
         });
     }
 
-    // readData(el: Element): IQuote {
-    //     let block = this.$readDate(el as HTMLElement) as IQuote;
-    //     block.text = '';
-    //     return block;
-    // }
-
     apply(merge: boolean) {
         let activeList = this.editor.cursor.activeTokens();
         let cursor = this.editor.cursor.current();
         if (merge) {
-            let quote: IQuote = {
+            let quote: EE.IBlock = {
                 rowid: Util.RandomID(),
                 token: this.token,
                 text: '',
-                inlines: {},
-                // data: []
+                inlines: {}
             };
             let el = this.render(quote);
-            let insertEl: Element;
-            this.editor.cursor.eachRow((block) => {
-                // quote.data.push(block.rowid);
-                let child = this.editor.findBlockElement(block.rowid);
-                if (!block.pid) {
-                    insertEl = child.nextElementSibling;
+            let index: number;
+            activeList.forEach(item => {
+                let node = this.editor.findBlockNode(item.el.getAttribute('data-row-id'));
+                if (node) {
+                    if (!node.pid) {
+                        el.appendChild(item.el);
+                        if (index === undefined) {
+                            index = node.index;
+                        }
+                    }
                 }
-                el.appendChild(child);
             });
-            this.editor.insertBlock(el, insertEl, true);
+            this.editor.insertElement(this.editor.rootEl, el, index);
             this.editor.cursor.restore();
             this.editor.actions.doInput();
         }
         else {
             let obj = activeList.find(a => a.token === this.token);
             if (obj) {
-                let quote = obj.el;
-                let rowid = quote.getAttribute('data-row-id');
-                let block = this.editor.findBlockData(rowid);
+                let oldEl = obj.el;
+                let rowid = oldEl.getAttribute('data-row-id');
+                let block = this.editor.findBlockNode(rowid);
                 if (block) {
-                    while (quote.firstElementChild) {
-                        let el = quote.firstElementChild;
-                        this.editor.rootEl.insertBefore(el, quote);
+                    while (oldEl.firstElementChild) {
+                        let el = oldEl.firstElementChild;
+                        this.editor.rootEl.insertBefore(el, oldEl);
                     }
-                    quote.remove();
+                    oldEl.remove();
                     this.editor.cursor.restore();
                     this.editor.actions.doInput();
                 }

@@ -173,6 +173,10 @@ export class Editor {
         }
     }
 
+    reload() {
+        
+    }
+
     setData(data: EE.IBlock[]) {
         // this.rootEl.innerHTML = '';
         // let list = data.forEach(block => {
@@ -186,7 +190,7 @@ export class Editor {
         // console.log('load data success');
     }
 
-    findBlockData(rowid: string): EE.IBlockNode {
+    findBlockNode(rowid: string): EE.IBlockNode {
         return this.blockMap[rowid];
     }
 

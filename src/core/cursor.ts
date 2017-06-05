@@ -23,7 +23,7 @@ export class Cursor {
 
     eachRow(func: (node: EE.IBlockNode, start?: number, end?: number) => void) {
         this._current.rows.forEach(id => {
-            let node = this.editor.findBlockData(id);
+            let node = this.editor.findBlockNode(id);
             let start = 0, end = node.block.text.length;
             if (node.rowid === this._current.rows[0]) {
                 start = this._current.start;
@@ -92,7 +92,7 @@ export class Cursor {
             cursor.start = t;
         }
 
-        cursor.atEnd = endPos === cursor.end;
+        cursor.atEnd = cursor.end === endPos;
         this._setCurrent(cursor);
         return this._current;
     }
@@ -102,7 +102,9 @@ export class Cursor {
         this._current.collapsed = this._current.rows.length === 1 && this._current.start === this._current.end;
         this._current.mutilple = this._current.rows.length > 1;
         this._current.atStart = this._current.start === 0;
-        this._current.atEnd = cursor.atEnd;
+        let lastRowId = this._current.rows[this._current.rows.length - 1];
+        let block = this.editor.findBlockNode(lastRowId).block;
+        this._current.atEnd = block.text.length === this._current.end;
         //计算激活的token
         this._getActiveTokens();
         //触发事件
@@ -114,11 +116,7 @@ export class Cursor {
     private _getActiveTokens() {
         let list: IActiveObj[] = [];
         if (!this._current.mutilple) {
-            let node = this.editor.findBlockData(this._current.rows[0]);
-            list.push({
-                token: node.block.token,
-                el: this.editor.findBlockElement(node.rowid)
-            });
+            let node = this.editor.findBlockNode(this._current.rows[0]);
             for (let key in node.block.inlines) {
                 if (node.block.inlines[key]
                     .findIndex(i => i.start <= this._current.start && this._current.end <= i.end) >= 0) {
@@ -127,15 +125,26 @@ export class Cursor {
                     });
                 }
             }
-            if (node.pid) {
-                let parent = this.editor.findBlockData(node.pid);
-                list.push({
-                    token: parent.block.token,
-                    el: this.editor.findBlockElement(parent.rowid)
-                });
-            }
-            this._activeList = list;
         }
+        this.eachRow((node) => {
+            list.push({
+                token: node.block.token,
+                el: this.editor.findBlockElement(node.rowid)
+            });
+            let parent = node;
+            while (parent.pid) {
+                parent = this.editor.findBlockNode(parent.pid);
+                let el = this.editor.findBlockElement(parent.rowid);
+                if (list.findIndex(a => a.el === el) < 0) {
+                    list.push({
+                        token: parent.block.token,
+                        el: el,
+                    });
+                }
+            }
+        });
+        this._activeList = list;
+        console.log(list);
     }
 
     restore() {

@@ -55,7 +55,7 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
         if (merge) {
             if (activeObj && activeObj.el && activeObj.el.tagName.toLowerCase() !== type) {
                 //切换列表类型
-                let list = this.editor.findBlockData(activeObj.el.getAttribute('data-row-id')).block as IList;
+                let list = this.editor.findBlockNode(activeObj.el.getAttribute('data-row-id')).block as IList;
                 list.type = type;
                 let oldEl = this.editor.findBlockElement(list.rowid);
                 let newEl = this.$render(list, list.type);
@@ -96,7 +96,7 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
             if (activeObj) {
                 let listEl = activeObj.el;
                 let rowid = listEl.getAttribute('data-row-id');
-                let block = this.editor.findBlockData(rowid);
+                let block = this.editor.findBlockNode(rowid);
                 if (block) {
                     while (listEl.firstElementChild) {
                         let el = listEl.firstElementChild.firstElementChild;
@@ -113,13 +113,13 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
 
     enterAtEnd(newRow: Element, current: EE.IBlockNode, parent?: EE.IBlockNode) {
         //检查parent
-        if (parent && parent.pid) {
-            parent = this.editor.findBlockData(current.pid);
-            let tool = this.editor.tools.matchToken(parent.block.token) as Tool.IEnterBlockTool;
-            if (tool && tool.enterAtEnd) {
-                return tool.enterAtEnd(newRow, current, parent);
-            }
-        }
+        // if (parent && parent.pid) {
+        //     parent = this.editor.findBlockNode(current.pid);
+        //     let tool = this.editor.tools.matchToken(parent.block.token) as Tool.IEnterBlockTool;
+        //     if (tool && tool.enterAtEnd) {
+        //         return tool.enterAtEnd(newRow, current, parent);
+        //     }
+        // }
         //在下面插入一行
         let target = this.editor.findBlockElement(current.rowid);
         let li = target.parentElement;
@@ -137,13 +137,13 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
 
     enterAtStart(newRow: Element, current: EE.IBlockNode, parent?: EE.IBlockNode) {
         //检查parent
-        if (parent && parent.pid) {
-            let parent = this.editor.findBlockData(current.pid);
-            let tool = this.editor.tools.matchToken(parent.block.token) as Tool.IEnterBlockTool;
-            if (tool && tool.enterAtEnd) {
-                return tool.enterAtStart(newRow, current, parent);
-            }
-        }
+        // if (parent && parent.pid) {
+        //     let parent = this.editor.findBlockNode(current.pid);
+        //     let tool = this.editor.tools.matchToken(parent.block.token) as Tool.IEnterBlockTool;
+        //     if (tool && tool.enterAtEnd) {
+        //         return tool.enterAtStart(newRow, current, parent);
+        //     }
+        // }
         //插入当前行的上面
         let target = this.editor.findBlockElement(current.rowid);
         let li = target.parentElement;
