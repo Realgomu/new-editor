@@ -46,7 +46,7 @@ export default class Quote extends Tool.BlockTool {
             });
             this.editor.insertElement(this.editor.rootEl, el, index);
             this.editor.cursor.restore();
-            this.editor.actions.doInput();
+            this.editor.actions.doAction();
         }
         else {
             let obj = activeList.find(a => a.token === this.token);
@@ -61,7 +61,7 @@ export default class Quote extends Tool.BlockTool {
                     }
                     oldEl.remove();
                     this.editor.cursor.restore();
-                    this.editor.actions.doInput();
+                    this.editor.actions.doAction();
                 }
             }
         }

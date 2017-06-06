@@ -29,9 +29,6 @@ export class Actions {
         this._queue.push(step);
         this._point++;
         this.editor.events.trigger('$contentChanged', null);
-        if (this._stepCache) {
-            this._stepCache = undefined;
-        }
     }
 
     redo() {
@@ -64,25 +61,23 @@ export class Actions {
         }
     }
 
-    private _stepCache: IActionStep;
-    doInput() {
-        if (!this._stepCache) {
-            this._stepCache = {
-                fromCursor: this.editor.cursor.current(),
-            }
+    doAction(fromCursor?: EE.ICursorPosition, toCursor?: EE.ICursorPosition) {
+        if (!fromCursor) {
+            fromCursor = this.editor.cursor.current();
         }
-        this.editor.snapshot(this._stepCache);
-        this._stepCache.toCursor = this.editor.cursor.update();
-        this.push(this._stepCache);
+        let step: IActionStep = {
+            fromCursor: fromCursor,
+            toCursor: toCursor,
+        };
+        this.editor.snapshot(step);
+        if (!toCursor) {
+            step.toCursor = this.editor.cursor.update();
+        }
+        this.push(step);
     }
 
     doEnter(ev?: Event) {
         let fromCursor = this.editor.cursor.current();
-        if (!this._stepCache) {
-            this._stepCache = {
-                fromCursor: fromCursor,
-            }
-        }
         let rowid = fromCursor.rows[0];
         let current = this.editor.findBlockNode(rowid);
         let tool = this.editor.tools.matchToken(current.block.token) as Tool.IEnterBlockTool;
@@ -105,9 +100,7 @@ export class Actions {
                 atEnd: true,
             });
             if (!useCommand) {
-                this.editor.snapshot(this._stepCache);
-                this._stepCache.toCursor = toCursor;
-                this.push(this._stepCache);
+                this.doAction(fromCursor, toCursor);
             }
         }
         else if (fromCursor.atStart) {
@@ -122,9 +115,7 @@ export class Actions {
             //执行enter逻辑判断
             tool.enterAtStart(newRow, current);
             if (!useCommand) {
-                this.editor.snapshot(this._stepCache);
-                this._stepCache.toCursor = this.editor.cursor.update();
-                this.push(this._stepCache);
+                this.doAction(fromCursor);
             }
         }
     }

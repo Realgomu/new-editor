@@ -36,14 +36,17 @@ export class Toolbar {
         this.editor.events.on('$cursorChanged', () => {
             let activeTokens = this.editor.cursor.activeTokens();
             this.buttons.forEach(b => {
-                b.active = false;
-                if (b.checkActive) {
-                    b.active = b.checkActive();
+                //判断active
+                b.active = b.checkActive ? b.checkActive(b) : activeTokens.findIndex(a => a.token === b.token) >= 0;
+                //判断disable
+                b.disabled = b.checkDisabled ? b.checkDisabled(b) : false;
+                b.element.classList.toggle('active', b.active);
+                if (b.disabled) {
+                    b.element.setAttribute('disabled','disabled');
                 }
                 else {
-                    b.active = activeTokens.findIndex(a => a.token === b.token) >= 0;
+                    b.element.removeAttribute('disabled');
                 }
-                b.element.classList.toggle('active', b.active);
             });
         });
     }

@@ -72,6 +72,13 @@ declare module EnrichEditor {
         [token: string]: IInline[]
     };
 
+    interface IInlineNode extends IInline {
+        rowid: string;
+        start: number;
+        end: number;
+        el: HTMLElement;
+    }
+
     /** inline data */
     interface IInline {
         start: number;

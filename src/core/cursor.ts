@@ -161,7 +161,7 @@ export class Cursor {
                 atEnd: true
             }
         }
-        this.moveTo(this._current);
+        return this.moveTo(this._current);
     }
 
     moveTo(cursor: EE.ICursorPosition) {
@@ -223,5 +223,29 @@ export class Cursor {
             this._setCurrent(cursor);
         }
         return this._current;
+    }
+
+    selectElement(target: Element) {
+        let selection = this.editor.ownerDoc.getSelection();
+        if (selection) {
+            selection.removeAllRanges();
+            let range = this.editor.ownerDoc.createRange();
+            let pos = 0, length = target.textContent.length;
+            Util.TreeWalker(
+                this.editor.ownerDoc,
+                target,
+                (node: Text) => {
+                    if (pos === 0) {
+                        range.setStart(node, 0);
+                    }
+                    pos += node.textContent.length;
+                    if (pos === length) {
+                        range.setEnd(node, node.textContent.length);
+                    }
+                },
+                true
+            )
+            selection.addRange(range);
+        }
     }
 }

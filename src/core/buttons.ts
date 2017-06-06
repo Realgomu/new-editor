@@ -9,10 +9,10 @@ export interface IButtonConfig {
     isDropdown?: boolean;
     text?: string;
     click?: (ev: Event, button: IToolbarButton) => any;
-    checkActive?: () => boolean;
+    checkActive?: (button: IToolbarButton) => boolean;
     active?: boolean;
-    checkDisable?: () => boolean;
-    disable?: boolean;
+    checkDisabled?: (button: IToolbarButton) => boolean;
+    disabled?: boolean;
     [key: string]: any;
 }
 
@@ -39,7 +39,7 @@ export class Buttons {
         if (config) {
             let button = Util.Extend({}, config) as IToolbarButton;
             let _editor = this.editor;
-            let el = _editor.ownerDoc.createElement('div');
+            let el = _editor.ownerDoc.createElement('button');
             el.classList.add('ee-button');
             el.setAttribute('title', button.text);
             el.innerHTML = `<i class="fa ${button.iconFA}"></i>`;

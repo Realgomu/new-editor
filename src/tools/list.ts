@@ -68,7 +68,7 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
                 }
                 oldEl.parentNode.replaceChild(newEl, oldEl);
                 this.editor.cursor.restore();
-                this.editor.actions.doInput();
+                this.editor.actions.doAction();
             }
             else {
                 let list: IList = {
@@ -95,7 +95,7 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
                 });
                 this.editor.insertElement(parent, el, index);
                 this.editor.cursor.restore();
-                this.editor.actions.doInput();
+                this.editor.actions.doAction();
             }
         }
         else {
@@ -111,7 +111,7 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
                     }
                     oldEl.remove();
                     this.editor.cursor.restore();
-                    this.editor.actions.doInput();
+                    this.editor.actions.doAction();
                 }
             }
         }

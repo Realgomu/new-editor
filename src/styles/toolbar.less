@@ -24,15 +24,24 @@
     display: inline-block;
     margin: 0 1px;
     transition: all ease-in-out 200ms;
+    background-color: inherit;
+    border: 0;
     .fa {
         font-size: 15px;
     }
-    &:hover {
-        background-color: @color-hover;
+    &:not([disabled]) {
+        &:hover {
+            background-color: @color-hover;
+        }
+        &.active {
+            .fa {
+                color: @color-active;
+            }
+        }
     }
-    &.active {
+    &[disabled] {
         .fa {
-            color: @color-active;
+            color: @color-disabled;
         }
     }
 }

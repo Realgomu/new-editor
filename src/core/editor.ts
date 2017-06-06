@@ -95,7 +95,7 @@ export class Editor {
             this.rootEl.click();
             this.rootEl.focus();
             this.cursor.restore();
-            this.actions.doInput();
+            this.actions.doAction();
         }, 300);
     }
 
@@ -323,7 +323,7 @@ export class Editor {
         }
     }
 
-    findInlineElement(rowid: string, selector: string, start: number, end: number) {
+    findInlineNode(rowid: string, selector: string, start: number, end: number): EE.IInlineNode {
         let rowEl = this.findBlockElement(rowid);
         let pos: number = 0;
         let targetEl: Element;
@@ -342,6 +342,16 @@ export class Editor {
                 }
             }
         );
-        return targetEl;
+        if (targetEl) {
+            return {
+                rowid: rowid,
+                start: start,
+                end: end,
+                el: targetEl as HTMLElement,
+            };
+        }
+        else {
+            return undefined;
+        }
     }
 }

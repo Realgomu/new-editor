@@ -15,7 +15,7 @@ export default class Link extends Tool.InlineTool {
     selectors = ['a'];
     action = 'link';
 
-    private _current: HTMLLinkElement;
+    private _linkNode: EE.IInlineNode;
     private _popTool: HTMLElement;
     private _popEdit: HTMLElement;
     constructor(editor: Editor) {
@@ -29,6 +29,10 @@ export default class Link extends Tool.InlineTool {
             text: '链接',
             click: (ev: Event, button: IToolbarButton) => {
                 this.apply(button);
+            },
+            checkDisabled: (button) => {
+                let cursor = this.editor.cursor.current();
+                return cursor.mutilple;
             }
         });
         this.editor.buttons.register({
@@ -37,7 +41,9 @@ export default class Link extends Tool.InlineTool {
             iconFA: 'fa-external-link',
             text: '打开链接',
             click: () => {
-                this._linkCurrent();
+                if (this._linkNode) {
+                    this._openLink(this._linkNode.el as HTMLLinkElement);
+                }
             }
         });
         this.editor.buttons.register({
@@ -46,8 +52,8 @@ export default class Link extends Tool.InlineTool {
             iconFA: 'fa-edit',
             text: '编辑链接',
             click: (ev: Event) => {
-                if (this._current) {
-                    this._openEdit(this._current);
+                if (this._linkNode) {
+                    this._openEdit();
                 }
             }
         });
@@ -57,23 +63,24 @@ export default class Link extends Tool.InlineTool {
             iconFA: 'fa-chain-broken',
             text: '删除链接',
             click: () => {
-                this._delele();
+                this._deleleLink();
+                this.editor.actions.doAction();
             }
         });
     }
 
     init() {
         this.editor.events.on('$click', (ev: KeyboardEvent, target: HTMLLinkElement) => {
-            this._current = target;
             if (Util.IsMetaCtrlKey(ev)) {
-                this._linkCurrent();
+                this._openLink(target);
             }
             ev.preventDefault();
             ev.stopPropagation();
         }, 'a');
         this.editor.events.on('$cursorChanged', () => {
-            this._current = this._findTarget();
-            if (this._current) {
+            let cursor = this.editor.cursor.current();
+            this._linkNode = this._findTarget();
+            if (this._linkNode) {
                 this._openTool();
             }
             else {
@@ -86,7 +93,7 @@ export default class Link extends Tool.InlineTool {
         let cursor = this.editor.cursor.current();
         let activeTokens = this.editor.cursor.activeTokens();
         if (!cursor.mutilple && activeTokens.findIndex(a => a.token === this.token) >= 0) {
-            return this.editor.findInlineElement(cursor.rows[0], 'a', cursor.start, cursor.end) as HTMLLinkElement;
+            return this.editor.findInlineNode(cursor.rows[0], 'a', cursor.start, cursor.end);
         }
     }
 
@@ -107,18 +114,34 @@ export default class Link extends Tool.InlineTool {
     }
 
     apply(button: IToolbarButton) {
-        if (!button.active) {
-
+        if (!button.active && !button.disabled) {
+            let cursor = this.editor.cursor.current();
+            let node = this.editor.findBlockNode(cursor.rows[0]);
+            if (node && node.block) {
+                if (!node.block.inlines[this.token]) {
+                    node.block.inlines[this.token] = [];
+                }
+                let list = node.block.inlines[this.token];
+                let link: ILink = {
+                    start: cursor.start,
+                    end: cursor.end,
+                    href: ''
+                };
+                list.push(link);
+                this.editor.createElement(node.block);
+                this.editor.cursor.restore();
+                this._openEdit(true);
+            }
         }
     }
 
-    private _linkCurrent() {
-        if (this._current) {
-            window.open(this._current.href, this._current.target);
+    private _openLink(link: HTMLLinkElement) {
+        if (link) {
+            window.open(link.href, link.target);
         }
     }
 
-    private _openTool(target: HTMLElement = this._current) {
+    private _openTool(target: HTMLElement = this._linkNode.el) {
         if (!this._popTool) {
             this._popTool = Util.CreateRenderElement(this.editor.ownerDoc, {
                 tag: 'div',
@@ -136,31 +159,79 @@ export default class Link extends Tool.InlineTool {
         this.editor.defaultUI.popover.show(target, this._popTool);
     }
 
-    private _openEdit(target: HTMLElement = this._current) {
-        if (!this._popEdit) {
-            this._popEdit = Util.CreateRenderElement(this.editor.ownerDoc, {
-                tag: 'div',
-                attr: {
-                    class: 'ee-link-input'
-                }
-            }) as HTMLElement;
-            this._popEdit.innerHTML = `
-<input name="href" type="text" placeholder="URL" value="${this._current.href}">
-<input name="text" type="text" placeholder="文字" value="${this._current.textContent}">
-<div class="ee-pop-footer"><a>取消</a><a class="submit">确定</a></div>
+    private _createEditPanel() {
+        this._popEdit = Util.CreateRenderElement(this.editor.ownerDoc, {
+            tag: 'div',
+            attr: {
+                class: 'ee-link-input'
+            }
+        }) as HTMLElement;
+        let link = this._linkNode.el as HTMLLinkElement;
+        this._popEdit.innerHTML = `
+<input name="href" type="text" placeholder="URL" value="${link.getAttribute('href')}">
+<input name="text" type="text" placeholder="文字" value="${link.textContent}">
+<div class="ee-pop-footer"><a class="cancel">取消</a><a class="submit">确定</a></div>
 `;
+        let $href = this._popEdit.querySelector('input[name="href"]') as HTMLInputElement;
+        let $text = this._popEdit.querySelector('input[name="text"]') as HTMLInputElement;
+        let $submit = this._popEdit.querySelector('a.submit') as HTMLElement;
+        let $cancel = this._popEdit.querySelector('a.cancel') as HTMLElement;
+        //事件
+        this.editor.events.attach('click', $submit, (ev: Event) => {
+            let href = $href.value;
+            let text = $text.value;
+            this._editSubmit(href, text);
+        });
+        this.editor.events.attach('click', $cancel, (ev: Event) => {
+            this._editCancel();
+        });
+    }
+
+    private _editSubmit(href: string, text: string) {
+        if (this._linkNode) {
+            let link = this._linkNode.el as HTMLLinkElement;
+            link.textContent = text;
+            link.href = href;
+            let fromCursor = this.editor.cursor.current();
+            this.editor.cursor.selectElement(link);
+            this.editor.actions.doAction(fromCursor);
+            this._openTool();
         }
-        this.editor.defaultUI.popover.show(target, this._popEdit);
+    }
+
+    private _editCancel() {
+        if (this._isNew) {
+            this._deleleLink();
+        }
+        else {
+            this.editor.cursor.restore();
+            this._openTool();
+        }
+    }
+
+    private _isNew: boolean = false;
+    private _openEdit(isNew: boolean = false) {
+        this._isNew = isNew;
+        if (!this._popEdit) {
+            this._createEditPanel();
+        }
+        this.editor.defaultUI.popover.show(this._linkNode.el, this._popEdit);
         setTimeout(() => {
             let $href = this._popEdit.querySelector('input[name="href"]') as HTMLInputElement;
             $href.focus();
         }, 150);
     }
 
-    private _delele() {
-        if (this._current) {
-            this._current.remove();
-            this.editor.actions.doInput();
+    private _deleleLink() {
+        if (this._linkNode) {
+            let block = this.editor.findBlockNode(this._linkNode.rowid).block;
+            let list = block.inlines[this.token];
+            if (list && list.length > 0) {
+                let index = list.findIndex(l => l.start <= this._linkNode.start && this._linkNode.end <= l.end);
+                list.splice(index, 1);
+            };
+            this.editor.createElement(block);
+            this.editor.cursor.restore();
         }
     }
 }

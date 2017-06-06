@@ -121,7 +121,7 @@ export abstract class InlineTool implements EE.IEditorTool {
                 this.editor.createElement(to);
             });
             this.editor.cursor.restore();
-            this.editor.actions.doInput();
+            this.editor.actions.doAction();
         }
     }
 }

@@ -27,7 +27,7 @@ export class Events {
         //custom
         this.on('$input', (ev) => {
             console.log('input');
-            this.editor.actions.doInput();
+            this.editor.actions.doAction();
         });
     }
 

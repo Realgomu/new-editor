@@ -27,13 +27,15 @@ export abstract class BlockTool implements EE.IEditorTool {
                     if (tool) {
                         if (!map[tool.token]) map[tool.token] = [];
                         let inline = tool.readData(<Element>current, pos);
-                        if (last[tool.token] && inline.start === last[tool.token].end) {
-                            //检查是否可以合并
-                            last[tool.token].end = inline.end;
-                        }
-                        else {
-                            map[tool.token].push(inline);
-                            last[tool.token] = inline;
+                        if (inline) {
+                            if (last[tool.token] && inline.start === last[tool.token].end) {
+                                //检查是否可以合并
+                                last[tool.token].end = inline.end;
+                            }
+                            else {
+                                map[tool.token].push(inline);
+                                last[tool.token] = inline;
+                            }
                         }
                     }
                 }
@@ -129,7 +131,7 @@ export abstract class BlockTool implements EE.IEditorTool {
             }
         });
         this.editor.cursor.restore();
-        this.editor.actions.doInput();
+        this.editor.actions.doAction();
     }
 
     apply(button: IToolbarButton) {

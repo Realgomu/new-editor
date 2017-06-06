@@ -5,7 +5,7 @@ import { Editor } from 'core/editor';
 @Tool.EditorTool({
     token: 'hr',
     level: EE.ToolLevel.Hr,
-    blockType: EE.BlockType.Leaf,
+    blockType: EE.BlockType.Close,
 })
 export default class Horizontal extends Tool.BlockTool {
     selectors = ['hr'];
@@ -40,7 +40,7 @@ export default class Horizontal extends Tool.BlockTool {
             let newRowEl = this.editor.tools.createNewRow();
             this.editor.insertElement(this.editor.rootEl, newRowEl, lastRow.index + 2);
         }
-        this.editor.actions.doInput();
+        this.editor.actions.doAction();
         return newId;
     }
 }
