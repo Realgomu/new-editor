@@ -29,9 +29,11 @@ import 'tools/header';
 import 'tools/horizontal';
 import 'tools/quote';
 import 'tools/list';
+import 'tools/image';
 //extends
 import 'tools/align';
 import 'tools/row-tip';
+import 'tools/katex';
 
 export class Editor {
     options: EE.IEditorOptions;
@@ -56,7 +58,8 @@ export class Editor {
                 'paragraph', 'h1', 'pre',
                 '|', 'bold', 'italic', 'underline', 'strike', 'sup', 'sub',
                 '|', 'alignLeft', 'alignCenter', 'alignRight', 'alignJustify',
-                '|', 'link', 'hr', 'blockquote', 'ol', 'ul']
+                '|', 'hr', 'blockquote', 'ol', 'ul',
+                '|', 'link', 'image']
         };
 
         this.options = Util.Extend(defaultOptions, options || {});
@@ -86,11 +89,12 @@ export class Editor {
 
         //init page data
         setTimeout(() => {
-            this.snapshot();
             //check empty
-            if (this.isEmpty()) {
-                // this.interNewRow();
+            if (this.rootEl.children.length === 0) {
+                this.rootEl.innerHTML = '';
+                this.rootEl.appendChild(this.tools.createNewRow());
             }
+            this.snapshot();
 
             this.rootEl.click();
             this.rootEl.focus();
@@ -352,6 +356,24 @@ export class Editor {
         }
         else {
             return undefined;
+        }
+    }
+
+    treeWalker(root: Element, func: (current: Element | Text) => void, onlyText: boolean = false) {
+        let watchToShow = onlyText ? NodeFilter.SHOW_TEXT : NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
+        let skipNodes = ['span.katex'];
+        let filter = {
+            acceptNode: (node) => {
+                if (node.nodeType === 1 && skipNodes.findIndex(s => Util.MathSelector(node as Element, s)) >= 0) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+                return NodeFilter.FILTER_ACCEPT;
+            }
+        }
+        let walker = document.createTreeWalker(root, watchToShow, filter, false);
+        while (walker.nextNode()) {
+            let current = walker.currentNode;
+            func && func(current as Element | Text);
         }
     }
 }

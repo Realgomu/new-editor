@@ -59,8 +59,7 @@ export class Cursor {
             count = 0,
             rowid = '',
             startFirst: boolean = undefined;
-        Util.TreeWalker(
-            this.editor.ownerDoc,
+        this.editor.treeWalker(
             this.editor.rootEl,
             (el: Element) => {
                 if (el.nodeType === 1) {
@@ -86,7 +85,35 @@ export class Cursor {
                 if (el.nodeType === 3) {
                     pos += el.textContent.length;
                 }
-            });
+            })
+        // Util.TreeWalker(
+        //     this.editor.ownerDoc,
+        //     this.editor.rootEl,
+        //     (el: Element) => {
+        //         if (el.nodeType === 1) {
+        //             let id = this.editor.isBlockElement(el, true);
+        //             if (id) {
+        //                 rowid = id;
+        //                 pos = 0;
+        //                 if (count === 1) cursor.rows.push(rowid);
+        //             }
+        //         }
+        //         if (el === selection.anchorNode) {
+        //             cursor.start = pos + selection.anchorOffset;
+        //             cursor.rows.indexOf(rowid) < 0 && cursor.rows.push(rowid);
+        //             count++;
+        //             if (startFirst === undefined) startFirst = true;
+        //         }
+        //         if (el === selection.focusNode) {
+        //             cursor.end = pos + selection.focusOffset;
+        //             cursor.rows.indexOf(rowid) < 0 && cursor.rows.push(rowid);
+        //             count++;
+        //             if (startFirst === undefined) startFirst = false;
+        //         }
+        //         if (el.nodeType === 3) {
+        //             pos += el.textContent.length;
+        //         }
+        //     });
         if (selection.isCollapsed) {
             cursor.end = cursor.start;
         }
@@ -114,7 +141,7 @@ export class Cursor {
         //触发事件
         this.editor.events.trigger('$cursorChanged', null);
         // console.log(selection);
-        // console.log(this._current);
+        console.log(this._current);
     }
 
     private _getActiveTokens() {

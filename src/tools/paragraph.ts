@@ -9,7 +9,7 @@ import { IActionStep } from 'core/action';
     blockType: EE.BlockType.Leaf,
 })
 export default class Paragraph extends Tool.BlockTool implements Tool.IEnterBlockTool {
-    selectors = ['p'];
+    selectors = ['div', 'p'];
     constructor(editor: Editor) {
         super(editor);
 

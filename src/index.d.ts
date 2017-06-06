@@ -6,8 +6,9 @@ declare module EnrichEditor {
     /** edtitor tool type enum [priority for render dom from page data] */
     const enum ToolLevel {
         None = 0,
-        Br = 1,
         //inline
+        Br = 1,
+        Katex = 2,
         Super = 20,
         Sub = 21,
         StrikeThrough = 30,
@@ -24,6 +25,7 @@ declare module EnrichEditor {
         //other block
         List = 200,
         Quote = 210,
+        Image = 300,
         //extends
         Align = 1000,
     }
@@ -191,3 +193,5 @@ declare module EnrichEditor {
 interface Node {
     $renderNode: any;
 }
+
+declare var katex: any;

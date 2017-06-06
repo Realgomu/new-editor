@@ -17,11 +17,76 @@ export abstract class BlockTool implements EE.IEditorTool {
         let map: EE.InlineMap = {};
         let pos = 0;
         let last: { [token: string]: EE.IInline } = {};
-        Util.TreeWalker(
-            this.editor.ownerDoc,
-            el,
-            (current) => {
-                let lenght = current.textContent.length;
+        this.editor.treeWalker(el, (current) => {
+            if (current.nodeType === 1) {
+                let tool = this.editor.tools.matchInlineTool(<Element>current);
+                if (tool) {
+                    if (!map[tool.token]) map[tool.token] = [];
+                    let inline = tool.readData(<Element>current, pos);
+                    if (inline) {
+                        if (last[tool.token] && inline.start === last[tool.token].end) {
+                            //检查是否可以合并
+                            last[tool.token].end = inline.end;
+                        }
+                        else {
+                            map[tool.token].push(inline);
+                            last[tool.token] = inline;
+                        }
+                    }
+                }
+            }
+            else if (current.nodeType === 3) {
+                pos += current.textContent.length;
+            }
+        });
+        // Util.TreeWalker(
+        //     this.editor.ownerDoc,
+        //     el,
+        //     (current) => {
+        //         let lenght = current.textContent.length;
+        //         if (current.nodeType === 1) {
+        //             let tool = this.editor.tools.matchInlineTool(<Element>current);
+        //             if (tool) {
+        //                 if (!map[tool.token]) map[tool.token] = [];
+        //                 let inline = tool.readData(<Element>current, pos);
+        //                 if (inline) {
+        //                     if (last[tool.token] && inline.start === last[tool.token].end) {
+        //                         //检查是否可以合并
+        //                         last[tool.token].end = inline.end;
+        //                     }
+        //                     else {
+        //                         map[tool.token].push(inline);
+        //                         last[tool.token] = inline;
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //         else if (current.nodeType === 3) {
+        //             pos += lenght;
+        //         }
+        //     });
+        return map;
+    }
+
+    getTextContent(el: Element) {
+        return el.textContent;
+    }
+
+    protected $readDate(el: HTMLElement): EE.IBlock {
+        let id = el.getAttribute('data-row-id');
+        let block: EE.IBlock = {
+            rowid: id || Util.RandomID(),
+            token: this.token,
+            text: this.getTextContent(el),
+            inlines: {},
+        }
+        if (this.blockType === EE.BlockType.Leaf && block.text) {
+            // block.inlines = this.$readInlines(el);
+            let map: EE.InlineMap = {};
+            let pos = 0;
+            let last: { [token: string]: EE.IInline } = {};
+            let text = '';
+            this.editor.treeWalker(el, (current) => {
                 if (current.nodeType === 1) {
                     let tool = this.editor.tools.matchInlineTool(<Element>current);
                     if (tool) {
@@ -40,22 +105,12 @@ export abstract class BlockTool implements EE.IEditorTool {
                     }
                 }
                 else if (current.nodeType === 3) {
-                    pos += lenght;
+                    pos += current.textContent.length;
+                    text += current.textContent;
                 }
             });
-        return map;
-    }
-
-    protected $readDate(el: HTMLElement): EE.IBlock {
-        let id = el.getAttribute('data-row-id');
-        let block: EE.IBlock = {
-            rowid: id || Util.RandomID(),
-            token: this.token,
-            text: el.textContent,
-            inlines: {},
-        }
-        if (this.blockType === EE.BlockType.Leaf && block.text) {
-            block.inlines = this.$readInlines(el);
+            block.inlines = map;
+            block.text = text;
         }
         else {
             block.text = '';
