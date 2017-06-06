@@ -25,7 +25,7 @@ export default class Horizontal extends Tool.BlockTool {
 
     apply() {
         let newId = Util.RandomID();
-        let newHrEl = Util.CreateRenderElement(this.editor.ownerDoc, {
+        let newHrEl = this.editor.renderElement({
             tag: 'hr',
             attr: {
                 'data-row-id': newId

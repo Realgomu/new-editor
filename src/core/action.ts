@@ -199,7 +199,7 @@ export class Actions {
                     case PathType.Add:
                         {
                             let parent = this.editor.findBlockElement(p.toPid);
-                            let newEl = this.editor.createElement(p.toBlock);
+                            let newEl = this.editor.refreshElement(p.toBlock);
                             this.editor.insertElement(parent, newEl, p.toIndex);
                         }
                         break;
@@ -230,7 +230,7 @@ export class Actions {
                     //     break;
                     case PathType.Change:
                         {
-                            let newEl = this.editor.createElement(p.toBlock);
+                            let newEl = this.editor.refreshElement(p.toBlock);
                         }
                         break;
                 }

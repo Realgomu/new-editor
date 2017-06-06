@@ -16,19 +16,19 @@ export class DefaultUI {
     init(el: HTMLElement) {
         this.box = el;
         this.box.classList.add('ee-box');
-        let wrapper = Util.CreateRenderElement(this.editor.ownerDoc, {
+        let wrapper = this.editor.renderElement({
             tag: 'div',
             attr: {
                 class: 'ee-wrapper'
             }
         });
-        this.page = Util.CreateRenderElement(this.editor.ownerDoc, {
+        this.page = this.editor.renderElement({
             tag: 'div',
             attr: {
                 class: 'ee-page'
             }
         }) as HTMLElement;
-        let rootEl = Util.CreateRenderElement(this.editor.ownerDoc, {
+        let rootEl = this.editor.renderElement({
             tag: 'div',
             attr: {
                 class: 'ee-view'

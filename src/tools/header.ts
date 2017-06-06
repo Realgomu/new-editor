@@ -4,7 +4,7 @@ import { Editor } from 'core/editor';
 import * as Core from 'core/editor';
 
 interface IHeader extends EE.IBlock {
-    size: number;
+    level: number;
 }
 
 @Tool.EditorTool({
@@ -31,14 +31,12 @@ export default class Paragraph extends Tool.BlockTool {
     readData(el: Element): IHeader {
         let block = this.$readDate(el as HTMLElement) as IHeader;
         let size = parseInt(el.tagName.substr(1, 1));
-        block.size = size;
+        block.level = size;
         return block;
     }
 
     render(block: IHeader) {
-        let el = this.$render(block, 'h' + block.size);
-        this.$renderInlines(el, block.inlines);
-        return el;
+        return this.$render(block, 'h' + block.level);
     }
 
     apply(button: Core.IToolbarButton) {

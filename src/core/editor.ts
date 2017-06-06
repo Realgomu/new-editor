@@ -110,13 +110,13 @@ export class Editor {
     }
 
     createRootElement() {
-        return Util.CreateRenderElement(this.ownerDoc, {
+        return this.renderElement({
             tag: 'div',
             attr: {
                 'class': 'ee-view',
                 'contenteditable': 'true',
             }
-        }) as HTMLElement;
+        });
     }
 
     isEmpty() {
@@ -131,7 +131,7 @@ export class Editor {
         }
     }
 
-    readElement(el: Element, pid: string) {
+    private _readNode(el: Element, pid: string) {
         let children: HTMLCollection;
         let node: EE.IBlockNode = {
             rowid: '',
@@ -166,7 +166,7 @@ export class Editor {
 
         if (children && children.length > 0) {
             Util.NodeListForEach(children, (child, index) => {
-                let childNode = this.readElement(child, node.rowid);
+                let childNode = this._readNode(child, node.rowid);
                 childNode.index = index;
                 if (childNode) {
                     node.children.push(childNode);
@@ -179,7 +179,7 @@ export class Editor {
     /** 解析文档数据,生成快照 */
     snapshot(step?: IActionStep) {
         this.blockMap = {};
-        this.blockTree = this.readElement(this.rootEl, '');
+        this.blockTree = this._readNode(this.rootEl, '');
         if (step) {
             step.map = Util.Extend({}, this.blockMap) as EE.IBlockMap;
             step.tree = Util.Extend([], this.blockTree) as EE.IBlockNode;
@@ -295,7 +295,7 @@ export class Editor {
     }
 
     /** 创建新element并删除老的 */
-    createElement(block: EE.IBlock) {
+    refreshElement(block: EE.IBlock) {
         let tool = this.tools.matchToken(block.token) as BlockTool;
         let oldEl = this.findBlockElement(block.rowid);
         let newEl = tool.render(block);
@@ -314,7 +314,7 @@ export class Editor {
         let tagName = parent.tagName.toLowerCase();
         if (tagName === 'ol' || tagName === 'ul') {
             //对于列表，插入新节点时，增加li
-            let li = Util.CreateRenderElement(this.ownerDoc, { tag: 'li' }) as HTMLElement;
+            let li = this.renderElement({ tag: 'li' });
             li.appendChild(child);
             child = li;
         }
@@ -337,7 +337,7 @@ export class Editor {
             (node) => {
                 let length = node.textContent.length;
                 if (node.nodeType === 1) {
-                    if (Util.MathSelector(node as Element, selector) && pos <= start && end <= pos + length) {
+                    if (Util.MatchSelector(node as Element, selector) && pos <= start && end <= pos + length) {
                         targetEl = node as Element;
                     }
                 }
@@ -364,7 +364,7 @@ export class Editor {
         let skipNodes = ['span.katex'];
         let filter = {
             acceptNode: (node) => {
-                if (node.nodeType === 1 && skipNodes.findIndex(s => Util.MathSelector(node as Element, s)) >= 0) {
+                if (node.nodeType === 1 && skipNodes.findIndex(s => Util.MatchSelector(node as Element, s)) >= 0) {
                     return NodeFilter.FILTER_REJECT;
                 }
                 return NodeFilter.FILTER_ACCEPT;
@@ -375,5 +375,20 @@ export class Editor {
             let current = walker.currentNode;
             func && func(current as Element | Text);
         }
+    }
+
+    renderElement(renderNode: EE.IRenderNode) {
+        let el = this.ownerDoc.createElement(renderNode.tag);
+        //设置attr
+        for (let name in renderNode.attr) {
+            el.setAttribute(name, renderNode.attr[name]);
+        }
+        //children
+        if (renderNode.children && renderNode.children.length > 0) {
+            renderNode.children.forEach(child => {
+                el.appendChild(this.renderElement(child));
+            });
+        }
+        return el;
     }
 }

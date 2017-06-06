@@ -128,30 +128,14 @@ export class Tools {
         return this._toolCache.filter(t => t.level >= 100 && t.level < 1000) as BlockTool[];
     }
 
-    getActiveTokens(target: Element) {
-        let list = [];
-        Util.FindParent(target, (el) => {
-            if (el == this.editor.rootEl) return true;
-            let tool = this._match(t => matchSelectors(el, t));
-            if (tool) {
-                list.push(tool.token);
-            }
-            return false;
-        });
-        return list;
-    }
-
     createNewRow(pid: string = '') {
-        let el = Util.CreateRenderElement(this.editor.ownerDoc, {
-            tag: this.rowTool.selectors[0],
-            attr: {
-                'data-row-id': Util.RandomID()
-            },
-            children: [{
-                tag: 'br'
-            }]
-        }) as HTMLElement;
-        let block = this.rowTool.readData(el);
+        let block: EE.IBlock = {
+            rowid: Util.RandomID(),
+            token: this.rowTool.token,
+            text: '',
+            inlines: {},
+        };
+        let el = this.rowTool.render(block);;
         this.editor.blockMap[block.rowid] = {
             rowid: block.rowid,
             pid: pid,
@@ -166,7 +150,7 @@ function matchSelectors(el: Element, tool: EE.IEditorTool) {
     if (tool.selectors && tool.selectors.length > 0) {
         for (let i = 0, l = tool.selectors.length; i < l; i++) {
             let selector = tool.selectors[i];
-            if (Util.MathSelector(el, selector)) {
+            if (Util.MatchSelector(el, selector)) {
                 return true;
             }
         }

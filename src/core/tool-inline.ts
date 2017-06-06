@@ -11,29 +11,23 @@ export abstract class InlineTool implements EE.IEditorTool {
     constructor(protected editor: Editor) {
     }
 
-    protected $createData(start: number, end: number) {
+    readData(el: Element, start: number): EE.IInline {
         let inline: EE.IInline = {
             start: start,
-            end: end,
+            end: start + el.textContent.length,
         }
         return inline;
     }
 
-    readData(el: Element, start: number): EE.IInline {
-        return this.$createData(start, start + el.textContent.length);
-    }
-
-    protected $renderNode(inline: EE.IInline) {
-        let node: EE.IRenderNode = {
-            tag: this.selectors[0],
-            start: inline.start,
-            end: inline.end
-        };
-        return node;
-    }
-
-    renderNode(inline: EE.IInline) {
-        return this.$renderNode(inline);
+    render(inline: EE.IInline, replaceText: Text) {
+        let el = this.editor.renderElement({
+            tag: this.selectors[0]
+        });
+        if (replaceText) {
+            replaceText.parentNode.replaceChild(replaceText, el);
+            el.appendChild(replaceText);
+        }
+        return el;
     }
 
     /** 合并样式 */
@@ -112,13 +106,19 @@ export abstract class InlineTool implements EE.IEditorTool {
                 let to = node.block;
                 //合并
                 if (!button.active) {
-                    to.inlines[this.token] = this.$mergeApply(to.inlines[this.token], this.$createData(start, end));
+                    to.inlines[this.token] = this.$mergeApply(to.inlines[this.token], {
+                        start: start,
+                        end: end
+                    });
                 }
                 else {
-                    to.inlines[this.token] = this.$removeApply(to.inlines[this.token], this.$createData(start, end));
+                    to.inlines[this.token] = this.$removeApply(to.inlines[this.token], {
+                        start: start,
+                        end: end
+                    });
                 }
                 //重新渲染block
-                this.editor.createElement(to);
+                this.editor.refreshElement(to);
             });
             this.editor.cursor.restore();
             this.editor.actions.doAction();

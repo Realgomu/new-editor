@@ -91,9 +91,6 @@ declare module EnrichEditor {
     /** dom render node */
     interface IRenderNode {
         tag: string;
-        start?: number;
-        end?: number;
-        content?: string;
         attr?: IAttributeMap;
         children?: IRenderNode[];
     }
@@ -191,7 +188,7 @@ declare module EnrichEditor {
 }
 
 interface Node {
-    $renderNode: any;
+    $inline: EE.IInline;
 }
 
 declare var katex: any;

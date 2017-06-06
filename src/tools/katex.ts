@@ -24,7 +24,7 @@ export default class Katex extends Core.InlineTool {
     }
 
     private _createCodeEl(tex: string) {
-        let code = Util.CreateRenderElement(this.editor.ownerDoc, {
+        let code = this.editor.renderElement({
             tag: 'span',
             attr: {
                 class: 'tex-code',
@@ -35,7 +35,7 @@ export default class Katex extends Core.InlineTool {
         return code;
     }
 
-    readData(el: Element, start: number): EE.IInline {
+    readData(el: Element, start: number): IKatex {
         let tex = el.getAttribute('data-katex');
         if (tex) {
             let kt = katex.render(tex, el);
@@ -49,5 +49,32 @@ export default class Katex extends Core.InlineTool {
             tex: tex
         }
         return inline;
+    }
+
+    render(inline: IKatex, replaceText: Text) {
+        let el = this.editor.renderElement({
+            tag: 'span',
+            attr: {
+                'class': 'math',
+                'contenteditable': 'false',
+            }
+        });
+        //渲染公式
+        if (inline.tex) {
+            let kt = katex.render(inline.tex, el);
+        }
+        let texCode = this.editor.renderElement({
+            tag: 'span',
+            attr: {
+                class: 'tex-code',
+                style: 'display:none;'
+            }
+        });
+        el.appendChild(texCode);
+        if (replaceText) {
+            replaceText.parentNode.replaceChild(replaceText, el);
+            texCode.appendChild(replaceText);
+        }
+        return el;
     }
 } 

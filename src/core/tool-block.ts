@@ -68,16 +68,12 @@ export abstract class BlockTool implements EE.IEditorTool {
         return map;
     }
 
-    getTextContent(el: Element) {
-        return el.textContent;
-    }
-
     protected $readDate(el: HTMLElement): EE.IBlock {
         let id = el.getAttribute('data-row-id');
         let block: EE.IBlock = {
             rowid: id || Util.RandomID(),
             token: this.token,
-            text: this.getTextContent(el),
+            text: '',
             inlines: {},
         }
         if (this.blockType === EE.BlockType.Leaf && block.text) {
@@ -135,44 +131,120 @@ export abstract class BlockTool implements EE.IEditorTool {
             let list = map[tool.token];
             if (list) {
                 list.forEach(item => {
-                    Util.InsertRenderTree(this.editor.ownerDoc, el, tool.renderNode(item));
+                    this._insertInlineElement(el, tool, item);
+                    // Util.InsertRenderTree(this.editor.ownerDoc, el, tool.renderNode(item));
                 })
             }
         });
     }
 
+    private _insertInlineElement(root: HTMLElement, tool: Tool.InlineTool, insert: EE.IInline) {
+        if (root && tool && insert) {
+            let walker = this.editor.ownerDoc.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+            while (walker.nextNode() && insert) {
+                let leftText = walker.currentNode as Text;
+                let current = leftText.$inline;
+                let left: EE.IInline;
+                let center: EE.IInline;
+                let right: EE.IInline;
+                if (insert.end <= current.end) {
+                    center = insert;
+                    insert = undefined;
+                }
+                else if (insert.start <= current.end && insert.end > current.end) {
+                    center = {
+                        start: insert.start,
+                        end: current.end
+                    };
+                    insert.start = current.end;
+                }
+                else {
+                    continue;
+                }
+                let collapsed = center.start === center.end;
+                if (collapsed) {
+                    //如果该节点是闭合节点
+                    let el = tool.render(center, null);
+                    if (center.start === current.start) {
+                        leftText.parentNode.insertBefore(el, leftText);
+                    }
+                    else if (center.start === current.end) {
+                        leftText.parentNode.appendChild(el);
+                    }
+                    else {
+                        //切分当前text节点
+                        let split = leftText.splitText(center.start - current.start);
+                        leftText.parentNode.insertBefore(el, split);
+                    }
+                }
+                else {
+                    //如果不是闭合节点
+                    let centerText = leftText;
+                    if (center.start > current.start) {
+                        //切分左边
+                        left = {
+                            start: current.start,
+                            end: center.start,
+                        };
+                        centerText = leftText.splitText(center.start - current.start);
+                        leftText.$inline = left;
+                    }
+                    if (center.end < current.end) {
+                        //切分右边
+                        right = {
+                            start: center.end,
+                            end: current.end,
+                        };
+                        let rightText = centerText.splitText(center.end - center.start);
+                        rightText.$inline = right;
+                    }
+                    centerText.$inline = center;
+                    tool.render(center, centerText);
+                }
+            }
+        }
+    }
+
     protected $render(block: EE.IBlock, tag: string = this.selectors[0]) {
-        let end = block.text.length;
-        let renderNode = {
+        let node: EE.IRenderNode = {
             tag: tag,
-            start: 0,
-            end: block.text.length,
-            content: block.text,
             attr: {
                 'data-row-id': block.rowid
             }
         };
+        //style
         if (block.style) {
             let style = '';
             for (let key in block.style) {
                 style += `text-align:${block.style[key]};`;
             }
             if (style) {
-                renderNode.attr['style'] = style;
+                node.attr['style'] = style;
             }
         }
-        return Util.CreateRenderElement(this.editor.ownerDoc, renderNode) as HTMLElement;
+        //创建element
+        let el = this.editor.renderElement(node);
+        if (this.blockType === EE.BlockType.Leaf) {
+            if (block.text) {
+                //如果是叶子元素，渲染inline样式，首先插入一个完整的text节点
+                let text = this.editor.ownerDoc.createTextNode(block.text);
+                //设置起始位置
+                text.$inline = {
+                    start: 0,
+                    end: block.text.length
+                };
+                this.$renderInlines(el, block.inlines);
+            }
+            else {
+                //空行，增加br
+                el.appendChild(this.editor.ownerDoc.createElement('br'));
+            }
+        }
+        return el;
     }
 
     render(block: EE.IBlock) {
-        let el = this.$render(block);
-        if (block.text) {
-            this.$renderInlines(el, block.inlines);
-        }
-        else if (this.blockType === EE.BlockType.Leaf) {
-            el.appendChild(this.editor.ownerDoc.createElement('br'));
-        }
-        return el;
+        return this.$render(block, this.selectors[0]);
     }
 
     protected $apply(tag: string) {

@@ -40,7 +40,6 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
 
     readData(el: Element): IList {
         let block = this.$readDate(el as HTMLElement) as IList;
-        block.text = '';
         block.type = el.tagName.toLowerCase();
         return block;
     }
@@ -83,7 +82,7 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
                 let index: number;
                 this.editor.cursor.eachRow(node => {
                     let row = this.editor.findBlockElement(node.rowid);
-                    let li = Util.CreateRenderElement(this.editor.ownerDoc, { tag: 'li' });
+                    let li = this.editor.renderElement({ tag: 'li' });
                     li.appendChild(row);
                     el.appendChild(li);
                     if (parent === undefined) {
@@ -122,9 +121,7 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
         let target = this.editor.findBlockElement(current.rowid);
         let li = target.parentElement;
         if (li.tagName.toLowerCase() === 'li') {
-            let newLI = Util.CreateRenderElement(this.editor.ownerDoc, {
-                tag: 'li'
-            }) as HTMLElement;
+            let newLI = this.editor.renderElement({ tag: 'li' });
             newLI.appendChild(newRow);
             this.editor.insertBlock(newLI, li, false);
         }
@@ -138,9 +135,7 @@ export default class List extends Tool.BlockTool implements Tool.IEnterBlockTool
         let target = this.editor.findBlockElement(current.rowid);
         let li = target.parentElement;
         if (li.tagName.toLowerCase() === 'li') {
-            let newLI = Util.CreateRenderElement(this.editor.ownerDoc, {
-                tag: 'li'
-            }) as HTMLElement;
+            let newLI = this.editor.renderElement({ tag: 'li' });
             newLI.appendChild(newRow);
             this.editor.insertBlock(newLI, li, true);
         }

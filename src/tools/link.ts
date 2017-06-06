@@ -98,19 +98,23 @@ export default class Link extends Tool.InlineTool {
     }
 
     readData(el: Element, start: number) {
-        let href = el.getAttribute('href');
-        let data = this.$createData(start, start + el.textContent.length) as ILink;
-        data.href = href;
-        return data;
+        let inline: ILink = {
+            start: start,
+            end: start + el.textContent.length,
+            href: el.getAttribute('href') || ''
+        }
+        return inline;
     }
 
-    renderNode(data: ILink) {
-        let node = this.$renderNode(data);
-        node.attr = {
-            href: data.href,
-            target: '_blank'
-        };
-        return node;
+    render(inline: ILink) {
+        let el = this.editor.renderElement({
+            tag: this.selectors[0],
+            attr: {
+                href: inline.href,
+                target: '_blank',
+            }
+        });
+        return el;
     }
 
     apply(button: IToolbarButton) {
@@ -128,7 +132,7 @@ export default class Link extends Tool.InlineTool {
                     href: ''
                 };
                 list.push(link);
-                this.editor.createElement(node.block);
+                this.editor.refreshElement(node.block);
                 this.editor.cursor.restore();
                 this._openEdit(true);
             }
@@ -143,7 +147,7 @@ export default class Link extends Tool.InlineTool {
 
     private _openTool(target: HTMLElement = this._linkNode.el) {
         if (!this._popTool) {
-            this._popTool = Util.CreateRenderElement(this.editor.ownerDoc, {
+            this._popTool = this.editor.renderElement({
                 tag: 'div',
                 attr: {
                     class: 'ee-pop-toolbar'
@@ -160,7 +164,7 @@ export default class Link extends Tool.InlineTool {
     }
 
     private _createEditPanel() {
-        this._popEdit = Util.CreateRenderElement(this.editor.ownerDoc, {
+        this._popEdit = this.editor.renderElement({
             tag: 'div',
             attr: {
                 class: 'ee-link-input'
@@ -230,7 +234,7 @@ export default class Link extends Tool.InlineTool {
                 let index = list.findIndex(l => l.start <= this._linkNode.start && this._linkNode.end <= l.end);
                 list.splice(index, 1);
             };
-            this.editor.createElement(block);
+            this.editor.refreshElement(block);
             this.editor.cursor.restore();
         }
     }
