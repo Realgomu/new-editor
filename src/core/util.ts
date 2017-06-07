@@ -57,20 +57,20 @@ export function Extend(dst, ...args: any[]) {
 }
 
 /** 遍历dom节点 */
-export function TreeWalker(
-    doc: Document,
-    root: Element,
-    func: (current: Element | Text) => void,
-    onlyText: boolean = false
-) {
-    let watchToShow = onlyText ? NodeFilter.SHOW_TEXT : NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
-    let walker = document.createTreeWalker(root, watchToShow, null, false);
-    let pos = 0;
-    while (walker.nextNode()) {
-        let current = walker.currentNode;
-        func && func(current as Element | Text);
-    }
-}
+// export function TreeWalker(
+//     doc: Document,
+//     root: Element,
+//     func: (current: Element | Text) => void,
+//     onlyText: boolean = false
+// ) {
+//     let watchToShow = onlyText ? NodeFilter.SHOW_TEXT : NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
+//     let walker = document.createTreeWalker(root, watchToShow, null, false);
+//     let pos = 0;
+//     while (walker.nextNode()) {
+//         let current = walker.currentNode;
+//         func && func(current as Element | Text);
+//     }
+// }
 
 export function NodeListForEach<T extends Node>(nodes: NodeListOf<T>, func: (node: T, index: number) => void) {
     if (nodes && nodes.length > 0) {
@@ -259,6 +259,21 @@ export function GetKeyCode(event: KeyboardEvent) {
 //         return el;
 //     }
 // }
+
+export function CreateRenderElement(doc: Document, renderNode: EE.IRenderNode) {
+    let el = doc.createElement(renderNode.tag);
+    //设置attr
+    for (let name in renderNode.attr) {
+        el.setAttribute(name, renderNode.attr[name]);
+    }
+    //children
+    if (renderNode.children && renderNode.children.length > 0) {
+        renderNode.children.forEach(child => {
+            el.appendChild(CreateRenderElement(doc, child));
+        });
+    }
+    return el;
+}
 
 export function CreateEmptyNode(doc: Document) {
     let el = doc.createElement('div');

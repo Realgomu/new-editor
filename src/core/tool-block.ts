@@ -76,8 +76,7 @@ export abstract class BlockTool implements EE.IEditorTool {
             text: '',
             inlines: {},
         }
-        if (this.blockType === EE.BlockType.Leaf && block.text) {
-            // block.inlines = this.$readInlines(el);
+        if (this.blockType === EE.BlockType.Leaf) {
             let map: EE.InlineMap = {};
             let pos = 0;
             let last: { [token: string]: EE.IInline } = {};
@@ -233,6 +232,7 @@ export abstract class BlockTool implements EE.IEditorTool {
                     start: 0,
                     end: block.text.length
                 };
+                el.appendChild(text);
                 this.$renderInlines(el, block.inlines);
             }
             else {

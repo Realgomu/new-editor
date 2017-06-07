@@ -24,7 +24,7 @@ export abstract class InlineTool implements EE.IEditorTool {
             tag: this.selectors[0]
         });
         if (replaceText) {
-            replaceText.parentNode.replaceChild(replaceText, el);
+            replaceText.parentNode.replaceChild(el, replaceText);
             el.appendChild(replaceText);
         }
         return el;

@@ -1,0 +1,62 @@
+span.math {
+    cursor: pointer;
+    margin: 0 4px;
+    &:hover {
+        background-color: fade(@color-highlight, 20);
+    }
+}
+
+span.katex {
+    user-select: none;
+    pointer-events: none;
+}
+
+.ee-katex-edit {
+    width: 280px;
+    .pop-container();
+    padding: 8px 16px;
+    box-sizing: border-box;
+    >input {
+        font-size: 16px;
+        border: 0;
+        width: 100%;
+        height: 24px;
+        border-bottom: 1px solid @color-disabled;
+        margin: 8px 0;
+        &:focus {
+            height: 23px;
+            border-bottom: 2px solid @color-active;
+        }
+    }
+}
+
+.wrs-editor-container {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 100;
+    .flex-container(column, center, center);
+    display: none;
+    .modal-container {
+        background-color: @color-background;
+        border-radius: 5px;
+        box-shadow: @normal-shadow;
+        overflow: hidden;
+        .modal-title {
+            height: 32px;
+            background-color: fade(@color-active, 50);
+        }
+        .modal-footer {
+            height: 40px;
+            padding: 0 8px;
+            .flex-container(row, center, flex-end);
+        }
+    }
+    #WRSEditor {
+        width: 600px;
+        height: 400px;
+        padding: 8px 8px 0;
+    }
+}

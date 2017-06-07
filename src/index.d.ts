@@ -8,7 +8,7 @@ declare module EnrichEditor {
         None = 0,
         //inline
         Br = 1,
-        Katex = 2,
+        Math = 2,
         Super = 20,
         Sub = 21,
         StrikeThrough = 30,

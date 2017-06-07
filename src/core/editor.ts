@@ -33,7 +33,7 @@ import 'tools/image';
 //extends
 import 'tools/align';
 import 'tools/row-tip';
-import 'tools/katex';
+import 'tools/math';
 
 export class Editor {
     options: EE.IEditorOptions;
@@ -59,7 +59,7 @@ export class Editor {
                 '|', 'bold', 'italic', 'underline', 'strike', 'sup', 'sub',
                 '|', 'alignLeft', 'alignCenter', 'alignRight', 'alignJustify',
                 '|', 'hr', 'blockquote', 'ol', 'ul',
-                '|', 'link', 'image']
+                '|', 'link', 'image', 'math']
         };
 
         this.options = Util.Extend(defaultOptions, options || {});
@@ -331,21 +331,34 @@ export class Editor {
         let rowEl = this.findBlockElement(rowid);
         let pos: number = 0;
         let targetEl: Element;
-        Util.TreeWalker(
-            this.ownerDoc,
-            rowEl,
-            (node) => {
-                let length = node.textContent.length;
-                if (node.nodeType === 1) {
-                    if (Util.MatchSelector(node as Element, selector) && pos <= start && end <= pos + length) {
-                        targetEl = node as Element;
-                    }
-                }
-                else if (node.nodeType === 3) {
-                    pos += length
+        this.treeWalker(rowEl, (node) => {
+            let length = node.textContent.length;
+            if (node.nodeType === 1) {
+                if (Util.MatchSelector(node as Element, selector) && pos <= start && end <= pos + length) {
+                    targetEl = node as Element;
+                    start = pos;
+                    end = pos + length;
                 }
             }
-        );
+            else if (node.nodeType === 3) {
+                pos += length
+            }
+        });
+        // Util.TreeWalker(
+        //     this.ownerDoc,
+        //     rowEl,
+        //     (node) => {
+        //         let length = node.textContent.length;
+        //         if (node.nodeType === 1) {
+        //             if (Util.MatchSelector(node as Element, selector) && pos <= start && end <= pos + length) {
+        //                 targetEl = node as Element;
+        //             }
+        //         }
+        //         else if (node.nodeType === 3) {
+        //             pos += length
+        //         }
+        //     }
+        // );
         if (targetEl) {
             return {
                 rowid: rowid,
@@ -360,8 +373,8 @@ export class Editor {
     }
 
     treeWalker(root: Element, func: (current: Element | Text) => void, onlyText: boolean = false) {
-        let watchToShow = onlyText ? NodeFilter.SHOW_TEXT : NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
-        let skipNodes = ['span.katex'];
+        let watchToShow = NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
+        let skipNodes = ['svg'];
         let filter = {
             acceptNode: (node) => {
                 if (node.nodeType === 1 && skipNodes.findIndex(s => Util.MatchSelector(node as Element, s)) >= 0) {
@@ -373,22 +386,13 @@ export class Editor {
         let walker = document.createTreeWalker(root, watchToShow, filter, false);
         while (walker.nextNode()) {
             let current = walker.currentNode;
-            func && func(current as Element | Text);
+            if (!onlyText || current.nodeType === 3) {
+                func && func(current as Element | Text);
+            }
         }
     }
 
     renderElement(renderNode: EE.IRenderNode) {
-        let el = this.ownerDoc.createElement(renderNode.tag);
-        //设置attr
-        for (let name in renderNode.attr) {
-            el.setAttribute(name, renderNode.attr[name]);
-        }
-        //children
-        if (renderNode.children && renderNode.children.length > 0) {
-            renderNode.children.forEach(child => {
-                el.appendChild(this.renderElement(child));
-            });
-        }
-        return el;
+        return Util.CreateRenderElement(this.ownerDoc, renderNode);
     }
 }

@@ -78,7 +78,6 @@ export default class Link extends Tool.InlineTool {
             ev.stopPropagation();
         }, 'a');
         this.editor.events.on('$cursorChanged', () => {
-            let cursor = this.editor.cursor.current();
             this._linkNode = this._findTarget();
             if (this._linkNode) {
                 this._openTool();
@@ -106,7 +105,7 @@ export default class Link extends Tool.InlineTool {
         return inline;
     }
 
-    render(inline: ILink) {
+    render(inline: ILink, replaceText: Text) {
         let el = this.editor.renderElement({
             tag: this.selectors[0],
             attr: {
@@ -114,6 +113,10 @@ export default class Link extends Tool.InlineTool {
                 target: '_blank',
             }
         });
+        if (replaceText) {
+            replaceText.parentNode.replaceChild(el, replaceText);
+            el.appendChild(replaceText);
+        }
         return el;
     }
 

@@ -10,6 +10,20 @@ export interface IActionStep {
     log?: any;
 }
 
+const enum PathType {
+    Add,
+    Change,
+    Move,
+    Delete,
+}
+interface IPathData {
+    type: PathType;
+    rowid?: string;
+    toPid?: string;
+    toIndex?: number;
+    toBlock?: EE.IBlock;
+}
+
 export class Actions {
     private _queue: IActionStep[] = [];
     private _point: number = -1;
@@ -35,7 +49,6 @@ export class Actions {
         if (this._point + 1 < this._queue.length) {
             let from = this._queue[this._point];
             let to = this._queue[this._point + 1];
-            // this._calcChanges(from, to);
             let paths = this._diffPath(from, to);
             console.log(paths);
             this._doPaths(paths);
@@ -50,7 +63,6 @@ export class Actions {
         if (this._point > 0) {
             let from = this._queue[this._point];
             let to = this._queue[this._point - 1];
-            // this._calcChanges(from, to);
             let paths = this._diffPath(from, to);
             console.log(paths);
             this._doPaths(paths);
@@ -236,17 +248,4 @@ export class Actions {
                 }
             });
     }
-}
-const enum PathType {
-    Add,
-    Change,
-    Move,
-    Delete,
-}
-interface IPathData {
-    type: PathType;
-    rowid?: string;
-    toPid?: string;
-    toIndex?: number;
-    toBlock?: EE.IBlock;
 }
