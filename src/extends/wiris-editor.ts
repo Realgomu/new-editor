@@ -9,7 +9,7 @@ const editorOptions = {
     baseUrl: 'http://www.wiris.net/demo/editor/editor',
     language: 'zh',
     toolbar: 'chemistry',
-    randerUrl: 'http://localhost:4100/integration/showimage.aspx',
+    randerUrl: 'http://test.xinpingzi.com:4002/integration/showimage.aspx',
 }
 
 let submitCB: Function;
@@ -101,7 +101,18 @@ export function HideModal() {
     $wrapper.style.display = 'none';
 }
 
-export function RenderMathML(mathml: string, cb: (result) => void) {
+export interface ISvgRenderResult {
+    status: string;
+    result: {
+        baseline: string;
+        content: string;
+        format: string;
+        height: string;
+        width: string;
+    }
+}
+
+export function RenderMathML(mathml: string, cb: (result: ISvgRenderResult) => void) {
     let request = new XMLHttpRequest();
     try {
         request.open('POST', editorOptions.randerUrl, true);

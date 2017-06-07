@@ -92,6 +92,9 @@ export class Events {
         this.attach('compositionstart', root, this._compositionstart.bind(this));
         this.attach('compositionend', root, this._compositionend.bind(this));
         this.attach('click', root, this._click.bind(this));
+        this.attach('dblclick', root, (ev) => {
+            this.trigger('$dblclick', ev);
+        });
         this.attach('keydown', root, this._keydown.bind(this));
         this.attach('keyup', root, this._keyup.bind(this));
         this.attach('touchend', root, this._touchend.bind(this));

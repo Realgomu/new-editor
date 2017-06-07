@@ -3,8 +3,9 @@ import * as Util from 'core/util';
 
 import * as Wiris from 'extends/wiris-editor.ts';
 
-interface IKatex extends EE.IInline {
-    tex: string;
+interface IMath extends EE.IInline {
+    image?: string;
+    mathml?: string;
 }
 
 declare var wrs_openEditorWindow: any;
@@ -14,7 +15,7 @@ declare var wrs_openEditorWindow: any;
     level: EE.ToolLevel.Math
 })
 export default class Math extends Core.InlineTool {
-    selectors = ['span.math'];
+    selectors = ['img.math'];
 
     private _mathNode: EE.IInlineNode;
     private _popEdit: HTMLElement;
@@ -31,10 +32,11 @@ export default class Math extends Core.InlineTool {
                     submit: (mathml: string) => {
                         console.log(mathml);
                         Wiris.RenderMathML(mathml, (result) => {
+                            this._addMathImage(mathml, result.result.content);
                             console.log(result);
                         });
                     },
-                    mathml: '<math xmlns="http://www.w3.org/1998/Math/MathML"><mi>e</mi><mo>=</mo><mo>&#xB1;</mo><msqrt><msup><mi>a</mi><mn>2</mn></msup><mo>+</mo><msup><mi>b</mi><mn>2</mn></msup><mo>+</mo><msup><mi>c</mi><mn>2</mn></msup></msqrt></math>'
+                    mathml: '<math xmlns="http://www.w3.org/1998/Math/MathML"><mn>2</mn><msub><mi mathvariant="normal">H</mi><mn>2</mn></msub><mi mathvariant="normal">O</mi><mo>+</mo><mn>2</mn><mi>Na</mi><mo>&#x2192;</mo><mn>2</mn><mi>NaOH</mi><mo>+</mo><msub><mi mathvariant="normal">H</mi><mn>2</mn></msub><mo>&#x2191;</mo></math>'
                 });
             }
         })
@@ -42,10 +44,25 @@ export default class Math extends Core.InlineTool {
 
     init() {
         Wiris.Init();
-        // this.editor.events.on('$click', (ev: KeyboardEvent, target: HTMLLinkElement) => {
-        //     ev.preventDefault();
-        //     ev.stopPropagation();
-        // }, 'span.math');
+        this.editor.events.on('$click', (ev: KeyboardEvent, target: HTMLImageElement) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+        }, 'img.math');
+        this.editor.events.on('$dblclick', (ev: KeyboardEvent, target: HTMLImageElement) => {
+            let mathml = target.getAttribute('data-mathml');
+            Wiris.OpenModal({
+                submit: (mathml: string) => {
+                    console.log(mathml);
+                    Wiris.RenderMathML(mathml, (result) => {
+                        this._addMathImage(mathml, result.result.content);
+                        console.log(result);
+                    });
+                },
+                mathml: mathml
+            });
+            ev.preventDefault();
+            ev.stopPropagation();
+        }, 'img.math');
         // this.editor.events.on('$cursorChanged', () => {
         //     this._mathNode = this._findTarget();
         //     if (this._mathNode) {
@@ -69,57 +86,48 @@ export default class Math extends Core.InlineTool {
         return code;
     }
 
-    readData(el: Element, start: number): IKatex {
-        let tex = ''
-        //检查tex节点内容
-        let code = el.querySelector('.tex-code');
-        if (code) {
-            tex = code.textContent;
-        }
-        //检查attr
-        if (!tex) {
-            tex = el.getAttribute('data-katex');
-        }
-        if (tex) {
-            //渲染公式
-            katex.render(tex, el);
-            el.setAttribute('contenteditable', 'false');
-            code = this._createCodeEl(tex);
-            el.appendChild(code);
-            let inline: IKatex = {
-                start: start,
-                end: start + tex.length,
-                tex: tex
-            }
-            return inline;
-        }
+    readData(el: Element, start: number): IMath {
+        let inline: IMath = {
+            start: start,
+            end: start,
+            image: el.getAttribute('src'),
+            mathml: el.getAttribute('data-mathml'),
+        };
+        return inline;
     }
 
-    render(inline: IKatex, replaceText: Text) {
+    render(inline: IMath, replaceText: Text) {
         let el = this.editor.renderElement({
-            tag: 'span',
+            tag: 'img',
             attr: {
                 'class': 'math',
-                'contenteditable': 'false',
+                'src': inline.image,
+                'data-mathml': inline.mathml
             }
         });
-        //渲染公式
-        if (inline.tex) {
-            let kt = katex.render(inline.tex, el);
-        }
-        let texCode = this.editor.renderElement({
-            tag: 'span',
-            attr: {
-                class: 'tex-code',
-                style: 'display:none;'
-            }
-        });
-        el.appendChild(texCode);
-        if (replaceText) {
-            replaceText.parentNode.replaceChild(el, replaceText);
-            texCode.appendChild(replaceText);
-        }
         return el;
+    }
+
+    private _addMathImage(mathml: string, svg: string) {
+        let cursor = this.editor.cursor.current();
+        if (cursor.collapsed) {
+            let src = `data:image/svg+xml;charset=utf8,${svg}`;
+            let inline: IMath = {
+                start: cursor.start,
+                end: cursor.start,
+                image: src,
+                mathml: mathml,
+            };
+            let node = this.editor.findBlockNode(cursor.rows[0]);
+            if (node && node.block) {
+                if (!node.block.inlines[this.token]) {
+                    node.block.inlines[this.token] = [];
+                }
+                node.block.inlines[this.token].push(inline);
+                this.editor.refreshElement(node.block);
+                this.editor.actions.doAction();
+            }
+        }
     }
 
     private _findTarget() {
