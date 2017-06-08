@@ -82,8 +82,8 @@ export default class Link extends Tool.InlineTool {
             if (this._linkNode) {
                 this._openTool();
             }
-            else {
-                this.editor.defaultUI.popover.hide();
+            else if (this._popTool) {
+                this.editor.defaultUI.popover.hide(this._popTool);
             }
         });
     }
@@ -135,8 +135,14 @@ export default class Link extends Tool.InlineTool {
                     href: ''
                 };
                 list.push(link);
-                this.editor.refreshElement(node.block);
+                let newEl = this.editor.refreshElement(node.block);
                 this.editor.cursor.restore();
+                this._linkNode = {
+                    rowid: node.block.rowid,
+                    start: link.start,
+                    end: link.end,
+                    el: newEl
+                };
                 this._openEdit(true);
             }
         }
@@ -175,7 +181,7 @@ export default class Link extends Tool.InlineTool {
         }) as HTMLElement;
         let link = this._linkNode.el as HTMLLinkElement;
         this._popEdit.innerHTML = `
-<input name="href" type="text" placeholder="URL" value="${link.getAttribute('href')}">
+<input name="href" type="text" placeholder="URL" value="${link.getAttribute('href') || ''}">
 <input name="text" type="text" placeholder="文字" value="${link.textContent}">
 <div class="ee-pop-footer"><a class="cancel">取消</a><a class="submit">确定</a></div>
 `;

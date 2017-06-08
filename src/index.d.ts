@@ -8,7 +8,6 @@ declare module EnrichEditor {
         None = 0,
         //inline
         Br = 1,
-        Math = 2,
         Super = 20,
         Sub = 21,
         StrikeThrough = 30,
@@ -16,6 +15,7 @@ declare module EnrichEditor {
         Italic = 40,
         Bold = 50,
         //inline block
+        Math = 80,
         Link = 90,
         //block
         Hr = 100,

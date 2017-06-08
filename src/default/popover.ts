@@ -15,7 +15,7 @@ export class Popover {
         this.ui.page.appendChild(this.panel);
 
         this.editor.events.attach('click', this.editor.ownerDoc.body, (ev: MouseEvent) => {
-            this.hide();
+            this.hide(null);
         });
         this.editor.events.attach('click', this.panel, (ev: MouseEvent) => {
             ev.stopPropagation();
@@ -40,7 +40,9 @@ export class Popover {
         this.panel.style.left = left + 'px';
     }
 
-    hide() {
-        this.panel.style.display = "none";
+    hide(pop: HTMLElement) {
+        if (!pop || this._lastPop === pop) {
+            this.panel.style.display = "none";
+        }
     }
 }

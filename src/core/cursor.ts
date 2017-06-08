@@ -44,12 +44,33 @@ export class Cursor {
         return parent;
     }
 
+    private _getTargetNode(node: Node, offset: number): {
+        node: Node,
+        offset: number
+    } {
+        if (node.nodeType === 1) {
+            let child = node.childNodes[offset - 1];
+            if (child) {
+                if (child.nodeType === 3 || child.childNodes.length === 0) {
+                    return { node: child, offset: 0 };
+                }
+            }
+            // else {
+            //     child = node.childNodes[offset].pre
+            // }
+        }
+        return { node: node, offset: offset };
+    }
+
     update(ev?: Event) {
         let selection = this.editor.ownerDoc.getSelection();
+        console.log(selection.getRangeAt(0));
         if (selection.anchorNode === this.editor.rootEl) {
             this.editor.cursor.restore();
             return;
         }
+        let anchor = this._getTargetNode(selection.anchorNode, selection.anchorOffset);
+        let focus = this._getTargetNode(selection.focusNode, selection.focusOffset);
         let cursor: EE.ICursorPosition = {
             rows: [],
             start: 0,
@@ -70,14 +91,14 @@ export class Cursor {
                         if (count === 1) cursor.rows.push(rowid);
                     }
                 }
-                if (el === selection.anchorNode) {
-                    cursor.start = pos + selection.anchorOffset;
+                if (el === anchor.node) {
+                    cursor.start = pos + anchor.offset;
                     cursor.rows.indexOf(rowid) < 0 && cursor.rows.push(rowid);
                     count++;
                     if (startFirst === undefined) startFirst = true;
                 }
-                if (el === selection.focusNode) {
-                    cursor.end = pos + selection.focusOffset;
+                if (el === focus.node) {
+                    cursor.end = pos + focus.offset;
                     cursor.rows.indexOf(rowid) < 0 && cursor.rows.push(rowid);
                     count++;
                     if (startFirst === undefined) startFirst = false;
@@ -97,6 +118,7 @@ export class Cursor {
         }
 
         this._setCurrent(cursor);
+        console.log(this._current);
         return this._current;
     }
 
@@ -112,8 +134,6 @@ export class Cursor {
         this._getActiveTokens();
         //触发事件
         this.editor.events.trigger('$cursorChanged', null);
-        // console.log(selection);
-        // console.log(this._current);
     }
 
     private _getActiveTokens() {

@@ -8,13 +8,14 @@ const editorOptions = {
     statVersion: '4.3.1.1367',
     baseUrl: 'http://www.wiris.net/demo/editor/editor',
     language: 'zh',
-    toolbar: 'chemistry',
+    // toolbar: 'chemistry',
+    toolbar: '',
     randerUrl: 'http://test.xinpingzi.com:4002/integration/showimage.aspx',
 }
 
 let submitCB: Function;
 let cancelCB: Function;
-export function Init() {
+export function Init(options?: any) {
     // Insert editor.
     let script = document.createElement('script');
     script.type = 'text/javascript';
@@ -75,19 +76,27 @@ function createModal() {
         });
         btnSubmit.addEventListener('click', () => {
             let mathml = editor.getMathML();
-            HideModal();
-            modalOptions && modalOptions.submit && modalOptions.submit(mathml);
+            if (mathml !== modalOptions.mathml) {
+                RenderMathML(mathml, (result) => {
+                    HideModal();
+                    modalOptions && modalOptions.submit && modalOptions.submit(result);
+                });
+            }
+            else {
+                HideModal();
+                modalOptions && modalOptions.cancel && modalOptions.cancel();
+            }
         });
     }
 }
 
 export interface IModalOptions {
-    submit?: (mathml: string) => void;
+    submit?: (result: IMathResult) => void;
     cancel?: () => void;
     mathml?: string;
 }
 
-let modalOptions: IModalOptions
+let modalOptions: IModalOptions;
 export function OpenModal(options?: IModalOptions) {
     modalOptions = options;
     createModal();
@@ -95,13 +104,16 @@ export function OpenModal(options?: IModalOptions) {
     if (options.mathml) {
         editor.setMathML(options.mathml);
     }
+    else {
+        editor.setMathML('<math>');
+    }
 }
 
 export function HideModal() {
     $wrapper.style.display = 'none';
 }
 
-export interface ISvgRenderResult {
+interface ISvgRenderResult {
     status: string;
     result: {
         baseline: string;
@@ -112,7 +124,12 @@ export interface ISvgRenderResult {
     }
 }
 
-export function RenderMathML(mathml: string, cb: (result: ISvgRenderResult) => void) {
+export interface IMathResult {
+    svg: string;
+    mathml: string;
+}
+
+export function RenderMathML(mathml: string, cb: (result: IMathResult) => void) {
     let request = new XMLHttpRequest();
     try {
         request.open('POST', editorOptions.randerUrl, true);
@@ -122,12 +139,38 @@ export function RenderMathML(mathml: string, cb: (result: ISvgRenderResult) => v
         request.send(formData);
         request.onload = (ev) => {
             if (request.status === 200) {
-                let result = JSON.parse(request.responseText);
-                cb && cb(result);
+                let obj = JSON.parse(request.responseText) as ISvgRenderResult;
+                cb && cb(parseSvgResult(obj.result.content));
             }
-        }
+        };
+        request.onabort = request.onerror = (ev) => {
+            cb && cb(undefined);
+        };
     }
     catch (ex) {
-
+        cb && cb(undefined);
     }
+}
+
+function wrs_urlencode(clearString: string) {
+    var output = '';
+    output = encodeURIComponent(clearString).replace(/!/g, '%21').replace(/'/g, '%27').replace(/\(/g, '%28').replace(/\)/g, '%29').replace(/\*/g, '%2A').replace(/~/g, '%7E');
+    return output;
+}
+
+function parseSvgResult(svgStr: string): IMathResult {
+    let result: IMathResult = {
+        svg: '',
+        mathml: '',
+    };
+    let doc = new DOMParser().parseFromString(svgStr, 'application/xml');
+    let iterator = doc.createNodeIterator(doc, NodeFilter.SHOW_COMMENT, null, false);
+    let comment = iterator.nextNode();
+    if (comment) {
+        result.mathml = comment.textContent.replace('MathML: ', '');
+        comment.parentNode.removeChild(comment);
+    }
+    let string = new XMLSerializer().serializeToString(doc);
+    result.svg = `data:image/svg+xml;charset=utf8,${wrs_urlencode(string)}`;
+    return result;
 }

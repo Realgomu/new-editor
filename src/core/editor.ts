@@ -344,21 +344,6 @@ export class Editor {
                 pos += length
             }
         });
-        // Util.TreeWalker(
-        //     this.ownerDoc,
-        //     rowEl,
-        //     (node) => {
-        //         let length = node.textContent.length;
-        //         if (node.nodeType === 1) {
-        //             if (Util.MatchSelector(node as Element, selector) && pos <= start && end <= pos + length) {
-        //                 targetEl = node as Element;
-        //             }
-        //         }
-        //         else if (node.nodeType === 3) {
-        //             pos += length
-        //         }
-        //     }
-        // );
         if (targetEl) {
             return {
                 rowid: rowid,
