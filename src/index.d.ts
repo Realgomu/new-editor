@@ -173,6 +173,7 @@ declare module EnrichEditor {
         selectors?: string[];
         init?: Function;
         apply?: Function;
+        checkDisabled?: any;
     }
 
     /** selection position, cursor position in block */

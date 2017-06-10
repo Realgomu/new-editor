@@ -34,6 +34,7 @@ export class Toolbar {
             ev.stopPropagation();
         });
         this.editor.events.on('$cursorChanged', () => {
+            let cursor = this.editor.cursor.current();
             let activeTokens = this.editor.cursor.activeTokens();
             this.buttons.forEach(b => {
                 //判断active

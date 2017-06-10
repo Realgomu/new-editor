@@ -44,13 +44,18 @@ export class Buttons {
             el.setAttribute('title', button.text);
             el.innerHTML = `<i class="fa ${button.iconFA}"></i>`;
             button.tool = _editor.tools.matchToken(button.token);
-            if (!button.click) {
-                button.click = function (ev: MouseEvent, _button: IToolbarButton) {
-                    if (_button.tool && _button.element) {
-                        let active = _button.element.classList.contains('active');
-                        _button.tool.apply && _button.tool.apply(_button);
+            if (!button.click && button.tool.apply) {
+                button.click = () => {
+                    if (button.tool && button.element) {
+                        let active = button.element.classList.contains('active');
+                        button.tool.apply(button);
                     }
                 }
+            }
+            if (!button.checkDisabled && button.tool.checkDisabled) {
+                button.checkDisabled = () => {
+                    return button.tool.checkDisabled();
+                };
             }
             this.editor.events.attach('mousedown', el, (ev) => {
                 ev.stopPropagation();

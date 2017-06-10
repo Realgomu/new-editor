@@ -81,27 +81,32 @@ export abstract class InlineTool implements EE.IEditorTool {
 
     /** 删除样式 */
     protected $removeApply(list: EE.IInline[], apply: EE.IInline) {
-        let newList: EE.IInline[] = [];
-        for (let i = 0, l = list.length; i < l; i++) {
-            let inline = Util.Extend({}, list[i]);
-            if (apply.start >= inline.start && apply.end <= inline.end) {
-                if (apply.start > inline.start) {
-                    newList.push({ start: inline.start, end: apply.start });
+        if (list) {
+            let newList: EE.IInline[] = [];
+            for (let i = 0, l = list.length; i < l; i++) {
+                let inline = Util.Extend({}, list[i]);
+                if (apply.start <= inline.start && inline.start <= apply.end && apply.end < inline.end) {
+                    inline.start = apply.end;
+                    newList.push(inline);
                 }
-                if (apply.end < inline.end) {
-                    newList.push({ start: apply.end, end: inline.end });
+                else if (inline.start < apply.start && apply.start <= inline.end && inline.end <= apply.end) {
+                    inline.end = apply.start;
+                    newList.push(inline);
+                }
+                else if (inline.start < apply.start && apply.end < inline.end) {
+                    inline.end = apply.start;
+                    newList.push(inline);
+                    let right = Util.Extend({}, list[i]);
+                    right.start = apply.end;
+                    newList.push(right);
                 }
             }
-            else {
-                newList.push(inline);
-            }
+            return newList;
         }
-        return newList;
     }
 
     apply(button: IToolbarButton) {
-        let cursor = this.editor.cursor.current();
-        if (!cursor.collapsed) {
+        if (!button.disabled) {
             this.editor.cursor.eachRow((node, start, end) => {
                 let to = node.block;
                 //合并
@@ -123,5 +128,11 @@ export abstract class InlineTool implements EE.IEditorTool {
             this.editor.cursor.restore();
             this.editor.actions.doAction();
         }
+    }
+
+    checkDisabled() {
+        /** 当光标选中了close inline时，例如math图片，禁用inline按钮 */
+        let cursor = this.editor.cursor.current();
+        return !cursor.mutilple && !cursor.collapsed && cursor.start === cursor.end;
     }
 }

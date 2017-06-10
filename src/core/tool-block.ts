@@ -39,32 +39,6 @@ export abstract class BlockTool implements EE.IEditorTool {
                 pos += current.textContent.length;
             }
         });
-        // Util.TreeWalker(
-        //     this.editor.ownerDoc,
-        //     el,
-        //     (current) => {
-        //         let lenght = current.textContent.length;
-        //         if (current.nodeType === 1) {
-        //             let tool = this.editor.tools.matchInlineTool(<Element>current);
-        //             if (tool) {
-        //                 if (!map[tool.token]) map[tool.token] = [];
-        //                 let inline = tool.readData(<Element>current, pos);
-        //                 if (inline) {
-        //                     if (last[tool.token] && inline.start === last[tool.token].end) {
-        //                         //检查是否可以合并
-        //                         last[tool.token].end = inline.end;
-        //                     }
-        //                     else {
-        //                         map[tool.token].push(inline);
-        //                         last[tool.token] = inline;
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //         else if (current.nodeType === 3) {
-        //             pos += lenght;
-        //         }
-        //     });
         return map;
     }
 
@@ -173,6 +147,8 @@ export abstract class BlockTool implements EE.IEditorTool {
                     else {
                         //切分当前text节点
                         let split = leftText.splitText(center.start - current.start);
+                        leftText.$inline = { start: current.start, end: center.start };
+                        split.$inline = { start: center.start, end: current.end };
                         leftText.parentNode.insertBefore(el, split);
                     }
                 }
@@ -201,6 +177,10 @@ export abstract class BlockTool implements EE.IEditorTool {
                     tool.render(center, centerText);
                 }
             }
+            if (insert && root.childNodes.length === 0) {
+                let el = tool.render(insert, null);
+                root.appendChild(el);
+            }
         }
     }
 
@@ -224,6 +204,10 @@ export abstract class BlockTool implements EE.IEditorTool {
         //创建element
         let el = this.editor.renderElement(node);
         if (this.blockType === EE.BlockType.Leaf) {
+            //空行，插入一个br
+            if (!block.text && (!block.inlines['br'] || block.inlines['br'].length === 0)) {
+                block.inlines['br'] = [{ start: 0, end: 0 }];
+            }
             if (block.text) {
                 //如果是叶子元素，渲染inline样式，首先插入一个完整的text节点
                 let text = this.editor.ownerDoc.createTextNode(block.text);
@@ -233,12 +217,8 @@ export abstract class BlockTool implements EE.IEditorTool {
                     end: block.text.length
                 };
                 el.appendChild(text);
-                this.$renderInlines(el, block.inlines);
             }
-            else {
-                //空行，增加br
-                el.appendChild(this.editor.ownerDoc.createElement('br'));
-            }
+            this.$renderInlines(el, block.inlines);
         }
         return el;
     }
@@ -252,9 +232,8 @@ export abstract class BlockTool implements EE.IEditorTool {
             let oldEl = this.editor.findBlockElement(node.rowid);
             if (oldEl.tagName.toLowerCase() !== tag) {
                 node.block.token = this.token;
-                let newNode = this.$render(node.block, tag);
-                newNode.innerHTML = oldEl.innerHTML;
-                oldEl.parentElement.replaceChild(newNode, oldEl);
+                let newEl = this.$render(node.block, tag);
+                oldEl.parentElement.replaceChild(newEl, oldEl);
             }
         });
         this.editor.cursor.restore();

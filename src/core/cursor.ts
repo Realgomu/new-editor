@@ -28,8 +28,9 @@ export class Cursor {
         return this._activeList as Readonly<Array<IActiveObj>>;
     }
 
-    eachRow(func: (node: EE.IBlockNode, start?: number, end?: number) => void) {
-        this._current.rows.forEach(id => {
+    eachRow(func: (node: EE.IBlockNode, start?: number, end?: number, index?: number) => any) {
+        for (let i = 0, l = this._current.rows.length; i < l; i++) {
+            let id = this._current.rows[i];
             let node = this.editor.findBlockNode(id);
             let start = 0, end = node.block.text.length;
             if (node.rowid === this._current.rows[0]) {
@@ -38,8 +39,10 @@ export class Cursor {
             if (node.rowid === this._current.rows[this._current.rows.length - 1]) {
                 end = this._current.end;
             }
-            func && func(node, start, end);
-        })
+            if (func && func(node, start, end, i)) {
+                break;
+            }
+        }
     }
 
     findLastRow(): EE.IBlockNode {
@@ -171,18 +174,24 @@ export class Cursor {
 
     private _getActiveTokens() {
         let list: IActiveObj[] = [];
-        if (!this._current.mutilple) {
-            let node = this.editor.findBlockNode(this._current.rows[0]);
-            for (let key in node.block.inlines) {
-                if (node.block.inlines[key]
-                    .findIndex(i => i.start <= this._current.start && this._current.end <= i.end) >= 0) {
-                    list.push({
-                        token: key
-                    });
+        this.eachRow((node, start, end, index) => {
+            //inline仅判断选中的第一行
+            if (index === 0) {
+                for (let key in node.block.inlines) {
+                    //光标闭合时，判断位置是否在inline里面
+                    if (this._current.collapsed) {
+                        if (node.block.inlines[key].findIndex(i => i.start <= start && end <= i.end) >= 0) {
+                            list.push({ token: key });
+                        }
+                    }
+                    //光标选中时，判断开始点是否在inline里面
+                    else {
+                        if (node.block.inlines[key].findIndex(i => i.start <= start && start < i.end) >= 0) {
+                            list.push({ token: key });
+                        }
+                    }
                 }
             }
-        }
-        this.eachRow((node) => {
             list.push({
                 token: node.block.token,
                 el: this.editor.findBlockElement(node.rowid)
@@ -200,7 +209,7 @@ export class Cursor {
             }
         });
         this._activeList = list;
-        // console.log(list);
+        console.log(list);
     }
 
     restore() {
@@ -286,20 +295,6 @@ export class Cursor {
                     range.setEnd(node, node.textContent.length);
                 }
             }, true);
-            // Util.TreeWalker(
-            //     this.editor.ownerDoc,
-            //     target,
-            //     (node: Text) => {
-            //         if (pos === 0) {
-            //             range.setStart(node, 0);
-            //         }
-            //         pos += node.textContent.length;
-            //         if (pos === length) {
-            //             range.setEnd(node, node.textContent.length);
-            //         }
-            //     },
-            //     true
-            // )
             selection.addRange(range);
         }
     }

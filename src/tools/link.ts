@@ -31,8 +31,9 @@ export default class Link extends Tool.InlineTool {
                 this.apply(button);
             },
             checkDisabled: (button) => {
+                let disabled = this.checkDisabled();
                 let cursor = this.editor.cursor.current();
-                return cursor.mutilple;
+                return cursor.mutilple || disabled;
             }
         });
         this.editor.buttons.register({

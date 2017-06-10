@@ -33,7 +33,7 @@ export class Actions {
     }
 
     push(step: IActionStep) {
-        console.log(step);
+        // console.log(step);
         if (this._queue.length >= this._max) {
             this._queue.shift();
             this._point--;
