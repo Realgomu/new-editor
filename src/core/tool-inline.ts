@@ -107,26 +107,29 @@ export abstract class InlineTool implements EE.IEditorTool {
 
     apply(button: IToolbarButton) {
         if (!button.disabled) {
-            this.editor.cursor.eachRow((node, start, end) => {
-                let to = node.block;
-                //合并
-                if (!button.active) {
-                    to.inlines[this.token] = this.$mergeApply(to.inlines[this.token], {
-                        start: start,
-                        end: end
-                    });
-                }
-                else {
-                    to.inlines[this.token] = this.$removeApply(to.inlines[this.token], {
-                        start: start,
-                        end: end
-                    });
-                }
-                //重新渲染block
-                this.editor.refreshElement(to);
-            });
-            this.editor.cursor.restore();
-            this.editor.actions.doAction();
+            let cursor = this.editor.cursor.current();
+            if (!cursor.collapsed) {
+                this.editor.cursor.eachRow((node, start, end) => {
+                    let to = node.block;
+                    //合并
+                    if (!button.active) {
+                        to.inlines[this.token] = this.$mergeApply(to.inlines[this.token], {
+                            start: start,
+                            end: end
+                        });
+                    }
+                    else {
+                        to.inlines[this.token] = this.$removeApply(to.inlines[this.token], {
+                            start: start,
+                            end: end
+                        });
+                    }
+                    //重新渲染block
+                    this.editor.refreshElement(to);
+                });
+                this.editor.cursor.restore();
+                this.editor.actions.doAction();
+            }
         }
     }
 

@@ -334,7 +334,7 @@ export class Editor {
         this.treeWalker(rowEl, (node) => {
             let length = node.textContent.length;
             if (node.nodeType === 1) {
-                if (Util.MatchSelector(node as Element, selector) && pos <= start && end <= pos + length) {
+                if (Util.MatchSelector(node as Element, selector) && pos <= start && start <= pos + length) {
                     targetEl = node as Element;
                     start = pos;
                     end = pos + length;

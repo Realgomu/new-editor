@@ -15,7 +15,7 @@ export default class Link extends Tool.InlineTool {
     selectors = ['a'];
     action = 'link';
 
-    private _linkNode: EE.IInlineNode;
+    private _currentLink: HTMLLinkElement;
     private _popTool: HTMLElement;
     private _popEdit: HTMLElement;
     constructor(editor: Editor) {
@@ -42,8 +42,8 @@ export default class Link extends Tool.InlineTool {
             iconFA: 'fa-external-link',
             text: '打开链接',
             click: () => {
-                if (this._linkNode) {
-                    this._openLink(this._linkNode.el as HTMLLinkElement);
+                if (this._currentLink) {
+                    this._openLink(this._currentLink);
                 }
             }
         });
@@ -53,7 +53,7 @@ export default class Link extends Tool.InlineTool {
             iconFA: 'fa-edit',
             text: '编辑链接',
             click: (ev: Event) => {
-                if (this._linkNode) {
+                if (this._currentLink) {
                     this._openEdit();
                 }
             }
@@ -76,9 +76,10 @@ export default class Link extends Tool.InlineTool {
                 this._openLink(target);
             }
             else {
-                this._linkNode = this._findTarget();
-                if (this._linkNode) {
-                    this._openTool();
+                this._currentLink = target;
+                // this._currentLink = this._findTarget();
+                if (this._currentLink) {
+                    this._openTool(this._currentLink);
                 }
             }
             ev.preventDefault();
@@ -144,13 +145,24 @@ export default class Link extends Tool.InlineTool {
                 list.push(link);
                 let newEl = this.editor.refreshElement(node.block);
                 this.editor.cursor.restore();
-                this._linkNode = {
-                    rowid: node.block.rowid,
-                    start: link.start,
-                    end: link.end,
-                    el: newEl
-                };
+                let targetNode = this._findTarget();
+                this._currentLink = targetNode.el as HTMLLinkElement;
                 this._openEdit(true);
+                // this._currentLink = newEl;
+                // this._currentLink = {
+                //     rowid: node.block.rowid,
+                //     start: link.start,
+                //     end: link.end,
+                //     el: newEl
+                // };
+                // this._openEdit(true);
+            }
+        }
+        else if (button.active) {
+            let node = this._findTarget();
+            if (node) {
+                this._currentLink = node.el as HTMLLinkElement;
+                this._openEdit();
             }
         }
     }
@@ -161,7 +173,7 @@ export default class Link extends Tool.InlineTool {
         }
     }
 
-    private _openTool(target: HTMLElement = this._linkNode.el) {
+    private _openTool(target: HTMLElement) {
         if (!this._popTool) {
             this._popTool = this.editor.renderElement({
                 tag: 'div',
@@ -186,7 +198,7 @@ export default class Link extends Tool.InlineTool {
                 class: 'ee-link-input'
             }
         }) as HTMLElement;
-        let link = this._linkNode.el as HTMLLinkElement;
+        let link = this._currentLink;
         this._popEdit.innerHTML = `
 <input name="href" type="text" placeholder="URL" value="${link.getAttribute('href') || ''}">
 <input name="text" type="text" placeholder="文字" value="${link.textContent}">
@@ -208,14 +220,14 @@ export default class Link extends Tool.InlineTool {
     }
 
     private _editSubmit(href: string, text: string) {
-        if (this._linkNode) {
-            let link = this._linkNode.el as HTMLLinkElement;
+        if (this._currentLink) {
+            let link = this._currentLink;
             link.textContent = text;
             link.href = href;
             let fromCursor = this.editor.cursor.current();
             this.editor.cursor.selectElement(link);
             this.editor.actions.doAction(fromCursor);
-            this._openTool();
+            this._openTool(this._currentLink);
         }
     }
 
@@ -225,7 +237,7 @@ export default class Link extends Tool.InlineTool {
         }
         else {
             this.editor.cursor.restore();
-            this._openTool();
+            this._openTool(this._currentLink);
         }
     }
 
@@ -235,7 +247,7 @@ export default class Link extends Tool.InlineTool {
         if (!this._popEdit) {
             this._createEditPanel();
         }
-        this.editor.defaultUI.popover.show(this._linkNode.el, this._popEdit);
+        this.editor.defaultUI.popover.show(this._currentLink, this._popEdit);
         setTimeout(() => {
             let $href = this._popEdit.querySelector('input[name="href"]') as HTMLInputElement;
             $href.focus();
@@ -243,15 +255,18 @@ export default class Link extends Tool.InlineTool {
     }
 
     private _deleleLink() {
-        if (this._linkNode) {
-            let block = this.editor.findBlockNode(this._linkNode.rowid).block;
+        if (this._currentLink) {
+            let node = this._findTarget();
+            let block = this.editor.findBlockNode(node.rowid).block;
             let list = block.inlines[this.token];
             if (list && list.length > 0) {
-                let index = list.findIndex(l => l.start <= this._linkNode.start && this._linkNode.end <= l.end);
+                let index = list.findIndex(l => l.start <= node.start && node.end <= l.end);
                 list.splice(index, 1);
             };
             this.editor.refreshElement(block);
             this.editor.cursor.restore();
+            this.editor.actions.doAction();
+            this.editor.defaultUI.popover.hide(this._popTool);
         }
     }
 }

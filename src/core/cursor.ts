@@ -143,6 +143,11 @@ export class Cursor {
         if (selection.isCollapsed) {
             cursor.end = cursor.start;
         }
+        else if (cursor.rows.length === 1 && cursor.start > cursor.end) {
+            let temp = cursor.end;
+            cursor.end = cursor.start;
+            cursor.start = temp;
+        }
         this._setCurrent(cursor, startCursorNode, endCursorNode);
         //计算激活的token
         this._getActiveTokens();
