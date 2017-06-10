@@ -180,10 +180,10 @@ declare module EnrichEditor {
         rows: string[];
         start: number;
         end: number;
-        collapsed?: boolean;
+        collapsed: boolean;
         mutilple?: boolean;
-        atStart?: boolean;
-        atEnd?: boolean;
+        startBeforeClose?: boolean;
+        endAfterClose?: boolean;
     }
 }
 

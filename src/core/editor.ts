@@ -215,12 +215,12 @@ export class Editor {
         }
     }
 
-    lastLeafBlock(): EE.IBlock {
+    lastLeafNode(): EE.IBlockNode {
         let last = this.blockTree.children[this.blockTree.children.length - 1];
         while (last && last.children && last.children.length > 0) {
             last = last.children[last.children.length - 1];
         }
-        return this.blockMap[last.rowid].block;
+        return last;
     }
 
     isBlockElement(el: Element, bottom: boolean = false) {
@@ -357,7 +357,7 @@ export class Editor {
         }
     }
 
-    treeWalker(root: Element, func: (current: Element | Text) => void, onlyText: boolean = false) {
+    treeWalker(root: Element, func: (current: Element | Text) => any, onlyText: boolean = false) {
         let watchToShow = NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
         let skipNodes = ['svg'];
         let filter = {
@@ -371,8 +371,14 @@ export class Editor {
         let walker = document.createTreeWalker(root, watchToShow, filter, false);
         while (walker.nextNode()) {
             let current = walker.currentNode;
+            //检查为空的text节点
+            if (current.nodeType === 3 && /[\r\n]/ig.test(current.textContent)) {
+                continue;
+            }
             if (!onlyText || current.nodeType === 3) {
-                func && func(current as Element | Text);
+                if (func && func(current as Element | Text)) {
+                    break;
+                }
             }
         }
     }

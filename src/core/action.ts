@@ -93,7 +93,7 @@ export class Actions {
         let rowid = fromCursor.rows[0];
         let current = this.editor.findBlockNode(rowid);
         let tool = this.editor.tools.matchToken(current.block.token) as Tool.IEnterBlockTool;
-        if (fromCursor.atEnd) {
+        if (this.editor.cursor.atEnd()) {
             ev.preventDefault();
             let useCommand = false;
             if (!fromCursor.collapsed) {
@@ -109,13 +109,15 @@ export class Actions {
                 rows: [newRow.getAttribute('data-row-id')],
                 start: 0,
                 end: 0,
-                atEnd: true,
+                collapsed: true,
+                endAfterClose: true,
+                startBeforeClose: false,
             });
             if (!useCommand) {
                 this.doAction(fromCursor, toCursor);
             }
         }
-        else if (fromCursor.atStart) {
+        else if (this.editor.cursor.atStart()) {
             ev.preventDefault();
             let useCommand = false;
             if (!fromCursor.collapsed) {

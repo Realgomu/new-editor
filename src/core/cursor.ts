@@ -6,6 +6,13 @@ interface IActiveObj {
     el?: Element;
 }
 
+interface ICursorNode {
+    node: Node;
+    offset: number;
+    atClose?: boolean;
+    afterClose?: boolean;
+}
+
 export class Cursor {
     private _current: EE.ICursorPosition = undefined;
     private _activeList: IActiveObj[] = [];
@@ -44,64 +51,87 @@ export class Cursor {
         return parent;
     }
 
-    private _getTargetNode(node: Node, offset: number): {
-        node: Node,
-        offset: number
-    } {
-        if (node.nodeType === 1) {
-            let child = node.childNodes[offset - 1];
-            if (child) {
-                if (child.nodeType === 3 || child.childNodes.length === 0) {
-                    return { node: child, offset: 0 };
-                }
+    atEnd() {
+        let lastRowId = this._current.rows[this._current.rows.length - 1];
+        let node = this.editor.findBlockNode(lastRowId);
+        if (node) {
+            if (this._current.end === node.block.text.length && this._current.endAfterClose !== false) {
+                return true;
             }
-            // else {
-            //     child = node.childNodes[offset].pre
-            // }
         }
-        return { node: node, offset: offset };
+    }
+
+    atStart() {
+        return this._current.start === 0 && this._current.startBeforeClose !== false;
+    }
+
+    private _getTargetNode(node: Node, offset: number): ICursorNode {
+        if (node.nodeType === 1) {
+            let child = node.childNodes[offset];
+            if (child) {
+                return { node: child, offset: 0, atClose: true, afterClose: child.nodeType === 3 };
+            }
+            else {
+                return { node: node.childNodes[offset - 1], offset: 0, atClose: true, afterClose: true };
+            }
+        }
+        return { node: node, offset: offset, atClose: false };
     }
 
     update(ev?: Event) {
         let selection = this.editor.ownerDoc.getSelection();
-        console.log(selection.getRangeAt(0));
         if (selection.anchorNode === this.editor.rootEl) {
             this.editor.cursor.restore();
             return;
         }
         let anchor = this._getTargetNode(selection.anchorNode, selection.anchorOffset);
         let focus = this._getTargetNode(selection.focusNode, selection.focusOffset);
+        let startCursorNode: ICursorNode;
+        let endCursorNode: ICursorNode;
         let cursor: EE.ICursorPosition = {
             rows: [],
             start: 0,
-            end: 0
+            end: 0,
+            collapsed: selection.isCollapsed
         };
         let pos = 0,
             count = 0,
-            rowid = '',
-            startFirst: boolean = undefined;
+            rowid = '';
         this.editor.treeWalker(
             this.editor.rootEl,
             (el: Element) => {
                 if (el.nodeType === 1) {
                     let id = this.editor.isBlockElement(el, true);
                     if (id) {
+                        if (count === 2) return true;
                         rowid = id;
                         pos = 0;
                         if (count === 1) cursor.rows.push(rowid);
                     }
                 }
                 if (el === anchor.node) {
-                    cursor.start = pos + anchor.offset;
+                    if (count === 0) {
+                        cursor.start = pos + anchor.offset;
+                        startCursorNode = anchor;
+                    }
+                    else {
+                        cursor.end = pos + anchor.offset;
+                        endCursorNode = anchor;
+                    }
                     cursor.rows.indexOf(rowid) < 0 && cursor.rows.push(rowid);
                     count++;
-                    if (startFirst === undefined) startFirst = true;
                 }
                 if (el === focus.node) {
-                    cursor.end = pos + focus.offset;
+                    if (count === 0) {
+                        cursor.start = pos + focus.offset;
+                        startCursorNode = focus;
+                    }
+                    else {
+                        cursor.end = pos + focus.offset;
+                        endCursorNode = focus;
+                    }
                     cursor.rows.indexOf(rowid) < 0 && cursor.rows.push(rowid);
                     count++;
-                    if (startFirst === undefined) startFirst = false;
                 }
                 if (el.nodeType === 3) {
                     pos += el.textContent.length;
@@ -110,26 +140,29 @@ export class Cursor {
         if (selection.isCollapsed) {
             cursor.end = cursor.start;
         }
-        else if (!startFirst || (!cursor.mutilple && cursor.start > cursor.end)) {
-            //交换start和end
-            let t = cursor.end;
-            cursor.end = cursor.start;
-            cursor.start = t;
-        }
-
-        this._setCurrent(cursor);
+        this._setCurrent(cursor, startCursorNode, endCursorNode);
+        //计算激活的token
+        this._getActiveTokens();
         console.log(this._current);
         return this._current;
     }
 
-    private _setCurrent(cursor: EE.ICursorPosition) {
+    private _setCurrent(cursor: EE.ICursorPosition, startCursorNode?: ICursorNode, endCursorNode?: ICursorNode) {
         this._current = cursor;
-        this._current.collapsed = this._current.rows.length === 1 && this._current.start === this._current.end;
         this._current.mutilple = this._current.rows.length > 1;
-        this._current.atStart = this._current.start === 0;
-        let lastRowId = this._current.rows[this._current.rows.length - 1];
-        let block = this.editor.findBlockNode(lastRowId).block;
-        this._current.atEnd = block.text.length === this._current.end;
+        if (startCursorNode && endCursorNode) {
+            let atClose = startCursorNode.atClose || endCursorNode.atClose;
+            if (atClose) {
+                if (!cursor.collapsed && cursor.start === cursor.end) {
+                    this._current.startBeforeClose = true;
+                    this._current.endAfterClose = true;
+                }
+                else {
+                    this._current.startBeforeClose = startCursorNode.atClose && !startCursorNode.afterClose;
+                    this._current.endAfterClose = endCursorNode.atClose && endCursorNode.afterClose;
+                }
+            }
+        }
         //计算激活的token
         this._getActiveTokens();
         //触发事件
@@ -172,13 +205,16 @@ export class Cursor {
 
     restore() {
         if (!this._current) {
-            let lastRow = this.editor.lastLeafBlock();
+            let lastNode = this.editor.lastLeafNode();
+            let lastEl = this.editor.findBlockElement(lastNode.rowid);
             this._current = {
-                rows: [lastRow.rowid],
-                start: lastRow.text.length,
-                end: lastRow.text.length,
-                atEnd: true
-            }
+                rows: [lastNode.rowid],
+                start: lastNode.block.text.length,
+                end: lastNode.block.text.length,
+                collapsed: true,
+                endAfterClose: true,
+                startBeforeClose: false,
+            };
         }
         return this.moveTo(this._current);
     }
@@ -208,25 +244,6 @@ export class Cursor {
                     }
                     pos += length;
                 }, true);
-                // Util.TreeWalker(
-                //     this.editor.ownerDoc,
-                //     startRow,
-                //     (current: Text) => {
-                //         let length = current.textContent.length;
-                //         if (pos <= cursor.start && cursor.start <= pos + length) {
-                //             range.setStart(current, cursor.start - pos);
-                //             isEmpty = false;
-                //         }
-                //         if (!cursor.mutilple) {
-                //             if (pos <= cursor.end && cursor.end <= pos + length) {
-                //                 range.setEnd(current, cursor.end - pos);
-                //                 isEmpty = false;
-                //             }
-                //         }
-                //         pos += length;
-                //     },
-                //     true
-                // )
             }
             if (cursor.mutilple) {
                 let endRow = this.editor.findBlockElement(cursor.rows[cursor.rows.length - 1]);
@@ -240,24 +257,12 @@ export class Cursor {
                         }
                         pos += length;
                     }, true);
-                    // Util.TreeWalker(
-                    //     this.editor.ownerDoc,
-                    //     endRow,
-                    //     (current: Text) => {
-                    //         let length = current.textContent.length;
-                    //         if (pos <= cursor.end && cursor.end <= pos + length) {
-                    //             range.setEnd(current, cursor.end - pos);
-                    //             isEmpty = false;
-                    //         }
-                    //         pos += length;
-                    //     },
-                    //     true
-                    // )
                 }
             }
             if (isEmpty) {
-                range.setStart(startRow, cursor.start);
-                range.setEnd(startRow, cursor.end);
+                let offset = cursor.start + (cursor.endAfterClose ? 1 : 0);
+                range.setStart(startRow, offset);
+                range.setEnd(startRow, offset);
             }
             selection.addRange(range);
 
