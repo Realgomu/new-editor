@@ -56,22 +56,6 @@ export function Extend(dst, ...args: any[]) {
     return baseExtend(dst, slice.call(arguments, 1));
 }
 
-/** 遍历dom节点 */
-// export function TreeWalker(
-//     doc: Document,
-//     root: Element,
-//     func: (current: Element | Text) => void,
-//     onlyText: boolean = false
-// ) {
-//     let watchToShow = onlyText ? NodeFilter.SHOW_TEXT : NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT;
-//     let walker = document.createTreeWalker(root, watchToShow, null, false);
-//     let pos = 0;
-//     while (walker.nextNode()) {
-//         let current = walker.currentNode;
-//         func && func(current as Element | Text);
-//     }
-// }
-
 export function NodeListForEach<T extends Node>(nodes: NodeListOf<T>, func: (node: T, index: number) => void) {
     if (nodes && nodes.length > 0) {
         for (let i = 0, l = nodes.length; i < l; i++) {
@@ -140,125 +124,6 @@ export function GetKeyCode(event: KeyboardEvent) {
 
     return keyCode;
 }
-
-/** 向dom中插入需要渲染的子节点 */
-// export function InsertRenderTree(doc: Document, root: HTMLElement, insert: EE.IRenderNode) {
-//     if (root && insert) {
-//         let walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-//         while (walker.nextNode() && insert) {
-//             let leftText = walker.currentNode as Text;
-//             let current = leftText.$renderNode;
-//             let left: EE.IRenderNode;
-//             let center: EE.IRenderNode;
-//             let right: EE.IRenderNode;
-//             if (insert.end <= current.end) {
-//                 center = insert;
-//                 insert = undefined;
-//             }
-//             else if (insert.start <= current.end && insert.end > current.end) {
-//                 center = {
-//                     tag: insert.tag,
-//                     start: insert.start,
-//                     end: current.end
-//                 };
-//                 insert.start = current.end;
-//             }
-//             else {
-//                 continue;
-//             }
-//             let collapsed = center.start === center.end;
-//             if (collapsed) {
-//                 //如果该节点是闭合节点
-//                 let el = CreateRenderElement(doc, center);
-//                 if (center.start === current.start) {
-//                     leftText.parentNode.insertBefore(el, leftText);
-//                 }
-//                 else if (center.start === current.end) {
-//                     leftText.parentNode.appendChild(el);
-//                 }
-//                 else {
-//                     //切分当前text节点
-//                     let split = leftText.splitText(center.start - current.start);
-//                     leftText.parentNode.insertBefore(el, split);
-//                 }
-//             }
-//             else {
-//                 //如果不是闭合节点
-//                 let centerText = leftText;
-//                 if (center.start > current.start) {
-//                     //切分左边
-//                     left = {
-//                         tag: '',
-//                         start: current.start,
-//                         end: center.start,
-//                     };
-//                     centerText = leftText.splitText(center.start - current.start);
-//                     leftText.$renderNode = left;
-//                 }
-//                 if (center.end < current.end) {
-//                     //切分右边
-//                     right = {
-//                         tag: '',
-//                         start: center.end,
-//                         end: current.end,
-//                     };
-//                     let rightText = centerText.splitText(center.end - center.start);
-//                     rightText.$renderNode = right;
-//                 }
-//                 centerText.$renderNode = center;
-//                 let el = CreateRenderElement(doc, center);
-//                 leftText.parentNode.replaceChild(el, centerText);
-//                 el.appendChild(centerText);
-//             }
-//         }
-//     }
-// }
-
-/** 根据render node创建dom元素 */
-// export function CreateRenderElement(doc: Document, node: EE.IRenderNode) {
-//     if (!node.tag) {
-//         //创建text节点
-//         let text = doc.createTextNode(node.text);
-//         if (node.start !== undefined || node.end !== undefined) {
-//             //删除缓存的content信息
-//             delete node.text;
-//             //在dom上记录位置信息
-//             text.$renderNode = node;
-//         }
-//         return text;
-//     }
-//     else {
-//         let el = doc.createElement(node.tag);
-//         //如果有text则添加一个text元素
-//         if (node.text && node.start !== node.end) {
-//             let text = doc.createTextNode(node.text);
-//             text.$renderNode = {
-//                 tag: '',
-//                 start: node.start,
-//                 end: node.end,
-//                 text: node.text
-//             };
-//             el.appendChild(text);
-//         }
-//         if (node.start !== undefined || node.end !== undefined) {
-//             //删除缓存的content信息
-//             delete node.text;
-//             //在dom上记录位置信息
-//             el.$renderNode = node;
-//         }
-//         //设置attr
-//         for (let name in node.attr) {
-//             el.setAttribute(name, node.attr[name]);
-//         }
-//         //children
-//         if (node.children && node.children.length > 0) {
-//             node.children.forEach(child => {
-//                 el.appendChild(CreateRenderElement(doc, child));
-//             });
-//         }
-//         return el;
-//     }
-// }
 
 export function CreateRenderElement(doc: Document, renderNode: EE.IRenderNode) {
     let el = doc.createElement(renderNode.tag);
@@ -378,4 +243,13 @@ export function DeepCompare(a, b) {
         }
     }
     return true;
+}
+
+export function NodeIndex(parent: Node, child: Node) {
+    for (let i = 0, l = parent.childNodes.length; i < l; i++) {
+        if (parent.childNodes[i] === child) {
+            return i;
+        }
+    }
+    return -1;
 }

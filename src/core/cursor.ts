@@ -221,7 +221,7 @@ export class Cursor {
                 start: lastNode.block.text.length,
                 end: lastNode.block.text.length,
                 collapsed: true,
-                endAfterClose: true,
+                endAfterClose: lastEl.lastChild.nodeType === 1,
                 startBeforeClose: false,
             };
         }
@@ -239,33 +239,81 @@ export class Cursor {
             cursor.collapsed = cursor.rows.length === 1 && cursor.start === cursor.end;
             cursor.mutilple = cursor.rows.length > 1;
             if (startRow) {
-                this.editor.treeWalker(startRow, (current: Text) => {
-                    let length = current.textContent.length;
-                    if (pos <= cursor.start && cursor.start <= pos + length) {
-                        range.setStart(current, cursor.start - pos);
-                        isEmpty = false;
-                    }
-                    if (!cursor.mutilple) {
-                        if (pos <= cursor.end && cursor.end <= pos + length) {
-                            range.setEnd(current, cursor.end - pos);
+                this.editor.treeWalker(startRow, (el) => {
+                    let length = el.textContent.length;
+                    //设置开始位置
+                    if (cursor.startBeforeClose) {
+                        if (cursor.start === pos && el.nodeType === 1) {
+                            let parent = el.parentNode;
+                            let offset = Util.NodeIndex(parent, el);
+                            range.setStart(parent, offset);
+                            if (cursor.collapsed) {
+                                range.setEnd(parent, offset);
+                            }
                             isEmpty = false;
                         }
                     }
-                    pos += length;
-                }, true);
+                    else {
+                        if (el.nodeType === 3 && pos <= cursor.start && cursor.start < pos + length) {
+                            range.setStart(el, cursor.start - pos);
+                            if (cursor.collapsed) {
+                                range.setEnd(el, cursor.start - pos);
+                            }
+                            isEmpty = false;
+                        }
+                    }
+                    //如果同一行，设置结束位置
+                    if (!cursor.mutilple) {
+                        if (cursor.endAfterClose) {
+                            if (cursor.end === pos && el.nodeType === 1) {
+                                let parent = el.parentNode;
+                                let offset = Util.NodeIndex(parent, el) + 1;
+                                range.setEnd(parent, offset);
+                                if (cursor.collapsed) {
+                                    range.setStart(parent, offset);
+                                }
+                                isEmpty = false;
+                            }
+                        }
+                        else {
+                            if (el.nodeType === 3 && pos < cursor.end && cursor.end <= pos + length) {
+                                range.setEnd(el, cursor.end - pos);
+                                if (cursor.collapsed) {
+                                    range.setStart(el, cursor.end - pos);
+                                }
+                                isEmpty = false;
+                            }
+                        }
+                    }
+                    if (el.nodeType === 3) {
+                        pos += length;
+                    }
+                });
             }
             if (cursor.mutilple) {
                 let endRow = this.editor.findBlockElement(cursor.rows[cursor.rows.length - 1]);
                 pos = 0;
                 if (endRow) {
-                    this.editor.treeWalker(endRow, (current: Text) => {
-                        let length = current.textContent.length;
-                        if (pos <= cursor.end && cursor.end <= pos + length) {
-                            range.setEnd(current, cursor.end - pos);
-                            isEmpty = false;
+                    this.editor.treeWalker(endRow, (el) => {
+                        let length = el.textContent.length;
+                        if (cursor.endAfterClose) {
+                            if (cursor.end === pos && el.nodeType === 1) {
+                                let parent = el.parentNode;
+                                let offset = Util.NodeIndex(parent, el) + 1;
+                                range.setEnd(parent, offset);
+                                isEmpty = false;
+                            }
                         }
-                        pos += length;
-                    }, true);
+                        else {
+                            if (el.nodeType === 3 && pos < cursor.end && cursor.end <= pos + length) {
+                                range.setEnd(el, cursor.end - pos);
+                                isEmpty = false;
+                            }
+                        }
+                        if (el.nodeType === 3) {
+                            pos += length;
+                        }
+                    });
                 }
             }
             if (isEmpty) {

@@ -75,18 +75,24 @@ export default class Link extends Tool.InlineTool {
             if (Util.IsMetaCtrlKey(ev)) {
                 this._openLink(target);
             }
+            else {
+                this._linkNode = this._findTarget();
+                if (this._linkNode) {
+                    this._openTool();
+                }
+            }
             ev.preventDefault();
             ev.stopPropagation();
         }, 'a');
-        this.editor.events.on('$cursorChanged', () => {
-            this._linkNode = this._findTarget();
-            if (this._linkNode) {
-                this._openTool();
-            }
-            else if (this._popTool) {
-                this.editor.defaultUI.popover.hide(this._popTool);
-            }
-        });
+        // this.editor.events.on('$cursorChanged', () => {
+        //     this._linkNode = this._findTarget();
+        //     if (this._linkNode) {
+        //         this._openTool();
+        //     }
+        //     else if (this._popTool) {
+        //         this.editor.defaultUI.popover.hide(this._popTool);
+        //     }
+        // });
     }
 
     private _findTarget() {
